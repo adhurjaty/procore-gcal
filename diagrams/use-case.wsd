@@ -7,6 +7,7 @@ actor customer
 cloud procoreAppStore
 cloud procore
 cloud googleCalendar
+cloud paymentProcessor
 
 rectangle Application {
   customer --> procoreAppStore : install \napplication 
@@ -17,6 +18,7 @@ rectangle Application {
   customer --> procore : add/remove/modify \nevent
   procore --> (webhooks handler)
   (webhooks handler) --> googleCalendar
+  (charge customer) --> paymentProcessor
 }
 
 @enduml

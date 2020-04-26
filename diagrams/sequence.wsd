@@ -4,25 +4,28 @@ title Sequence
 actor Customer
 participant Procore
 boundary Application
-database Database
+database DB
 participant GoogleCalendar
 participant Stripe
+participant EmailService
 
 Customer -> Procore : Install app
 Procore -> Application : Register user
-Application -> Database : Save user
+Application -> DB : Save user
+Application -> EmailService : Send confirmation
 Application -> Procore : Notify link
 Procore -> Customer : Share link
 Customer -> Application : Visit link
 Application -> Customer : Present credentials
-Customer -> Procore : Entery credentials
+Customer -> Procore : Enter credentials
 
 newpage
 
 Customer -> Application : Sign up
 Customer -> Application : Payment info
 Application -> Stripe : Authenticate credit card
-Application -> Database : Register user
+Application -> DB : Register user
+Application -> EmailService : Send confirmation
 
 newpage
 
@@ -34,6 +37,13 @@ Customer -> GoogleCalendar : View event
 newpage
 
 Customer -> Application : Modify settings
-Application -> Database : Update settings
+Application -> DB : Update settings
+
+newpage
+
+Application -> DB : Check subscription info
+Application <- DB : Time to bill
+Application -> Stripe : Bill customer
+Application -> EmailService : Send notification
 
 @enduml

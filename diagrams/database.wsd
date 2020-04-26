@@ -1,0 +1,19 @@
+@startuml
+title Database
+
+entity User {
+    * id : key
+    ---
+    
+}
+
+entity ProcoreSettings {
+    * id : key
+    ---
+    * user_id : foreign_key
+    * token : uuid
+    * refresh_token : uuid
+}
+
+
+@enduml

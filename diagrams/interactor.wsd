@@ -1,0 +1,57 @@
+@startuml
+title Interactor
+
+class SignupCase {
+
+}
+
+class ModifyUserCase {
+
+}
+
+class InstallCase {
+
+}
+
+class UpdateGCalCase {
+
+}
+
+class UseCases {
+
+}
+
+interface DataInteractor {
+    
+}
+
+interface UseCaseInput {
+    RequestModel model
+    void Signup()
+    void AddEvent()
+    void ModifyEvent()
+    void DeleteEvent()
+
+}
+
+interface UseCaseOutput {
+
+}
+
+class Entities {
+    User[] Users
+}
+
+class RequestModel {
+    User user
+}
+
+class ResponseModel {
+
+}
+
+UseCases --|> UseCaseInput
+UseCases --> UseCaseOutput
+UseCaseInput --> RequestModel
+
+@enduml
