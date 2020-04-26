@@ -1,6 +1,17 @@
 @startuml
 title Interactor
 
+class Entities {
+    User[] Users
+}
+
+interface DataInteractor {
+    User CreateUser(User user)
+    void UpdateUser(User user)
+    void DeleteUser(User user)
+    User GetUser(Uuid id)
+}
+
 class SignupCase {
 
 }
@@ -21,29 +32,54 @@ class UseCases {
 
 }
 
-interface DataInteractor {
-    
-}
-
 interface UseCaseInput {
     RequestModel model
     void Signup()
     void AddEvent()
     void ModifyEvent()
     void DeleteEvent()
-
+    void Subscribe()
+    void EmailUser(string subject, string body)
 }
 
 interface UseCaseOutput {
 
 }
 
-class Entities {
-    User[] Users
+class CalendarRequest {
+    uuid user_id
+    uuid token
+    uuid refresh_token
+}
+
+class CreditCardInfo {
+    string firstName
+    string lastName
+    string address
+    string number
+    int cvc
+}
+
+class UserRequest {
+    string email
+    uuid procore_token
+    uuid procore_refresh_token
+    bool is_trial
+    CreditCardInfo cc_info
+    CalendarRequest[] calendars
+}
+
+class EventRequest {
+    uuid user_id
+    string title
+    string description
+    datetime start_time
+    datetime end_time
 }
 
 class RequestModel {
-    User user
+    string email
+
 }
 
 class ResponseModel {

@@ -10,6 +10,7 @@ node DatabaseNode {
 }
 
 node WebView
+node EmailView
 
 node Interactor {
     [Entites] <-- [DataMapper]
@@ -27,6 +28,8 @@ node Controller {
     [RequestHandler] --> [Controller]
     [Presenter] --> [WebViewModel]
     [Presenter] --> [GCalViewModel]
+    [Presenter] --> [EmailViewModel]
+    [EmailViewModel] --> EmailView
     [WebViewModel] <-- WebView
     [GCalViewModel] --> GoogleCalendar
     UseCaseOutput <|-- [Presenter]

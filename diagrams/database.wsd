@@ -4,7 +4,10 @@ title Database
 entity User {
     * id : key
     ---
-    
+    * email : string
+    * is_trial : bool
+    * trial_start : datetime
+    * payment_id : uuid
 }
 
 entity ProcoreSettings {
@@ -15,5 +18,15 @@ entity ProcoreSettings {
     * refresh_token : uuid
 }
 
+entity CalendarSettings {
+    * id : key
+    ---
+    * user_id : foreign_key
+    * token : uuid
+    * refresh_token : uuid
+}
+
+User }|-- CalendarSettings
+User ||-- ProcoreSettings
 
 @enduml

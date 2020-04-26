@@ -1,0 +1,39 @@
+@startuml
+title Database Component
+
+class ApiSettings {
+    Uuid ID
+    Uuid token
+    Uuid refresh_token
+}
+
+class CalendarSettings {
+
+}
+
+class ProcoreSettings {
+    
+}
+
+class User {
+    Uuid ID
+    string email
+    CalendarSettings[] calendars
+    ProcoreSettings procore_settings
+}
+
+class DataMapper {
+    User[] Users
+    void DeleteUser(User user)
+    void UpdateUser(User user)
+    User CreateUser(User user)
+    User GetUser(Uuid id)
+}
+
+CalendarSettings --|> ApiSettings
+ProcoreSettings --|> ApiSettings
+User --> CalendarSettings
+User --> ProcoreSettings
+DataMapper --> User
+
+@enduml
