@@ -1,0 +1,39 @@
+@startuml
+title Sequence
+
+actor Customer
+participant Procore
+boundary Application
+database Database
+participant GoogleCalendar
+participant Stripe
+
+Customer -> Procore : Install app
+Procore -> Application : Register user
+Application -> Database : Save user
+Application -> Procore : Notify link
+Procore -> Customer : Share link
+Customer -> Application : Visit link
+Application -> Customer : Present credentials
+Customer -> Procore : Entery credentials
+
+newpage
+
+Customer -> Application : Sign up
+Customer -> Application : Payment info
+Application -> Stripe : Authenticate credit card
+Application -> Database : Register user
+
+newpage
+
+Customer -> Procore : Add/modify/delete event
+Procore -> Application : Webhooks
+Application -> GoogleCalendar : Add/modify/delete event
+Customer -> GoogleCalendar : View event
+
+newpage
+
+Customer -> Application : Modify settings
+Application -> Database : Update settings
+
+@enduml

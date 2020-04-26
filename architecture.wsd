@@ -1,0 +1,53 @@
+@startuml
+title Architecture
+
+cloud Procore
+cloud GoogleCalendar
+
+node DatabaseNode {
+    database Database
+    [DataMapper] --> Database
+}
+
+node WebPresenter {
+    [Settings Presenter] --> [SettingsVM]
+    SettingsView --> [SettingsVM]
+    WebView --> SettingsView
+}
+
+node ProcoreWebhooks {
+    [WebhookPresenter] --> [WebhooksVM]
+    ProcoreInterface --> [WebhooksVM]
+    Procore --> ProcoreInterface
+}
+
+node GCalPresenter {
+    GCalView <-- GoogleCalendar
+    [GCalVM] <-- GCalView
+    [GCalPresenter] --> [GCalVM]
+}
+
+node WebView {
+    [WebViewComponent]
+}
+
+node Controller {
+    SettingsInterface --> [Controller]
+    GCalInterface --> [Controller]
+    WebhooksInterface --> [Controller]
+    ProcoreWebhooks --> WebhooksInterface
+    GCalPresenter --> GCalInterface
+    WebPresenter --> SettingsInterface
+}
+
+node Interactor {
+    [Entites] <-- [DataMapper]
+    DataGateway <-- [DataMapper]
+    [Interactor] <-- DataGateway
+    [Interactor] <-- [Entites]
+    ControllerInterface <-- [Controller]
+    [Interactor] <-- ControllerInterface
+}
+
+
+@enduml

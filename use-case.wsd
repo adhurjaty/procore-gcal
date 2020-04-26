@@ -1,0 +1,22 @@
+@startuml
+title Use cases
+left to right direction
+
+skinparam packageStyle rectangle
+actor customer
+cloud procoreAppStore
+cloud procore
+cloud googleCalendar
+
+rectangle Application {
+  customer --> procoreAppStore : install \napplication 
+  procoreAppStore --> (sign up/redirect)
+  customer -- (sign up) : web frontend
+  (sign up) --> procore : OAuth
+  customer --> (modify settings)
+  customer --> procore : add/remove/modify \nevent
+  procore --> (webhooks handler)
+  (webhooks handler) --> googleCalendar
+}
+
+@enduml
