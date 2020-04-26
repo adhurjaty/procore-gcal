@@ -9,45 +9,29 @@ node DatabaseNode {
     [DataMapper] --> Database
 }
 
-node WebPresenter {
-    [Settings Presenter] --> [SettingsVM]
-    SettingsView --> [SettingsVM]
-    WebView --> SettingsView
-}
-
-node ProcoreWebhooks {
-    [WebhookPresenter] --> [WebhooksVM]
-    ProcoreInterface --> [WebhooksVM]
-    Procore --> ProcoreInterface
-}
-
-node GCalPresenter {
-    GCalView <-- GoogleCalendar
-    [GCalVM] <-- GCalView
-    [GCalPresenter] --> [GCalVM]
-}
-
-node WebView {
-    [WebViewComponent]
-}
-
-node Controller {
-    SettingsInterface --> [Controller]
-    GCalInterface --> [Controller]
-    WebhooksInterface --> [Controller]
-    ProcoreWebhooks --> WebhooksInterface
-    GCalPresenter --> GCalInterface
-    WebPresenter --> SettingsInterface
-}
+node WebView
 
 node Interactor {
     [Entites] <-- [DataMapper]
-    DataGateway <-- [DataMapper]
-    [Interactor] <-- DataGateway
-    [Interactor] <-- [Entites]
-    ControllerInterface <-- [Controller]
-    [Interactor] <-- ControllerInterface
+    DataGateway <|-- [DataMapper]
+    UseCaseInput <-- [Controller]
+    [UseCaseInteractor] --|> UseCaseInput
+    UseCaseOutput <-- [UseCaseInteractor]
+    [UseCaseInteractor] --> [Entites]
+    [UseCaseInteractor] --> DataGateway
 }
+
+node Controller {
+    Procore --> [RequestHandler]
+    WebView --> [RequestHandler]
+    [RequestHandler] --> [Controller]
+    [Presenter] --> [WebViewModel]
+    [Presenter] --> [GCalViewModel]
+    [WebViewModel] <-- WebView
+    [GCalViewModel] --> GoogleCalendar
+    UseCaseOutput <|-- [Presenter]
+}
+
 
 
 @enduml
