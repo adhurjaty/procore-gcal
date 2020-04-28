@@ -41,6 +41,15 @@ Application -> DB : Update settings
 
 newpage
 
+Customer -> Application : Subscribe
+Customer -> Application : Payment info
+Application -> Stripe : Authenticate payment info
+Stripe -> Application : API Credentials
+Application -> Database : Update user
+Application -> EmailService : Notify user
+
+newpage
+
 Application -> DB : Check subscription info
 Application <- DB : Time to bill
 Application -> Stripe : Bill customer

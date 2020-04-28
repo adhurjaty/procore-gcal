@@ -1,0 +1,61 @@
+@startuml
+title Controller
+
+class PushViewModel {
+    void Send()
+}
+
+class EmailViewModel {
+    string fromAddress
+    string[] toAddresses
+    string[] ccAddresses
+    string subject
+    string body
+}
+
+class CalendarSetting {
+    string email
+}
+
+class WebViewModel {
+    string email
+    datetime trial_start
+    CalendarSetting[] calendars
+
+}
+
+class GCalViewModel {
+    datetime start_time
+    datetime end_time
+    string name
+    string description
+}
+
+class RequestHandler {
+    json get_user(string id)
+    json create_user(json user)
+    json update_user(json user)
+    json delete_user(json user)
+    void webhooks_handler(WebhooksEvent event)
+}
+
+class Presenter {
+    ResponseModel model
+    void set_user(User user)
+}
+
+class Controller {
+    UseCaseInput interactor
+    User create_user(User user)
+    User update_user(User user)
+    void delete_user(User user)
+    void create_event(Event event)
+    void update_event(Event event)
+    void delete_event(Event event)
+}
+
+WebViewModel --> CalendarSetting
+GCalViewModel --|> PushViewModel
+EmailViewModel --|> PushViewModel
+
+@enduml
