@@ -26,6 +26,12 @@ entity CalendarSettings {
     * refresh_token : uuid
 }
 
+entity ApplicationSettings {
+    * id : key
+    * monthly_price : int
+    * trial_period : timespan
+}
+
 User }|-- CalendarSettings
 User ||-- ProcoreSettings
 

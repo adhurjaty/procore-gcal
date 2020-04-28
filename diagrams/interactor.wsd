@@ -3,6 +3,7 @@ title Interactor
 
 class Entities {
     User[] Users
+    AppSettings settings
 }
 
 interface DataInteractor {
@@ -12,44 +13,43 @@ interface DataInteractor {
     User GetUser(Uuid id)
 }
 
-class SignupCase {
-
+class UserUseCase {
+    UserRequest userRequest
+    DataInteractor db
+    User Get()
+    void Signup()
+    void Update()
+    void Delete()
 }
 
-class ModifyUserCase {
-
-}
-
-class InstallCase {
-
-}
-
-class UpdateGCalCase {
-
-}
-
-class UseCases {
-
+class EventUseCase {
+    ProcoreEvent event
+    GCalEvent Get()
+    void Create()
+    void Update()
+    void Remove()
 }
 
 interface UseCaseInput {
-    RequestModel model
-    void Signup()
-    void AddEvent()
-    void ModifyEvent()
-    void DeleteEvent()
-    void Subscribe()
-    void EmailUser(string subject, string body)
+    void Signup(UserRequest user)
+    void AddEvent(ProcoreEvent event)
+    void ModifyEvent(ProcoreEvent event)
+    void DeleteEvent(ProcoreEvent event)
+    void Subscribe(UserRequest user)
+    void EmailUser(UserRequest user)
 }
 
 interface UseCaseOutput {
-
+    void SetUser(User user)
+    void EmailUser(User user)
+    void AddEvent(GCalEvent event)
+    void ModifyEvent(GCalEvent event)
+    void DeleteEvent(GCalEvent event)
 }
 
 class CalendarRequest {
-    uuid user_id
-    uuid token
-    uuid refresh_token
+    string token
+    string refresh_token
 }
 
 class CreditCardInfo {
@@ -69,7 +69,7 @@ class UserRequest {
     CalendarRequest[] calendars
 }
 
-class EventRequest {
+class ProcoreEvent {
     uuid user_id
     string title
     string description
@@ -77,17 +77,32 @@ class EventRequest {
     datetime end_time
 }
 
-class RequestModel {
-    string email
-
+class GCalEvent {
+    string id
+    string title
+    string description
+    datetime start_time
+    datetime send_time
+    Location location
+    timespan recurrence
 }
 
-class ResponseModel {
-
+class UseCases {
+    UserCasesOutput output
+    UserUseCase userCase
+    EventUseCase eventCase
 }
 
 UseCases --|> UseCaseInput
 UseCases --> UseCaseOutput
-UseCaseInput --> RequestModel
+EventUseCase --> ProcoreEvent
+EventUseCase --> GCalEvent
+UserRequest --> CreditCardInfo
+UseCases --> EventUseCase
+UseCases --> UserUseCase
+UserRequest --> CalendarRequest
+UserUseCase --> DataInteractor
+UserUseCase --> Entities
+EventUseCase --> Entities
 
 @enduml

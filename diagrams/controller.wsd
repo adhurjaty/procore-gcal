@@ -41,7 +41,9 @@ class RequestHandler {
 
 class Presenter {
     ResponseModel model
-    void set_user(User user)
+    void set_user()
+    void update_calendar()
+    void send_email()
 }
 
 class Controller {
