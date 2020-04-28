@@ -21,7 +21,6 @@ class WebViewModel {
     string email
     datetime trial_start
     CalendarSetting[] calendars
-
 }
 
 class GCalViewModel {
@@ -48,16 +47,33 @@ class Presenter {
 
 class Controller {
     UseCaseInput interactor
-    User create_user(User user)
-    User update_user(User user)
-    void delete_user(User user)
-    void create_event(Event event)
-    void update_event(Event event)
-    void delete_event(Event event)
+}
+
+interface UseCaseInput {
+    void Signup(UserRequest user)
+    void AddEvent(ProcoreEvent event)
+    void ModifyEvent(ProcoreEvent event)
+    void DeleteEvent(ProcoreEvent event)
+    void Subscribe(UserRequest user)
+    void EmailUser(UserRequest user)
+}
+
+interface UseCaseOutput {
+    void SetUser(User user)
+    void EmailUser(User user)
+    void AddEvent(GCalEvent event)
+    void ModifyEvent(GCalEvent event)
+    void DeleteEvent(GCalEvent event)
 }
 
 WebViewModel --> CalendarSetting
 GCalViewModel --|> PushViewModel
 EmailViewModel --|> PushViewModel
+Presenter --> EmailViewModel
+Presenter --> GCalViewModel
+Presenter --> WebViewModel
+RequestHandler --> Controller
+Controller --|> UseCaseInput
+Presenter --|> UseCaseOutput
 
 @enduml
