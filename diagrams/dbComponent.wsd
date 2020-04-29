@@ -15,27 +15,43 @@ class ProcoreSettings {
     
 }
 
+class Collaborator {
+
+}
+
+class EmailSettings {
+    bool event_change
+    bool added_collaborator
+
+}
+
 class User {
     Uuid ID
     string email
-    string fullName
-    EmailNotificationSettings emailSettings
-    CalendarSettings[] calendars
+    string display_name
+    EmailSettings email_settings
+    CalendarSettings calendar_settings
+}
+
+class AccountManager {
     ProcoreSettings procore_settings
+    Collaborator[] collaborators
 }
 
 class DataMapper {
-    User[] Users
     void DeleteUser(User user)
     void UpdateUser(User user)
     User CreateUser(User user)
     User GetUser(Uuid id)
 }
 
+AccountManager --|> User
+AccountManager --> Collaborator
+Collaborator --|> User
 CalendarSettings --|> ApiSettings
 ProcoreSettings --|> ApiSettings
 User --> CalendarSettings
 User --> ProcoreSettings
-DataMapper --> User
+User --> EmailSettings
 
 @enduml

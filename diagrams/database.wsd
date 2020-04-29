@@ -5,15 +5,29 @@ entity User {
     * id : key
     ---
     * email : string
+    * displayName : string
+}
+
+entity AccountManager {
+    * id : key
+    ---
+    * user_id : foreign_key
     * is_trial : bool
     * trial_start : datetime
     * payment_id : uuid
 }
 
-entity ProcoreSettings {
+entity Collaborator {
     * id : key
     ---
     * user_id : foreign_key
+    * manager_id : foreign_key
+}
+
+entity ProcoreSettings {
+    * id : key
+    ---
+    * manager_id : foreign_key
     * token : uuid
     * refresh_token : uuid
 }
@@ -32,7 +46,18 @@ entity ApplicationSettings {
     * trial_period : timespan
 }
 
-User }|-- CalendarSettings
-User ||-- ProcoreSettings
+entity EmailSettings {
+    * id : key
+    ---
+    * user_id : foreign_key
+    * eventChange : bool
+    * addCollaborator : bool
+}
+
+AccountManager ||-- ProcoreSettings
+User ||-- AccountManager
+User ||-- CalendarSettings
+User ||-- Collaborator
+AccountManager }|-- Collaborator
 
 @enduml

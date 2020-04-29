@@ -2,7 +2,7 @@
 title Interactor
 
 class Entities {
-    User[] Users
+    AccountManager[] Users
     AppSettings settings
 }
 
@@ -30,18 +30,27 @@ class EventUseCase {
     void Remove()
 }
 
+class CollaboratorUseCase {
+    UserRequest userRequest
+    DataInteractor db
+    void Add(CollaboratorRequest collab)
+    void Update(CollaboratorRequest collab)
+    void Remove(uuid id)
+}
+
 interface UseCaseInput {
     void Signup(UserRequest user)
+    void Subscribe(UserRequest user)
+    void ModifyUser(UserRequest user)
+    void AddCollaborator(CollaboratorRequest collab)
     void AddEvent(ProcoreEvent event)
     void ModifyEvent(ProcoreEvent event)
     void DeleteEvent(ProcoreEvent event)
-    void Subscribe(UserRequest user)
-    void EmailUser(UserRequest user)
 }
 
 interface UseCaseOutput {
     void SetUser(User user)
-    void EmailUser(User user)
+    void SendEmail(EmailResponse emailResponse)
     void AddEvent(GCalEvent event)
     void ModifyEvent(GCalEvent event)
     void DeleteEvent(GCalEvent event)
@@ -69,6 +78,12 @@ class UserRequest {
     CalendarRequest[] calendars
 }
 
+class CollaboratorRequest {
+    string email
+    string displayName
+    CalendarRequest creds
+}
+
 class ProcoreEvent {
     uuid user_id
     string title
@@ -87,10 +102,17 @@ class GCalEvent {
     timespan recurrence
 }
 
+class EmailResponse {
+    User user
+    User[] cc_users
+    
+}
+
 class UseCases {
     UserCasesOutput output
     UserUseCase userCase
     EventUseCase eventCase
+    CollaboratorUseCase collabCase
 }
 
 UseCases --|> UseCaseInput
@@ -104,5 +126,9 @@ UserRequest --> CalendarRequest
 UserUseCase --> DataInteractor
 UserUseCase --> Entities
 EventUseCase --> Entities
+CollaboratorRequest --> CalendarRequest
+UserUseCase --> UserRequest
+CollaboratorUseCase --> UserRequest
+UseCases --> CollaboratorUseCase
 
 @enduml

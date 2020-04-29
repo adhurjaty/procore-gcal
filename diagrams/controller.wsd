@@ -36,6 +36,7 @@ class RequestHandler {
     json update_user(json user)
     json delete_user(json user)
     void webhooks_handler(WebhooksEvent event)
+    void add_collaborator(json collaborator)
 }
 
 class Presenter {
@@ -51,11 +52,11 @@ class Controller {
 
 interface UseCaseInput {
     void Signup(UserRequest user)
+    void Subscribe(UserRequest user)
+    void ModifyUser(UserRequest user)
     void AddEvent(ProcoreEvent event)
     void ModifyEvent(ProcoreEvent event)
     void DeleteEvent(ProcoreEvent event)
-    void Subscribe(UserRequest user)
-    void EmailUser(UserRequest user)
 }
 
 interface UseCaseOutput {
