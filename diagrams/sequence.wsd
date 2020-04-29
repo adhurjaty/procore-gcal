@@ -2,6 +2,7 @@
 title Sequence
 
 actor Customer
+actor Collaborator
 participant Procore
 boundary Application
 database DB
@@ -10,18 +11,19 @@ participant Stripe
 participant EmailService
 
 Customer -> Procore : Install app
-Procore -> Application : Register user
-Application -> DB : Save user
-Application -> EmailService : Send confirmation
+Procore -> Application : Install command
 Application -> Procore : Notify link
-Procore -> Customer : Share link
-Customer -> Application : Visit link
-Application -> Customer : Present credentials
-Customer -> Procore : Enter credentials
+Customer -> Procore : View link
+Customer -> Application : Follow link/get code
+Customer -> Procore : Enter code
+Procore -> Application : Verify code
+Application -> DB : Save user
+Application -> EmailService : Send email
 
 newpage
 
 Customer -> Application : Sign up
+Application -> Procore : Oauth
 Customer -> Application : Payment info
 Application -> Stripe : Authenticate credit card
 Application -> DB : Register user
@@ -45,7 +47,7 @@ Customer -> Application : Subscribe
 Customer -> Application : Payment info
 Application -> Stripe : Authenticate payment info
 Stripe -> Application : API Credentials
-Application -> Database : Update user
+Application -> DB : Update user
 Application -> EmailService : Notify user
 
 newpage
@@ -54,5 +56,15 @@ Application -> DB : Check subscription info
 Application <- DB : Time to bill
 Application -> Stripe : Bill customer
 Application -> EmailService : Send notification
+
+newpage
+
+Customer -> Application : Add collaborator
+Application -> EmailService : Send request
+EmailService -> Collaborator : Send auth link
+Collaborator -> Application : Click GCal Oauth link
+Application -> GoogleCalendar : Oauth
+GoogleCalendar -> Application : Notify auth
+Application -> DB : Update user
 
 @enduml

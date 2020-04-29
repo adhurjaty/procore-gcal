@@ -18,6 +18,8 @@ class ProcoreSettings {
 class User {
     Uuid ID
     string email
+    string fullName
+    EmailNotificationSettings emailSettings
     CalendarSettings[] calendars
     ProcoreSettings procore_settings
 }
