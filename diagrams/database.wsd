@@ -15,6 +15,7 @@ entity AccountManager {
     * is_trial : bool
     * trial_start : datetime
     * payment_id : uuid
+    * org_id : string
 }
 
 entity Collaborator {
@@ -42,6 +43,7 @@ entity CalendarSettings {
 
 entity ApplicationSettings {
     * id : key
+    ---
     * monthly_price : int
     * trial_period : timespan
 }
