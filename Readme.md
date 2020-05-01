@@ -8,28 +8,32 @@ This is an application for syncing events on Procore (RFI's, calendar events, et
 
 ### Installation from Procore
 
-![Installation flow](./out/diagrams/sequence/Sequence-page1.png)
+![Installation flow](out/diagrams/sequence/Sequence-page1.png)
 
 ### Sign up from web interface
 
-![Installation flow](./out/diagrams/sequence/Sequence-page2.png)
+![Sign up](out/diagrams/sequence/Sequence-page2.png)
 
 ### Manage events on Procore
 
-![Installation flow](./out/diagrams/sequence/Sequence-page3.png)
+![Manage events](out/diagrams/sequence/Sequence-page3.png)
 
 ### Modify user settings
 
-![Installation flow](./out/diagrams/sequence/Sequence-page4.png)
+![Modify settings](out/diagrams/sequence/Sequence-page4.png)
 
 ### Subscribe after free trial
 
-![Installation flow](./out/diagrams/sequence/Sequence-page5.png)
+![Subscribe](out/diagrams/sequence/Sequence-page5.png)
 
 ### Bill customer
 
-![Installation flow](./out/diagrams/sequence/Sequence-page6.png)
+![Bill customer](out/diagrams/sequence/Sequence-page6.png)
 
 ### Add collaborator
 
-![Installation flow](./out/diagrams/sequence/Sequence-page7.png)
+![Add collaborator](out/diagrams/sequence/Sequence-page7.png)
+
+## Architecure
+
+![Architecture](out/diagrams/architecture/Architecture.png)
