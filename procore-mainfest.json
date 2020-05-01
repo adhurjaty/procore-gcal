@@ -1,0 +1,5 @@
+{
+    "uid": "Will autopopulate, so no need to put anything here",
+    "uuid": "Will autopopulate, so no need to put anything here",
+    "grant_type": "Populate with one of the following: authorization_code, implicit"
+}

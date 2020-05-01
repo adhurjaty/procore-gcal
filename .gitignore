@@ -1,3 +1,4 @@
 out/
 *.odg
 *.pdf
+venv/
