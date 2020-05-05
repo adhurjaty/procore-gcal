@@ -7,11 +7,14 @@ class Controller:
     def __init__(self):
         pass
 
-    def save_token(self, access_token=None, refresh_token=None, expires_at=None, **kwargs):
+    def save_token(self, access_token=None, refresh_token=None, token_type=None, 
+        expires_at=None, **kwargs):
+        
         # temporary implementation
         contents = {
             'token': access_token,
             'refresh_token': refresh_token,
+            'token_type': token_type,
             'expires_at': expires_at
         }
         with open(procore_token_file, 'w') as f:
