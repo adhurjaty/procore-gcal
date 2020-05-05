@@ -131,3 +131,33 @@ def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
     assert controller_mock.manager.procore_token.access_token == 'sample access token'
     assert resp.status_code == 200
 
+
+def test_authorize_signup_existing_user(test_client, procore_oauth_mock, controller_mock):
+    sample_token = {
+        'access_token': 'sample access token',
+        'refresh_token': 'sample refresh token',
+        'token_type': 'Bearer',
+        'expires_at': 1000,
+        'other_thing': 'asdfsda'
+    }
+    procore_oauth_mock.set_token(sample_token)
+    procore_oauth_mock.get = lambda endpoint: OauthResponseMock({
+        'id': 42,
+        'login': 'sean@example.com',
+        'name': 'Sean Black'
+    })
+
+    manager = AccountManagerDto()
+    manager.id = 69
+    manager.email = 'sean@example.com'
+    manager.full_name = 'Sean Black'
+    controller_mock.set_manager(manager)
+
+    resp = test_client.get('/authorize?new_user=True')
+
+    assert resp.status_code == 403
+    assert resp.json == {
+        'result': 'error',
+        'error': 'User already exists'
+    }
+

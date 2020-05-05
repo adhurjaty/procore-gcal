@@ -1,6 +1,5 @@
 import json
 
-
 procore_token_file = 'temp_db/procore_token.json'
 
 class Controller:
@@ -20,7 +19,7 @@ class Controller:
         with open(procore_token_file, 'w') as f:
             json.dump(contents, f)
 
-    def get_token(self, name=''):
+    def get_token(self, email):
         with open(procore_token_file, 'r') as f:
             token = json.load(f)
         result = {
@@ -31,6 +30,6 @@ class Controller:
         }
         return result
 
-    def update_token(self, token, refresh_token=None, access_token=None):
+    def update_token(self, email, token, refresh_token=None, access_token=None):
         self.save_token(**token)
         
