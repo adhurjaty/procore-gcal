@@ -43,15 +43,15 @@ def register():
 def authorize():
     token = oauth.procore.authorize_access_token()
     procore_user = get_procore_user_from_token(token)
-    user = controller.get_user(**procore_user)
+    user = controller.get_account_manager(**procore_user)
 
     if user and request.args.get('new_user'):
-        return show_error('User already exists')
+        return show_error('User already exists'), 403
     if not user and not request.args.get('new_user'):
-        return show_error('User does not exist')
+        return show_error('User does not exist'), 401
     
     if user:
-        user.change_token(token)
+        user.change_procore_token(token)
         controller.update_user(user)
     else:
         controller.create_user(**procore_user, **token)
