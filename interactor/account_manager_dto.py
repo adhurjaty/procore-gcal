@@ -7,6 +7,6 @@ class AccountManagerDto:
     email = ''
     procore_token = None
 
-    def change_procore_token(self, token):
+    def set_procore_token(self, token):
         self.procore_token = Oauth2Token(**token)
         

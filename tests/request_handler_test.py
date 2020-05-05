@@ -1,7 +1,7 @@
 import pytest
 
 import controller.request_handler as rh
-from .mocks import OauthMock, MockObject, OauthResponseMock
+from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from interactor.account_manager_dto import AccountManagerDto
 
 @pytest.fixture(scope='module')
@@ -19,7 +19,7 @@ def test_client():
 
 
 @pytest.fixture(scope='module')
-def procore_oauth_mock():
+def procore_oauth_mock() -> OauthMock:
     oauth_mock = MockObject()
     oauth_mock.procore = OauthMock()
     rh.oauth = oauth_mock
@@ -27,11 +27,9 @@ def procore_oauth_mock():
 
 
 @pytest.fixture(scope='module')
-def controller_mock():
-    mock_controller = MockObject()
+def controller_mock() -> ControllerMock:
+    mock_controller = ControllerMock()
     rh.controller = mock_controller
-    mock_controller.update_user = lambda u: {}
-    mock_controller.create_user = lambda u: {}
 
     return mock_controller
 
@@ -72,12 +70,9 @@ def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
 
     manager = AccountManagerDto()
     manager.id = 69
-    def get_manager(**user):
-        manager.email = user['login']
-        manager.full_name = user['name']
-        return manager
-
-    controller_mock.get_account_manager = get_manager
+    manager.email = 'sean@example.com'
+    manager.full_name = 'Sean Black'
+    controller_mock.set_manager(manager)
 
     resp = test_client.get('/authorize')
 
@@ -105,8 +100,6 @@ def test_authorize_login_no_user(test_client, procore_oauth_mock, controller_moc
         'name': 'Sean Black'
     })
 
-    controller_mock.get_account_manager = lambda **_: None
-
     resp = test_client.get('/authorize')
 
     assert resp.status_code == 401
@@ -114,3 +107,27 @@ def test_authorize_login_no_user(test_client, procore_oauth_mock, controller_moc
         'result': 'error',
         'error': 'User does not exist'
     }
+
+
+def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
+    sample_token = {
+        'access_token': 'sample access token',
+        'refresh_token': 'sample refresh token',
+        'token_type': 'Bearer',
+        'expires_at': 1000,
+        'other_thing': 'asdfsda'
+    }
+    procore_oauth_mock.set_token(sample_token)
+    procore_oauth_mock.get = lambda endpoint: OauthResponseMock({
+        'id': 42,
+        'login': 'sean@example.com',
+        'name': 'Sean Black'
+    })
+
+    resp = test_client.get('/authorize?new_user=True')
+
+    assert controller_mock.manager.email == 'sean@example.com'
+    assert controller_mock.manager.full_name == 'Sean Black'
+    assert controller_mock.manager.procore_token.access_token == 'sample access token'
+    assert resp.status_code == 200
+

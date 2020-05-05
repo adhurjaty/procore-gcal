@@ -1,3 +1,5 @@
+from interactor.account_manager_dto import AccountManagerDto
+
 class MockObject:
     def __init__(self):
         pass
@@ -23,3 +25,25 @@ class OauthResponseMock:
     
     def json(self):
         return self.response
+
+
+class ControllerMock:
+    manager = None
+
+    def get_account_manager(self, login: str):
+        if self.manager and self.manager.email == login:
+            return self.manager
+        return None
+
+    def set_manager(self, manager):
+        self.manager = manager
+
+    def update_user(self, user):
+        pass
+
+    def create_user(self, login: str = '', name: str = '', **token):
+        self.manager = AccountManagerDto()
+        self.manager.email = login
+        self.manager.full_name = name
+        self.manager.set_procore_token(token)
+    
