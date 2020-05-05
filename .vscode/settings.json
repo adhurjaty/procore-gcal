@@ -1,4 +1,10 @@
 {
     "python.pythonPath": "./venv/bin/python3",
-    "cSpell.enabled": false
+    "cSpell.enabled": false,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true
 }

@@ -1,17 +1,9 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, url_for
+from flask import Flask, url_for, request
 from flask_cors import CORS
 import json
 import requests
-
-
-class TempCache:
-    def get(self, key):
-        pass
-
-    def set(self, key, value, expires=None):
-        pass
-
+from .controller import Controller
 
 app = Flask(__name__)
 
@@ -23,10 +15,11 @@ app.config.update(**config)
 
 app.secret_key = app.config['APP_SECRET']
 
-cache = TempCache()
-oauth = OAuth(app, cache=cache)
-oauth.register('procore')
+controller = Controller()
 
+oauth = OAuth(app)
+oauth.register('procore', fetch_token=controller.get_token, 
+    update_token=controller.update_token)
 
 @app.route('/')
 def hello_world():
@@ -42,9 +35,11 @@ def login():
 @app.route('/authorize')
 def authorize():
     token = oauth.procore.authorize_access_token()
-    resp = oauth.procore.get('account/verify_credentials.json')
-    profile = resp.json()
-    return ''
+    controller.save_token(**token)
+    return 'login success'
 
 
-app.run(host='0.0.0.0')
+@app.route('/test')
+def test():
+    resp = oauth.procore.get('/vapid/projects')
+    return 'success'

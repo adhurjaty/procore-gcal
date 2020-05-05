@@ -2,3 +2,5 @@
 *.pdf
 venv/
 secrets/
+controller/__pycache__/
+temp_db/
