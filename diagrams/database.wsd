@@ -8,6 +8,15 @@ entity User {
     * displayName : string
 }
 
+entity Oauth2Token {
+    * id : key
+    ---
+    * token : string
+    * refresh_token : string
+    * token_type : string
+    * expires_at : int
+}
+
 entity AccountManager {
     * id : key
     ---
@@ -29,18 +38,14 @@ entity ProcoreSettings {
     * id : key
     ---
     * manager_id : foreign_key
-    * token : uuid
-    * refresh_token : uuid
-    * expires_at : int
+    * token_id : foreign_key
 }
 
 entity CalendarSettings {
     * id : key
     ---
     * user_id : foreign_key
-    * token : uuid
-    * refresh_token : uuid
-    * expires_at : int
+    * token_id : foreign_key
 }
 
 entity ApplicationSettings {
@@ -63,5 +68,7 @@ User ||-- AccountManager
 User ||-- CalendarSettings
 User ||-- Collaborator
 AccountManager }|-- Collaborator
+ProcoreSettings ||-- Oauth2Token
+CalendarSettings ||-- Oauth2Token
 
 @enduml
