@@ -1,5 +1,6 @@
 *.odg
 *.pdf
+*.pyc
 venv/
 secrets/
 controller/__pycache__/

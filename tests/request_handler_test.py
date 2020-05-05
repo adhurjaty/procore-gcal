@@ -1,11 +1,7 @@
 import pytest
 
 import controller.request_handler as rh
-
-
-class MockObject:
-    def __init__(self):
-        pass
+from .mocks import OauthMock, MockObject
 
 
 @pytest.fixture(scope='module')
@@ -25,7 +21,7 @@ def test_client():
 @pytest.fixture(scope='module')
 def procore_oauth_mock():
     oauth_mock = MockObject()
-    oauth_mock.procore = MockObject()
+    oauth_mock.procore = OauthMock()
     rh.oauth = oauth_mock
     return oauth_mock.procore
 
@@ -45,17 +41,18 @@ def test_hello_world(test_client):
 
 
 def test_login(test_client, procore_oauth_mock):
-    procore_oauth_mock.result_uri = ''
-    def authorize_redirect(uri):
-        procore_oauth_mock.result_uri = uri
-    procore_oauth_mock.authorize_redirect = authorize_redirect
-
     test_client.get('/login')
 
-    assert procore_oauth_mock.result_uri == 'http://localhost/authorize'
+    assert procore_oauth_mock.redirect_uri == 'http://localhost/authorize'
 
 
-def test_authorize(test_client, procore_oauth_mock, controller_mock):
+def test_register(test_client, procore_oauth_mock):
+    test_client.get('/register')
+
+    assert procore_oauth_mock.redirect_uri == 'http://localhost/authorize?new_user=True'
+
+
+def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
     sample_token = {
         'access_token': 'sample access token',
         'refresh_token': 'sample refresh token',
@@ -63,10 +60,18 @@ def test_authorize(test_client, procore_oauth_mock, controller_mock):
         'expires_at': 1000,
         'other_thing': 'asdfsda'
     }
-    def get_token():
-        return sample_token
+    procore_oauth_mock.set_token(sample_token)
+    procore_oauth_mock.get = lambda endpoint: {
+        'id': 42,
+        'login': 'sean@example.com',
+        'name': 'Sean Black'
+    }
 
-    procore_oauth_mock.authorize_access_token = get_token
+    controller_mock.get_user = lambda **user: {
+        'id': 69,
+        'email': user['login'],
+        'fullName': user['name']
+    }
 
     def save_token(**token):
         controller_mock.token = token
