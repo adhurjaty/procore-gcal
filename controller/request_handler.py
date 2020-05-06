@@ -101,6 +101,8 @@ def register_webhooks():
     trigger_dict = request.json
     procore_assign_triggers(hook, trigger_dict)
 
+    return show_success()
+
 
 def get_or_create_procore_webhook() -> dict:
     return get_procore_webhook() or create_procore_webhook()
@@ -145,7 +147,8 @@ def procore_assign_triggers(hook: dict, trigger_dict: dict):
 
 def get_procore_existing_triggers(hook_id: int) -> List[dict]:
     uri = PROCORE_TRIGGERS.format(hook_id=hook_id)
-    return oauth.procore.get(uri).json()
+    resp = oauth.procore.get(uri)
+    return (resp and resp.json()) or []
 
 
 def create_procore_triggers(project_id: str = '', hook_id: int = 0, name: str = ''):

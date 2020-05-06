@@ -48,4 +48,4 @@ class ControllerMock:
         self.manager.set_procore_token(token)
     
     def get_user_from_token(self, _):
-        return manager
+        return self.manager
