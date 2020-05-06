@@ -56,4 +56,4 @@ class Controller:
         return [self.manager]
 
     def update_gcal(self, users, event_object):
-        pass
+        self.rfis.append(event_object)

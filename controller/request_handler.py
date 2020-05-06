@@ -220,11 +220,11 @@ def get_procore_event_object(resource_name: str = '', resource_id: str = '',
 
 
 @app.route('/test')
-@auth.login_required
 def test():
-    company_id = g.user.company_id
-    resp = oauth.procore.get(f'/vapid/projects?company_id={company_id}')
-    return resp.json()[0]
+    rfis = controller.rfis
+    lst = '\n'.join(f'<li>{rfi["link"]}</li>' for rfi in rfis)
+    html = f'<ul>{lst}</ul>'
+    return html
 
 
 def show_success():
