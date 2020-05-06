@@ -32,4 +32,9 @@ class Controller:
 
     def update_token(self, email, token, refresh_token=None, access_token=None):
         self.save_token(**token)
+
+    def get_user_from_token(self, token):
+        return {
+            'company_id': 26972
+        }
         

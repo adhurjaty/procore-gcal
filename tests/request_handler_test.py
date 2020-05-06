@@ -1,8 +1,13 @@
 import pytest
+import json
+import os
+from pathlib import Path
 
 import controller.request_handler as rh
 from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from interactor.account_manager_dto import AccountManagerDto
+
+objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -161,3 +166,50 @@ def test_authorize_signup_existing_user(test_client, procore_oauth_mock, control
         'error': 'User already exists'
     }
 
+
+def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
+    manager = AccountManagerDto()
+    manager.id = 69
+    manager.email = 'sean@example.com'
+    manager.full_name = 'Sean Black'
+    manager.project_id = 12345
+    controller_mock.set_manager(manager)
+
+    def get_resource(uri):
+        assert uri == '/vapid/projects/12345/submittals/838383'
+        with open(os.path.join(objects_path, 'submittal.json'), 'r') as f:
+            resp = json.load(f)
+        return OauthResponseMock(resp)
+
+    procore_oauth_mock.get = get_resource
+
+    webhook_data = {
+        'user_id': 66789,
+        'timestamp': 1538866,
+        'resource_name': 'Submittals',
+        'resource_id': 838383,
+        'project_id': 12345,
+        'event_type': 'create',
+        'company_id': 8796,
+        'api_version': 'v2',
+        "metadata": {
+            "source_user_id": 1245,
+            "source_company_id": 891,
+            "source_project_id": 123,
+            "source_application_id": "242635f69bfc6fb9adax513875a0254a2a123f7bb176x1698d6x169a08f5646d",
+            "source_operation_id": "0181c891-8be7-4f99-8c4e-9f12347d6ecd"
+        }
+    }
+
+    def update_gcal(users, data):
+        assert len(users) == 1
+        assert data['title'] == "Smiths - Teardown & Assembly Bldg"
+        controller_mock.updated_gcal = True
+
+    controller_mock.update_gcal = update_gcal
+    controller_mock.get_users_in_project = lambda pid: [AccountManagerDto()]
+
+    resp = test_client.post('/webhook_handler', json=webhook_data)
+
+    assert resp.status_code == 200
+    assert controller_mock.updated_gcal
