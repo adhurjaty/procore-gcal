@@ -10,9 +10,18 @@ from interactor.account_manager_dto import AccountManagerDto
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
+
 @pytest.fixture(scope='module')
-def test_client():
-    app = rh.app
+def controller_mock() -> ControllerMock:
+    mock_controller = ControllerMock()
+    rh.controller = mock_controller
+
+    return mock_controller
+
+
+@pytest.fixture(scope='module')
+def test_client(controller_mock):
+    app = rh.create_app(controller_mock)
 
     testing_client = app.test_client()
 
@@ -30,14 +39,6 @@ def procore_oauth_mock() -> OauthMock:
     oauth_mock.procore = OauthMock()
     rh.oauth = oauth_mock
     return oauth_mock.procore
-
-
-@pytest.fixture(scope='module')
-def controller_mock() -> ControllerMock:
-    mock_controller = ControllerMock()
-    rh.controller = mock_controller
-
-    return mock_controller
 
 
 @pytest.fixture(scope='module')

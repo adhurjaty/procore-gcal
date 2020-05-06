@@ -9,48 +9,38 @@ from .controller import Controller
 from .api_endpoints import PROCORE_GET_USER, procore_resource_endpoint_dict, \
     PROCORE_WEBHOOKS, PROCORE_TRIGGERS, PROCORE_TRIGGER
 
+
 API_VERSION = 'v2'
-
-
-def fetch_token(name: str = ''):
-    user = auth.current_user()
-    return controller.get_token(user.email)
-
-
-def update_token(token: dict, refresh_token: str = '', access_token: str = ''):
-    current_user = auth.current_user()
-    email = current_user and current_user.email
-    if not email:
-        raise Exception('User not logged in')
-    
-    manager = controller.get_account_manager(email)
-    manager.set_procore_token(token)
-    controller.update_user(manager)
-
-    return controller.save_token(**token)
-
 
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
+controller: Controller = None
+oauth: OAuth = None
 
-config_file = 'secrets/app.config'
-with open(config_file, 'r') as f:
-    config_contents = f.read()
-config = json.loads(config_contents)
-app.config.update(**config)
+def create_app(cont):
+    global app, auth, controller, oauth
 
-app.secret_key = app.config['APP_SECRET']
+    config_file = 'secrets/app.config'
+    with open(config_file, 'r') as f:
+        config_contents = f.read()
+    config = json.loads(config_contents)
+    app.config.update(**config)
 
-controller = Controller()
+    app.secret_key = app.config['APP_SECRET']
 
-oauth = OAuth(app)
-oauth.register('procore', fetch_token=fetch_token, 
-    update_token=update_token)
+    controller = cont
+
+    oauth = OAuth(app)
+    oauth.register('procore', fetch_token=fetch_token, 
+        update_token=update_token)
+
+    return app
 
 
 @auth.verify_token
 def verify_token(token):
     return controller.get_user_from_token(token)
+
 
 @app.route('/')
 def hello_world():
@@ -240,3 +230,21 @@ def show_error(error_text):
         'result': 'error',
         'error': error_text
     }
+
+
+def fetch_token(name: str = ''):
+    user = auth.current_user()
+    return controller.get_token(user.email)
+
+
+def update_token(token: dict, refresh_token: str = '', access_token: str = ''):
+    current_user = auth.current_user()
+    email = current_user and current_user.email
+    if not email:
+        raise Exception('User not logged in')
+    
+    manager = controller.get_account_manager(email)
+    manager.set_procore_token(token)
+    controller.update_user(manager)
+
+    return controller.save_token(**token)
