@@ -47,3 +47,5 @@ class ControllerMock:
         self.manager.full_name = name
         self.manager.set_procore_token(token)
     
+    def get_user_from_token(self, _):
+        return manager

@@ -39,6 +39,18 @@ def controller_mock() -> ControllerMock:
     return mock_controller
 
 
+@pytest.fixture(scope=module)
+def user_controller_mock(controller_mock) -> ControllerMock:
+    manager = AccountManagerDto()
+    manager.id = 69
+    manager.email = 'sean@example.com'
+    manager.full_name = 'Sean Black'
+    manager.project_id = 12345
+    controller_mock.set_manager(manager)
+    
+    return controller_mock
+    
+
 def test_hello_world(test_client):
     response = test_client.get('/')
     
