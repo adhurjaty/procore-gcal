@@ -109,8 +109,12 @@ def get_or_create_procore_webhook() -> dict:
 
 
 def get_procore_webhook() -> dict:
-    hook = oauth.procore.get(PROCORE_WEBHOOKS)
-    return hook and hook[0] and hook[0].json()
+    project_id = auth.current_user().project_id
+    resp = oauth.procore.get(PROCORE_WEBHOOKS)
+    if not resp:
+        return None
+    return next((h for h in resp.json() if h['owned_by_project_id'] == project_id),
+        None)
     
 
 def create_procore_webhook():
@@ -134,7 +138,7 @@ def procore_assign_triggers(hook: dict, trigger_dict: dict):
     # TODO: speed up with parallelism
     for name, is_enabled in trigger_dict.items():
         trigger_it = (t for t in existing_triggers 
-            if name == t['trigger']['resource_name'])
+            if name == t['resource_name'])
         trigger = next(trigger_it, None)
 
         if is_enabled and not trigger:
@@ -170,7 +174,7 @@ def create_procore_triggers(project_id: str = '', hook_id: int = 0, name: str = 
 def delete_procore_triggers(triggers: List[dict]):
     # TODO: speed up with parallelism
     for trigger in triggers:
-        uri = PROCORE_TRIGGER.format(project_id=trigger['project_id'], 
+        uri = PROCORE_TRIGGER.format(hook_id=trigger['webhook_hook_id'], 
             trigger_id=trigger['id'])
         oauth.procore.delete(uri)
 

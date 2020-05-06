@@ -20,7 +20,7 @@ class OauthMock:
 
     
 class OauthResponseMock:
-    def __init__(self, response: dict):
+    def __init__(self, response):
         self.response = response
     
     def json(self):
