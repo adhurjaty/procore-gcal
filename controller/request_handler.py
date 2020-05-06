@@ -1,5 +1,5 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, url_for, request
+from flask import Flask, url_for, request, g
 from flask_httpauth import HTTPTokenAuth
 from flask_cors import CORS
 import json
@@ -20,6 +20,8 @@ oauth: OAuth = None
 def create_app(cont):
     global app, auth, controller, oauth
 
+    CORS(app, origins=[r'https?:\/\/[^\/]+\.procore\.com.*'])
+
     config_file = 'secrets/app.config'
     with open(config_file, 'r') as f:
         config_contents = f.read()
@@ -39,7 +41,9 @@ def create_app(cont):
 
 @auth.verify_token
 def verify_token(token):
-    return controller.get_user_from_token(token)
+    user = controller.get_user_from_token(token)
+    g.user = user
+    return user
 
 
 @app.route('/')
@@ -99,7 +103,7 @@ def get_or_create_procore_webhook() -> dict:
 
 
 def get_procore_webhook() -> dict:
-    project_id = auth.current_user().project_id
+    project_id = g.user.project_id
     resp = oauth.procore.get(PROCORE_WEBHOOKS)
     if not resp:
         return None
@@ -108,7 +112,7 @@ def get_procore_webhook() -> dict:
     
 
 def create_procore_webhook():
-    project_id = auth.current_user().project_id
+    project_id = g.user.project_id
     hook_data = {
         'project_id': project_id,
         'hook': {
@@ -122,7 +126,7 @@ def create_procore_webhook():
 
 def procore_assign_triggers(hook: dict, trigger_dict: dict):
     hook_id: int = hook['id']
-    project_id = auth.current_user().project_id
+    project_id = g.user.project_id
 
     existing_triggers = get_procore_existing_triggers(hook_id)
     # TODO: speed up with parallelism
@@ -184,6 +188,10 @@ def dispatch_webhook(data: dict):
     event_info = parse_webhook(data)
 
     users = controller.get_users_in_project(event_info['project_id'])
+    if not users:
+        return
+
+    g.user = users[0]
     event_object = get_procore_event_object(**event_info)
     controller.update_gcal(users, event_object)
 
@@ -214,7 +222,7 @@ def get_procore_event_object(resource_name: str = '', resource_id: str = '',
 @app.route('/test')
 @auth.login_required
 def test():
-    company_id = auth.current_user()['company_id']
+    company_id = g.user.company_id
     resp = oauth.procore.get(f'/vapid/projects?company_id={company_id}')
     return resp.json()[0]
 
@@ -233,12 +241,12 @@ def show_error(error_text):
 
 
 def fetch_token(name: str = ''):
-    user = auth.current_user()
+    user = g.user
     return controller.get_token(user.email)
 
 
 def update_token(token: dict, refresh_token: str = '', access_token: str = ''):
-    current_user = auth.current_user()
+    current_user = g.user
     email = current_user and current_user.email
     if not email:
         raise Exception('User not logged in')

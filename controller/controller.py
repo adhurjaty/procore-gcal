@@ -1,10 +1,20 @@
 import json
+from interactor.account_manager_dto import AccountManagerDto
 
 procore_token_file = 'temp_db/procore_token.json'
 
+
+
+
 class Controller:
+    rfis = []
     def __init__(self):
-        pass
+        self.manager = AccountManagerDto()
+        self.manager.id = 55
+        self.manager.email = 'adhurjaty@gmail.com'
+        self.manager.full_name = 'Anil Dhurjaty'
+        self.manager.project_id = 12345
+        self.manager.company_id = 26972
 
     def save_token(self, access_token=None, refresh_token=None, token_type=None, 
         expires_at=None, **kwargs):
@@ -33,8 +43,17 @@ class Controller:
     def update_token(self, email, token, refresh_token=None, access_token=None):
         self.save_token(**token)
 
+    def get_account_manager(self, login: str):
+        return self.manager
+
     def get_user_from_token(self, token):
-        return {
-            'company_id': 26972
-        }
-        
+        return self.manager
+
+    def update_user(self, user):
+        self.manager = user
+
+    def get_users_in_project(self, project_id):
+        return [self.manager]
+
+    def update_gcal(self, users, event_object):
+        pass
