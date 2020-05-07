@@ -34,8 +34,9 @@ def create_app(cont):
     controller = cont
 
     oauth = OAuth(app)
-    oauth.register('procore', fetch_token=fetch_token, 
-        update_token=update_token)
+    oauth.register('procore', fetch_token=fetch_procore_token, 
+        update_token=update_procore_token)
+    oauth.register('gcal')
 
     return app
 
@@ -89,6 +90,7 @@ def get_procore_user_from_token(token) -> dict:
     return result.json()
 
 
+# TODO: move part or all of this to a procore VM
 @app.route('/register_webhooks', methods=['POST'])
 @auth.login_required
 def register_webhooks():
@@ -229,6 +231,22 @@ def test():
     lst = '\n'.join(f'<li>{rfi["link"]}</li>' for rfi in rfis)
     html = f'<ul>{lst}</ul>'
     return html
+    
+
+@app.route('/gcal_login')
+def gcal_login():
+    redirect_uri = url_for('gcal_authorize', _external=True)
+    return oauth.gcal.authorize_redirect(redirect_uri)
+
+
+@app.route('/gcal_authorize')
+@auth.login_required
+def gcal_authorize():
+    token = oauth.procore.authorize_access_token()
+    user = g.user
+    user.set_gcal_token(token)
+    controller.update_user(user)
+    return show_success()
 
 
 def show_success():
@@ -244,14 +262,12 @@ def show_error(error_text):
     }
 
 
-def fetch_token(name: str = ''):
-    user = g.user
-    return controller.get_token(user.email)
+def fetch_procore_token(name: str = ''):
+    return controller.get_token(g.user.email)
 
 
-def update_token(token: dict, refresh_token: str = '', access_token: str = ''):
-    current_user = g.user
-    email = current_user and current_user.email
+def update_procore_token(token: dict, refresh_token: str = '', access_token: str = ''):
+    email = g.user and g.user.email
     if not email:
         raise Exception('User not logged in')
     
@@ -260,3 +276,4 @@ def update_token(token: dict, refresh_token: str = '', access_token: str = ''):
     controller.update_user(manager)
 
     return controller.save_token(**token)
+
