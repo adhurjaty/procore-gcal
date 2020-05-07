@@ -46,6 +46,7 @@ entity CalendarSettings {
     ---
     * user_id : foreign_key
     * token_id : foreign_key
+    * google_calendar_id: string
 }
 
 entity ApplicationSettings {

@@ -9,3 +9,8 @@ procore_resource_endpoint_dict = {
     'Submittals': PROCORE_SHOW_SUBMITTAL,
     'RFIs': PROCORE_SHOW_RFI
 }
+
+GCAL_CALENDARS = '/users/me/calendarList'
+GCAL_CALENDAR = '/calendars/{calendar_id}'
+GCAL_EVENTS = '/calendars/{calendar_id}/events'
+GCAL_EVENT = '/calendars/{calendar_id}/events/{event_id}'

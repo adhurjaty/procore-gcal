@@ -37,7 +37,7 @@ def create_app(cont):
     oauth.register('procore', fetch_token=fetch_procore_token, 
         update_token=update_procore_token)
     oauth.register('gcal', 
-        client_kwargs={'scope': 'https://www.googleapis.com/auth/calendar.events'})
+        client_kwargs={'scope': 'https://www.googleapis.com/auth/calendar'})
 
     return app
 
@@ -229,7 +229,8 @@ def get_procore_event_object(resource_name: str = '', resource_id: str = '',
 @app.route('/test')
 def test():
     rfis = controller.rfis
-    lst = '\n'.join(f'<li>{rfi["link"]}</li>' for rfi in rfis)
+    lst = '\n'.join(f'<li><a href="{rfi["link"]}">{rfi["subject"]}</a></li>' 
+        for rfi in rfis)
     html = f'<ul>{lst}</ul>'
     return html
     
