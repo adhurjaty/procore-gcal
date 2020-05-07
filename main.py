@@ -1,4 +1,4 @@
-from controller.request_handler import create_app
+from controller.request_handler import create_app, stop_app
 from controller.controller import Controller
 
 

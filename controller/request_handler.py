@@ -5,9 +5,10 @@ from flask_cors import CORS
 import json
 from typing import List
 
-from .controller import Controller
 from .api_endpoints import PROCORE_GET_USER, procore_resource_endpoint_dict, \
     PROCORE_WEBHOOKS, PROCORE_TRIGGERS, PROCORE_TRIGGER
+from .controller import Controller
+from util.utils import parallel_for
 
 
 API_VERSION = 'v2'
@@ -129,8 +130,8 @@ def procore_assign_triggers(hook: dict, trigger_dict: dict):
     project_id = g.user.project_id
 
     existing_triggers = get_procore_existing_triggers(hook_id)
-    # TODO: speed up with parallelism
-    for name, is_enabled in trigger_dict.items():
+    def create_or_delete_triggers(item):
+        name, is_enabled = item
         trigger_it = (t for t in existing_triggers 
             if name == t['resource_name'])
         trigger = next(trigger_it, None)
@@ -142,6 +143,8 @@ def procore_assign_triggers(hook: dict, trigger_dict: dict):
             triggers_to_delete = [trigger] + list(trigger_it)
             delete_procore_triggers(triggers_to_delete)
 
+    parallel_for(create_or_delete_triggers, trigger_dict.items())
+
 
 def get_procore_existing_triggers(hook_id: int) -> List[dict]:
     uri = PROCORE_TRIGGERS.format(hook_id=hook_id)
@@ -151,8 +154,7 @@ def get_procore_existing_triggers(hook_id: int) -> List[dict]:
 
 def create_procore_triggers(project_id: str = '', hook_id: int = 0, name: str = ''):
     methods = 'create update delete'.split()
-    # TODO: speed up with parallelism
-    for method in methods:
+    def create_trigger(method):
         trigger_data = {
             'project_id': project_id,
             'api_version': API_VERSION,
@@ -164,14 +166,17 @@ def create_procore_triggers(project_id: str = '', hook_id: int = 0, name: str = 
         uri = PROCORE_TRIGGERS.format(hook_id=hook_id)
         oauth.procore.post(uri, json=trigger_data)
 
+    parallel_for(create_trigger, methods)
+
 
 def delete_procore_triggers(triggers: List[dict]):
-    # TODO: speed up with parallelism
-    for trigger in triggers:
+    def delete_trigger(trigger):
         uri = PROCORE_TRIGGER.format(hook_id=trigger['webhook_hook_id'], 
             trigger_id=trigger['id'])
         oauth.procore.delete(uri)
 
+    parallel_for(delete_trigger, triggers)
+    
 
 @app.route('/webhook_handler', methods=['POST'])
 def webhook_handler():
@@ -214,7 +219,6 @@ def get_procore_event_object(resource_name: str = '', resource_id: str = '',
         project_id=project_id, resource_id=resource_id
     )
 
-    # TODO: add user info to allow for fetching token
     resp = oauth.procore.get(endpoint)
     return resp.json()
 
