@@ -36,7 +36,8 @@ def create_app(cont):
     oauth = OAuth(app)
     oauth.register('procore', fetch_token=fetch_procore_token, 
         update_token=update_procore_token)
-    oauth.register('gcal')
+    oauth.register('gcal', 
+        client_kwargs={'scope': 'https://www.googleapis.com/auth/calendar.events'})
 
     return app
 
@@ -242,7 +243,7 @@ def gcal_login():
 @app.route('/gcal_authorize')
 @auth.login_required
 def gcal_authorize():
-    token = oauth.procore.authorize_access_token()
+    token = oauth.gcal.authorize_access_token()
     user = g.user
     user.set_gcal_token(token)
     controller.update_user(user)
