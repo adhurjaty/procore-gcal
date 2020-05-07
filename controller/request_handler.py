@@ -5,8 +5,7 @@ from flask_cors import CORS
 import json
 from typing import List
 
-from .api_endpoints import PROCORE_GET_USER, procore_resource_endpoint_dict, \
-    PROCORE_WEBHOOKS, PROCORE_TRIGGERS, PROCORE_TRIGGER
+from .api_endpoints import *
 from .controller import Controller
 from util.utils import parallel_for
 

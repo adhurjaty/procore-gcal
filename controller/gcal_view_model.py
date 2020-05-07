@@ -1,37 +1,59 @@
 from authlib.integrations.requests_client import OAuth2Session
+from .api_endpoints import *
 from typing import List
+
+
+RESROUCE_ID_PREFIX = 'Procore resource ID: '
 
 
 class GCalViewModel:
     oauth: OAuth2Session = None
+    event: GCalEvent = None
+    user = None
 
-    def __init__(self, user):
+    def __init__(self, user, procore_event):
         self.oauth = OAuth2Session(token=user.gcal_token.token,
             update_token=self.update_token)
         self.user = user
+        self.event = self.convert_procore_event(procore_event)
 
     def update_token(self, token):
         self.user.set_gcal_token(token)
 
-    def send(self, procore_event):
-        existing_event = self.find_existing_event(**procore_event)
-        gcal_event = self.convert_procore_event(procore_event)
+    def convert_procore_event(self, procore_event):
+        pass
 
-        if not existing_event and not procore_event.deleted:
-            self.create_event(gcal_event)
+    def send(self):
+        existing_event = self.find_existing_event(self.event.procore_data.resource_id)
 
-        if procore_event.deleted:
+        if not existing_event:
+            if not self.event.deleted:
+                self.create_event()
+            return
+
+        if self.event.deleted:
             self.delete_event(existing_event)
             return
 
+        self.update_event(existing_event)
         
+    def find_existing_event(self, resource_id: str) -> dict:
+        resp = self.oauth.get(self.events_endpoint(), 
+            q=f'{RESROUCE_ID_PREFIX}{resource_id}')
+        return resp and resp.json()
+
+    def create_event(self):
+        self.oauth.post(GCAL_EVENTS, json=self.event.to_dict())
         
+    def update_event(self, existing_event):
+        self.oauth.put()
 
+    def events_endpoint(self) -> str:
+        return GCAL_EVENTS.format(calendar_id=self.user.gcal.calendar_id)
 
-    def convert_procore_event(self, procore_event) -> GCalEvent:
-        event = GCalEvent()
-        # TODO: do stuff
-        return event
+    def event_endpoint(self, event_id) -> str:
+        return GCAL_EVENT.format(calendar_id=self.user.gcal.calendar_id,
+            event_id=event_id)
 
 
 class GCalEvent:
@@ -43,6 +65,7 @@ class GCalEvent:
     attendees: List[dict] = []
     procore_data = None
     send_update: bool = False
+    deleted: bool = False
 
     def to_dict(self):
         return {
