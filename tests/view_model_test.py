@@ -99,7 +99,7 @@ def test_create_new_webhooks(oauth_mock, sample_user, procore_vm):
         }
 
 
-def test_add_to_existing_webhooks(test_client, procore_oauth_mock, user_controller_mock):
+def test_add_to_existing_webhooks(oauth_mock, sample_user, procore_vm):
     verifications = MockObject()
     verifications.hook_created = False
     verifications.triggers = []
@@ -136,17 +136,16 @@ def test_add_to_existing_webhooks(test_client, procore_oauth_mock, user_controll
     def post(uri, json={}):
         verifications.triggers.append(json)
 
-    procore_oauth_mock.get = get
-    procore_oauth_mock.post = post
+    oauth_mock.get = get
+    oauth_mock.post = post
 
-    trigger_data = {
+    sample_user.procore_data.calendar_event_types = {
         'RFIs': True,
         'Project Users': True
     }
 
-    resp = test_client.post('/register_webhooks', json=trigger_data)
+    procore_vm.register_webhooks()
 
-    assert resp.status_code == 200
     assert set((d['trigger']['resource_name'], d['trigger']['event_type'])
         for d in verifications.triggers) == {
             ('RFIs', 'create'),
@@ -155,7 +154,7 @@ def test_add_to_existing_webhooks(test_client, procore_oauth_mock, user_controll
         }
 
     
-def test_add_and_delete_webhooks(test_client, procore_oauth_mock, user_controller_mock):
+def test_add_and_delete_webhooks(oauth_mock, sample_user, procore_vm):
     verifications = MockObject()
     verifications.hook_created = False
     verifications.triggers = []
@@ -196,18 +195,17 @@ def test_add_and_delete_webhooks(test_client, procore_oauth_mock, user_controlle
     def delete(uri):
         verifications.deletes.append(uri)
 
-    procore_oauth_mock.get = get
-    procore_oauth_mock.post = post
-    procore_oauth_mock.delete = delete
+    oauth_mock.get = get
+    oauth_mock.post = post
+    oauth_mock.delete = delete
 
-    trigger_data = {
+    sample_user.procore_data.calendar_event_types = {
         'RFIs': True,
         'Project Users': False
     }
 
-    resp = test_client.post('/register_webhooks', json=trigger_data)
+    procore_vm.register_webhooks()
 
-    assert resp.status_code == 200
     assert set((d['trigger']['resource_name'], d['trigger']['event_type'])
         for d in verifications.triggers) == {
             ('RFIs', 'create'),

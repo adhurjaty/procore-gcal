@@ -30,12 +30,12 @@ class ProcoreHook:
 
 
 class ProcoreTrigger:
-    def __init__(self, hook: ProcoreHook = None, id: int = 0, webhook_id: int = 0,
+    def __init__(self, hook: ProcoreHook = None, id: int = 0, webhook_hook_id: int = 0,
         resource_name: str = '', resource_id: int = 0, event_type: str = '',
         project_id: str = '', **kwargs):
         
         self.id = id
-        self.hook_id = webhook_id or (hook and hook.id)
+        self.hook_id = webhook_hook_id or (hook and hook.id)
         self.project_id = project_id or (hook and hook.project_id)
         self.resource_name = resource_name
         self.resource_id = resource_id
@@ -72,8 +72,7 @@ class ProcoreViewModel:
     def _get_procore_webhook(self) -> ProcoreHook:
         project_id = self.user.project_id
         resp = self.oauth.get(PROCORE_WEBHOOKS)
-        if not resp:
-            return None
+        hooks = (resp and resp.json()) or []
         return next((ProcoreHook(**h) for h in resp.json() 
             if h['owned_by_project_id'] == project_id), None)
         
@@ -90,7 +89,7 @@ class ProcoreViewModel:
         def create_or_delete_triggers(item):
             name, is_enabled = item
             trigger_it = (t for t in existing_triggers 
-                if name == t['resource_name'])
+                if name == t.resource_name)
             trigger = next(trigger_it, None)
 
             if is_enabled and not trigger:
@@ -101,11 +100,11 @@ class ProcoreViewModel:
 
         parallel_for(create_or_delete_triggers, trigger_dict.items())
 
-
     def _get_procore_existing_triggers(self, hook: ProcoreHook) -> List[ProcoreTrigger]:
         uri = PROCORE_TRIGGERS.format(hook_id=hook.id)
         resp = self.oauth.get(uri)
-        return [ProcoreTrigger(**trigger) for trigger in resp.json()]
+        triggers = (resp and resp.json()) or []
+        return [ProcoreTrigger(**trigger) for trigger in triggers]
 
     def _create_procore_triggers(self, hook: ProcoreHook = None, name: str = ''):
         methods = 'create update delete'.split()
