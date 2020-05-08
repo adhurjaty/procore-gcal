@@ -1,1 +1,1 @@
-url_for_webhooks = lambda: None
+url_for_webhooks = ''

@@ -16,7 +16,7 @@ class ProcoreHook:
 
         self.id = id
         self.project_id = project_id or owned_by_project_id
-        self.destination_url = destination_url or url_for_webhooks()
+        self.destination_url = destination_url or url_for_webhooks
 
     def to_create_dict(self) -> dict:
         return {

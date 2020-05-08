@@ -39,6 +39,7 @@ def create_app(cont):
     oauth.register('gcal', 
         client_kwargs={'scope': 'https://www.googleapis.com/auth/calendar'})
 
+    # HACK: don't really like having to set this here
     with app.app_context(), app.test_request_context():
         connector.url_for_webhooks = url_for('webhook_handler', _external=True)
 

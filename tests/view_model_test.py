@@ -14,7 +14,7 @@ objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
 @pytest.fixture(scope='session', autouse=True)
 def define_url_for_webhooks():
-    server_connector.url_for_webhooks = lambda: 'http://localhost/webhook_handler'
+    server_connector.url_for_webhooks = 'http://localhost/webhook_handler'
 
 
 @pytest.fixture()
@@ -42,13 +42,6 @@ def procore_vm(oauth_mock, sample_user):
 @pytest.fixture(scope='module')
 def sample_procore_event():
     pass
-
-
-def test_convert_event(sample_user, sample_procore_event):
-    vm = GCalViewModel(sample_user, sample_procore_event)
-    gcal_event = {}
-
-    assert vm.event == gcal_event
 
 
 def test_create_new_webhooks(oauth_mock, sample_user, procore_vm):
@@ -215,3 +208,9 @@ def test_add_and_delete_webhooks(oauth_mock, sample_user, procore_vm):
     assert verifications.deletes == \
         [endpoints.PROCORE_TRIGGER.format(hook_id='43593499', trigger_id='231346546')] * 3
 
+
+def test_convert_event(sample_user, sample_procore_event):
+    vm = GCalViewModel(sample_user, sample_procore_event)
+    gcal_event = {}
+
+    assert vm.event == gcal_event
