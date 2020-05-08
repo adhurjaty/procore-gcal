@@ -13,6 +13,15 @@ from util.utils import parallel_for
 
 API_VERSION = 'v2'
 
+INDEX_ROUTE = '/'
+LOGIN_ROUTE = '/login'
+REGISTER_ROUTE = '/register'
+PROCORE_AUTH_ROUTE = '/authorize'
+WEBHOOK_HANDLER_ROUTE = '/webhook_handler'
+TEST_ROUTE = '/test'
+GCAL_LOGIN_ROUTE = '/gcal_login'
+GCAL_AUTH_ROUTE = '/gcal_authorize'
+
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
 controller: Controller = None
@@ -53,24 +62,24 @@ def verify_token(token):
     return user
 
 
-@app.route('/')
+@app.route(INDEX_ROUTE)
 def hello_world():
     return 'Hello world!'
 
 
-@app.route('/login')
+@app.route(LOGIN_ROUTE)
 def login():
     redirect_uri = url_for('authorize', _external=True)
     return oauth.procore.authorize_redirect(redirect_uri)
 
 
-@app.route('/register')
+@app.route(REGISTER_ROUTE)
 def register():
     redirect_uri = url_for('authorize', _external=True, new_user=True)
     return oauth.procore.authorize_redirect(redirect_uri)
 
 
-@app.route('/authorize')
+@app.route(PROCORE_AUTH_ROUTE)
 def authorize():
     token = oauth.procore.authorize_access_token()
     procore_user = get_procore_user_from_token(token)
@@ -95,7 +104,7 @@ def get_procore_user_from_token(token) -> dict:
     return result.json()
     
 
-@app.route('/webhook_handler', methods=['POST'])
+@app.route(WEBHOOK_HANDLER_ROUTE, methods=['POST'])
 def webhook_handler():
     data = request.json
     try:
@@ -140,7 +149,7 @@ def get_procore_event_object(resource_name: str = '', resource_id: str = '',
     return resp.json()
 
 
-@app.route('/test')
+@app.route(TEST_ROUTE)
 def test():
     rfis = controller.rfis
     lst = '\n'.join(f'<li><a href="{rfi["link"]}">{rfi["subject"]}</a></li>' 
@@ -149,13 +158,13 @@ def test():
     return html
     
 
-@app.route('/gcal_login')
+@app.route(GCAL_LOGIN_ROUTE)
 def gcal_login():
     redirect_uri = url_for('gcal_authorize', _external=True)
     return oauth.gcal.authorize_redirect(redirect_uri)
 
 
-@app.route('/gcal_authorize')
+@app.route(GCAL_AUTH_ROUTE)
 @auth.login_required
 def gcal_authorize():
     token = oauth.gcal.authorize_access_token()
