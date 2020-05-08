@@ -14,5 +14,3 @@ GCAL_CALENDARS = '/users/me/calendarList'
 GCAL_CALENDAR = '/calendars/{calendar_id}'
 GCAL_EVENTS = '/calendars/{calendar_id}/events'
 GCAL_EVENT = '/calendars/{calendar_id}/events/{event_id}'
-
-SELF_WEBHOOK_HANDLER = '/webhook_handler'

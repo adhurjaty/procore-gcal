@@ -7,8 +7,8 @@ class AccountManagerDto:
     full_name: str = ''
     email: str = ''
     project_id: str = ''
-    procore_data: Oauth2Token = ProcoreUserSettings()
-    gcal_data: Oauth2Token = GCalUserSettings()
+    procore_data = ProcoreUserSettings()
+    gcal_data = GCalUserSettings()
 
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)

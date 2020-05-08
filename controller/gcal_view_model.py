@@ -1,9 +1,34 @@
 from authlib.integrations.requests_client import OAuth2Session
-from .api_endpoints import *
 from typing import List
+
+from .api_endpoints import *
 
 
 RESROUCE_ID_PREFIX = 'Procore resource ID: '
+
+
+class GCalEvent:
+    summary: str = ''
+    start: str = ''
+    end: str = ''
+    description: str = ''
+    location: str = ''
+    attendees: List[dict] = []
+    procore_data = None
+    send_update: bool = False
+    deleted: bool = False
+
+    def to_dict(self):
+        return {
+            'summary': self.summary,
+            'start': self.start,
+            'end': self.end,
+            'description': self.description,
+            'location': self.location,
+            'attendees': self.attendees,
+            'procore_data': '',
+            'send_update': self.send_update,
+        }
 
 
 class GCalViewModel:
@@ -54,28 +79,4 @@ class GCalViewModel:
     def event_endpoint(self, event_id) -> str:
         return GCAL_EVENT.format(calendar_id=self.user.gcal.calendar_id,
             event_id=event_id)
-
-
-class GCalEvent:
-    summary: str = ''
-    start: str = ''
-    end: str = ''
-    description: str = ''
-    location: str = ''
-    attendees: List[dict] = []
-    procore_data = None
-    send_update: bool = False
-    deleted: bool = False
-
-    def to_dict(self):
-        return {
-            'summary': self.summary,
-            'start': self.start,
-            'end': self.end,
-            'description': self.description,
-            'location': self.location,
-            'attendees': self.attendees,
-            'procore_data': '',
-            'send_update': self.send_update,
-        }
 

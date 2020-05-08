@@ -7,6 +7,7 @@ from typing import List
 
 from .api_endpoints import *
 from .controller import Controller
+import controller.server_connector as connector
 from util.utils import parallel_for
 
 
@@ -37,6 +38,8 @@ def create_app(cont):
         update_token=update_procore_token)
     oauth.register('gcal', 
         client_kwargs={'scope': 'https://www.googleapis.com/auth/calendar'})
+
+    connector.url_for_webhooks = url_for('webhook_handler', _external=True)
 
     return app
 
@@ -88,96 +91,6 @@ def authorize():
 def get_procore_user_from_token(token) -> dict:
     result = oauth.procore.get(PROCORE_GET_USER)
     return result.json()
-
-
-# TODO: move part or all of this to a procore VM
-@app.route('/register_webhooks', methods=['POST'])
-@auth.login_required
-def register_webhooks():
-    hook = get_or_create_procore_webhook()
-    trigger_dict = request.json
-    procore_assign_triggers(hook, trigger_dict)
-
-    return show_success()
-
-
-def get_or_create_procore_webhook() -> dict:
-    return get_procore_webhook() or create_procore_webhook()
-
-
-def get_procore_webhook() -> dict:
-    project_id = g.user.project_id
-    resp = oauth.procore.get(PROCORE_WEBHOOKS)
-    if not resp:
-        return None
-    return next((h for h in resp.json() if h['owned_by_project_id'] == project_id),
-        None)
-    
-
-def create_procore_webhook():
-    project_id = g.user.project_id
-    hook_data = {
-        'project_id': project_id,
-        'hook': {
-            'api_version': API_VERSION,
-            'namespace': 'procore',
-            'destination_url': url_for('webhook_handler', _external=True)
-        }
-    }
-    return oauth.procore.post(PROCORE_WEBHOOKS, json=hook_data)
-
-
-def procore_assign_triggers(hook: dict, trigger_dict: dict):
-    hook_id: int = hook['id']
-    project_id = g.user.project_id
-
-    existing_triggers = get_procore_existing_triggers(hook_id)
-    def create_or_delete_triggers(item):
-        name, is_enabled = item
-        trigger_it = (t for t in existing_triggers 
-            if name == t['resource_name'])
-        trigger = next(trigger_it, None)
-
-        if is_enabled and not trigger:
-            create_procore_triggers(project_id=project_id,
-                hook_id=hook_id, name=name)
-        if not is_enabled and trigger:
-            triggers_to_delete = [trigger] + list(trigger_it)
-            delete_procore_triggers(triggers_to_delete)
-
-    parallel_for(create_or_delete_triggers, trigger_dict.items())
-
-
-def get_procore_existing_triggers(hook_id: int) -> List[dict]:
-    uri = PROCORE_TRIGGERS.format(hook_id=hook_id)
-    resp = oauth.procore.get(uri)
-    return (resp and resp.json()) or []
-
-
-def create_procore_triggers(project_id: str = '', hook_id: int = 0, name: str = ''):
-    methods = 'create update delete'.split()
-    def create_trigger(method):
-        trigger_data = {
-            'project_id': project_id,
-            'api_version': API_VERSION,
-            'trigger': {
-                'resource_name': name,
-                'event_type': method
-            }
-        }
-        uri = PROCORE_TRIGGERS.format(hook_id=hook_id)
-        oauth.procore.post(uri, json=trigger_data)
-
-    parallel_for(create_trigger, methods)
-
-
-def delete_procore_triggers(triggers: List[dict]):
-    def delete_trigger(trigger):
-        uri = PROCORE_TRIGGER.format(hook_id=trigger['webhook_hook_id'], 
-            trigger_id=trigger['id'])
-        oauth.procore.delete(uri)
-
-    parallel_for(delete_trigger, triggers)
     
 
 @app.route('/webhook_handler', methods=['POST'])

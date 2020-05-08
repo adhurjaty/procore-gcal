@@ -1,0 +1,1 @@
+url_for_webhooks = lambda: None
