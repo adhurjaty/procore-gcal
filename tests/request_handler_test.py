@@ -95,10 +95,10 @@ def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
 
     resp = test_client.get('/authorize')
 
-    assert manager.procore_token.access_token == 'sample access token'
-    assert manager.procore_token.refresh_token == 'sample refresh token'
-    assert manager.procore_token.token_type == 'Bearer'
-    assert manager.procore_token.expires_at == 1000
+    assert manager.procore_data.access_token == 'sample access token'
+    assert manager.procore_data.refresh_token == 'sample refresh token'
+    assert manager.procore_data.token_type == 'Bearer'
+    assert manager.procore_data.expires_at == 1000
     assert resp.json == {
         'result': 'success'
     }
@@ -147,7 +147,7 @@ def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
 
     assert controller_mock.manager.email == 'sean@example.com'
     assert controller_mock.manager.full_name == 'Sean Black'
-    assert controller_mock.manager.procore_token.access_token == 'sample access token'
+    assert controller_mock.manager.procore_data.access_token == 'sample access token'
     assert resp.status_code == 200
 
 
