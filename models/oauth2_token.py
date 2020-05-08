@@ -1,7 +1,10 @@
 class Oauth2Token:
-    def __init__(self, access_token: str = '', refresh_token: str = '', token_type: str = '', 
+    def __init__(self, **token):
+        self.set_token(**token)
+
+    def set_token(self, access_token: str = '', refresh_token: str = '', token_type: str = '', 
         expires_at: int = 0, **kwargs):
-        
+
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.token_type = token_type

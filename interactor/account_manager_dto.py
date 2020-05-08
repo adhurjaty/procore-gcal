@@ -1,15 +1,17 @@
-from models.oauth2_token import Oauth2Token
+from models.procore_user_settings import ProcoreUserSettings
+from models.gcal_user_settings import GCalUserSettings
 
 
 class AccountManagerDto:
     id: str = ''
     full_name: str = ''
     email: str = ''
-    procore_token: Oauth2Token = None
-    gcal_token: Oauth2Token = None
+    project_id: str = ''
+    procore_data: Oauth2Token = ProcoreUserSettings()
+    gcal_data: Oauth2Token = GCalUserSettings()
 
     def set_procore_token(self, token: dict):
-        self.procore_token = Oauth2Token(**token)
+        self.procore_data.set_token(**token)
         
     def set_gcal_token(self, token: dict):
-        self.gcal_token = Oauth2Token(**token)
+        self.gcal_data.set_token(**token)
