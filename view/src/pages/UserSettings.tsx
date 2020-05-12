@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { getUserSettings } from '../backend_interface/api_interface';
 import Calendar from '../models/caldendar';
 import GCalButton from '../components/GCalButton';
+import EventType from '../models/eventType';
 
 
 const Container = styled.div`
@@ -50,9 +51,12 @@ function UserSettings(): JSX.Element {
     }
 
     const [fullName, setFullName] = useState(user.fullName);
+    const [fullNameError, setFullNameError] = useState("");
     const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
+    const [calendarError, setCalendarError] = useState("");
     const [eventTypes, setEventTypes] = useState(user.eventTypes);
     const [collaborators, setCollaborators] = useState(user.collaborators);
+    const [collaboratorError, setCollaboratorError] = useState("");
     const [emailSettings, setEmailSettings] = useState(user.emailSettings);
     const [isSubscribed, setSubscribed] = useState(user.isSubscribed);
     
@@ -77,10 +81,24 @@ function UserSettings(): JSX.Element {
                         ? renderCalendars(user.calendars, selectedCalendar, setSelectedCalendar)
                         : renderGCalButton()}
                 </InputSection>
+                <InputSection>
+                    <InputLabel>Event Types:</InputLabel>
+                    {eventTypes.map((et, i) => (
+                        <Checkbox onChange={onEventTypeCheckedFn(eventTypes, setEventTypes)}
+                            id={et.id}
+                            key={`${et.id}${i}`}
+                            label={et.name} 
+                            checked={et.enabled} />
+                    ))}
+                </InputSection>
             </SettingsForm>
         </Container>
     )
 }
+
+const CalendarSelector = styled.select`
+    width: 200px;
+`;
 
 function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar, 
     setSelectedCalendar: (c: Calendar) => void) 
@@ -90,7 +108,7 @@ function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar,
         setSelectedCalendar(newCal as Calendar);
     }
     return (
-        <select onChange={onSelect}>
+        <CalendarSelector onChange={onSelect}>
             {calendars.map((c, i) => {
                 const isSelected = selectedCalendar.id === c.id;
                 return (
@@ -101,7 +119,7 @@ function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar,
                     </option>
                 )
             })}
-        </select>
+        </CalendarSelector>
     )
 }
 
@@ -110,12 +128,39 @@ const ButtonContainer = styled.div`
     justify-content: center;
 `
 
-function renderGCalButton() {
+function renderGCalButton(): React.ReactNode {
     return (
         <ButtonContainer>
             <GCalButton />
         </ButtonContainer>
     )
+}
+
+function Checkbox({checked, onChange, label, id}: {checked: boolean, 
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, label: string, id: number}):
+    JSX.Element
+{
+    return (
+        <label>
+            <input type="checkbox"
+                checked={checked}
+                name={`${id}`} />
+            <span className="checkable">{label}</span>
+        </label>
+    )
+}
+
+function onEventTypeCheckedFn(eventTypes: EventType[], 
+    setEventTypes: (types: EventType[]) => void) : 
+    (e: React.ChangeEvent<HTMLInputElement>) => void
+{
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+        const eventType = eventTypes.find(x => x.id == parseInt(e.target.name));
+        if(eventType) {
+            eventType.enabled = e.target.checked;
+        }
+        setEventTypes(eventTypes);
+    }
 }
 
 export default UserSettings
