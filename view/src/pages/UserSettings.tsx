@@ -5,6 +5,7 @@ import { getUserSettings } from '../backend_interface/api_interface';
 import Calendar from '../models/caldendar';
 import GCalButton from '../components/GCalButton';
 import EventType from '../models/eventType';
+import User from '../models/user';
 
 
 const Container = styled.div`
@@ -42,6 +43,15 @@ const FieldError = styled.div`
     margin-top: 5px;
 `
 
+const CalendarSelector = styled.select`
+    min-width: 200px;
+`;
+
+const ButtonContainer = styled.div`
+    display: flex;
+    justify-content: center;
+`
+
 function UserSettings(): JSX.Element {
     let { userId } = useParams();
     const user = getUserSettings(userId);
@@ -50,11 +60,8 @@ function UserSettings(): JSX.Element {
         evt.preventDefault();
     }
 
-    const [fullName, setFullName] = useState(user.fullName);
     const [fullNameError, setFullNameError] = useState("");
-    const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
     const [calendarError, setCalendarError] = useState("");
-    const [eventTypes, setEventTypes] = useState(user.eventTypes);
     const [collaborators, setCollaborators] = useState(user.collaborators);
     const [collaboratorError, setCollaboratorError] = useState("");
     const [emailSettings, setEmailSettings] = useState(user.emailSettings);
@@ -64,41 +71,52 @@ function UserSettings(): JSX.Element {
         <Container>
             <Heading>User Settings</Heading>
             <SettingsForm onSubmit={handleSubmit}>
-                <InputSection>
-                    <InputLabel>Email:</InputLabel>
-                    <div>{user.email}</div>
-                </InputSection>
-                <InputSection>
-                    <InputLabel>Full Name:</InputLabel>
-                    <input 
-                        type="text" 
-                        value={fullName}
-                        onChange={e => setFullName(e.target.value)} />
-                </InputSection>
-                <InputSection>
-                    <InputLabel>Google Calendar:</InputLabel>
-                    {user.calendars && selectedCalendar
-                        ? renderCalendars(user.calendars, selectedCalendar, setSelectedCalendar)
-                        : renderGCalButton()}
-                </InputSection>
-                <InputSection>
-                    <InputLabel>Event Types:</InputLabel>
-                    {eventTypes.map((et, i) => (
-                        <Checkbox onChange={onEventTypeCheckedFn(eventTypes, setEventTypes)}
-                            id={et.id}
-                            key={`${et.id}${i}`}
-                            label={et.name} 
-                            checked={et.enabled} />
-                    ))}
-                </InputSection>
+                <EmailSection user={user} />
+                <NameSection user={user} error={fullNameError} />
+                <CalendarSection user={user} error={calendarError} />
+                <EventTypesSection user={user} />
             </SettingsForm>
         </Container>
     )
 }
 
-const CalendarSelector = styled.select`
-    width: 200px;
-`;
+function EmailSection({user}: {user: User}): JSX.Element {
+    return (
+        <InputSection>
+            <InputLabel>Email:</InputLabel>
+            <div>{user.email}</div>
+        </InputSection>
+    );
+}
+
+function NameSection({user, error}: {user: User, error: string}): JSX.Element {
+    const [fullName, setFullName] = useState(user.fullName);
+
+    return (
+        <InputSection>
+            <InputLabel>Full Name:</InputLabel>
+            <input 
+                type="text" 
+                value={fullName}
+                onChange={e => setFullName(e.target.value)} />
+            <FieldError>{error}</FieldError>
+        </InputSection>
+    );
+}
+
+function CalendarSection({user, error}: {user: User, error: string}): JSX.Element {
+    const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
+
+    return (
+        <InputSection>
+            <InputLabel>Google Calendar:</InputLabel>
+            {user.calendars && selectedCalendar
+                ? renderCalendars(user.calendars, selectedCalendar, setSelectedCalendar)
+                : renderGCalButton()}
+            <FieldError>{error}</FieldError>
+        </InputSection>
+    );
+}
 
 function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar, 
     setSelectedCalendar: (c: Calendar) => void) 
@@ -120,20 +138,32 @@ function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar,
                 )
             })}
         </CalendarSelector>
-    )
+    );
 }
-
-const ButtonContainer = styled.div`
-    display: flex;
-    justify-content: center;
-`
 
 function renderGCalButton(): React.ReactNode {
     return (
         <ButtonContainer>
             <GCalButton />
         </ButtonContainer>
-    )
+    );
+}
+
+function EventTypesSection({user}: {user: User}): JSX.Element {
+    const [eventTypes, setEventTypes] = useState(user.eventTypes);
+
+    return (
+        <InputSection>
+            <InputLabel>Event Types:</InputLabel>
+            {eventTypes.map((et, i) => (
+                <Checkbox onChange={onEventTypeCheckedFn(eventTypes, setEventTypes)}
+                    id={et.id}
+                    key={`${et.id}${i}`}
+                    label={et.name} 
+                    checked={et.enabled} />
+            ))}
+        </InputSection>
+    );
 }
 
 function Checkbox({checked, onChange, label, id}: {checked: boolean, 
@@ -148,7 +178,7 @@ function Checkbox({checked, onChange, label, id}: {checked: boolean,
                 name={`${id}`} />
             <span className="checkable">{label}</span>
         </label>
-    )
+    );
 }
 
 function onEventTypeCheckedFn(eventTypes: EventType[], 
