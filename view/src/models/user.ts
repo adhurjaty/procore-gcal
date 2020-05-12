@@ -2,17 +2,7 @@ import Calendar from "./caldendar";
 import EventType from "./eventType";
 import EmailSetting from "./emailSetting";
 import Collaborator from "./collaborator";
-
-interface NamedItem {
-    id: number,
-    name: string
-};
-
-interface SelectableItem {
-    id: number,
-    name: string,
-    enabled: boolean
-};
+import { SelectableItem, NamedItem } from "./interfaces";
 
 interface CollaboratorResponse {
     name: string
@@ -45,7 +35,7 @@ export default class User {
         user.fullName = response.fullName;
         user.calendars = response.calendars;
         user.selectedCalendar = user.calendars.find(c => c.id == response.selectedCalendar);
-        user.eventTypes = response.eventTypes;
+        user.eventTypes = response.eventTypes.map(x => new EventType(x));
         user.collaborators = response.collaborators;
         user.isSubscribed = response.isSubscribed;
 

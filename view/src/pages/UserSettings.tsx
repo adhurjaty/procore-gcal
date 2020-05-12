@@ -143,6 +143,7 @@ function Checkbox({checked, onChange, label, id}: {checked: boolean,
     return (
         <label>
             <input type="checkbox"
+                onChange={onChange}
                 checked={checked}
                 name={`${id}`} />
             <span className="checkable">{label}</span>
@@ -155,11 +156,14 @@ function onEventTypeCheckedFn(eventTypes: EventType[],
     (e: React.ChangeEvent<HTMLInputElement>) => void
 {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
-        const eventType = eventTypes.find(x => x.id == parseInt(e.target.name));
-        if(eventType) {
-            eventType.enabled = e.target.checked;
-        }
-        setEventTypes(eventTypes);
+        setEventTypes(eventTypes.map((et, i) => {
+            if(et.id == parseInt(e.target.name)) {
+                let newEvent = et.copy();
+                newEvent.enabled = e.target.checked;
+                return newEvent;
+            }
+            return et;
+        }));
     }
 }
 
