@@ -6,6 +6,8 @@ import Calendar from '../models/caldendar';
 import GCalButton from '../components/GCalButton';
 import EventType from '../models/eventType';
 import User from '../models/user';
+import Enablable from '../models/Enablable';
+import Collaborator from '../models/collaborator';
 
 
 const Container = styled.div`
@@ -52,6 +54,15 @@ const ButtonContainer = styled.div`
     justify-content: center;
 `
 
+const MinusInputContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+`
+
+const InlineButton = styled.button`
+    padding-bottom: 2px;
+`
+
 function UserSettings(): JSX.Element {
     let { userId } = useParams();
     const user = getUserSettings(userId);
@@ -62,7 +73,6 @@ function UserSettings(): JSX.Element {
 
     const [fullNameError, setFullNameError] = useState("");
     const [calendarError, setCalendarError] = useState("");
-    const [collaborators, setCollaborators] = useState(user.collaborators);
     const [collaboratorError, setCollaboratorError] = useState("");
     const [emailSettings, setEmailSettings] = useState(user.emailSettings);
     const [isSubscribed, setSubscribed] = useState(user.isSubscribed);
@@ -75,6 +85,7 @@ function UserSettings(): JSX.Element {
                 <NameSection user={user} error={fullNameError} />
                 <CalendarSection user={user} error={calendarError} />
                 <EventTypesSection user={user} />
+                <CollaboratorSection user={user} error={collaboratorError} />
             </SettingsForm>
         </Container>
     )
@@ -122,7 +133,7 @@ function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar,
     setSelectedCalendar: (c: Calendar) => void) 
 {
     const onSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newCal = calendars.find(c => c.id == parseInt(e.target.value));
+        const newCal = calendars.find(c => c.id === parseInt(e.target.value));
         setSelectedCalendar(newCal as Calendar);
     }
     return (
@@ -156,7 +167,7 @@ function EventTypesSection({user}: {user: User}): JSX.Element {
         <InputSection>
             <InputLabel>Event Types:</InputLabel>
             {eventTypes.map((et, i) => (
-                <Checkbox onChange={onEventTypeCheckedFn(eventTypes, setEventTypes)}
+                <Checkbox onChange={onCheckedFn(eventTypes, setEventTypes)}
                     id={et.id}
                     key={`${et.id}${i}`}
                     label={et.name} 
@@ -181,13 +192,13 @@ function Checkbox({checked, onChange, label, id}: {checked: boolean,
     );
 }
 
-function onEventTypeCheckedFn(eventTypes: EventType[], 
-    setEventTypes: (types: EventType[]) => void) : 
+function onCheckedFn(checkFields: Enablable[], 
+    setCheckFields: (fields: Enablable[]) => void) : 
     (e: React.ChangeEvent<HTMLInputElement>) => void
 {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEventTypes(eventTypes.map((et, i) => {
-            if(et.id == parseInt(e.target.name)) {
+        setCheckFields(checkFields.map((et, i) => {
+            if(et.id === parseInt(e.target.name)) {
                 let newEvent = et.copy();
                 newEvent.enabled = e.target.checked;
                 return newEvent;
@@ -195,6 +206,68 @@ function onEventTypeCheckedFn(eventTypes: EventType[],
             return et;
         }));
     }
+}
+
+function CollaboratorSection({user, error}: {user: User, error: string}): JSX.Element {
+    const [collaborators, setCollaborators] = useState(user.collaborators);
+
+    const entryUpdated = (collab: Collaborator) => 
+        (e: React.ChangeEvent<HTMLInputElement>) => 
+    {
+        setCollaborators(collaborators.map(c => {
+            if(c.id === collab.id) {
+                let newC = c.copy();
+                newC.name = e.target.value;
+                return newC;
+            }
+            return c;
+        }))
+    }
+
+    const removeEntry = (collab: Collaborator) => (_: React.MouseEvent) => {
+        setCollaborators(collaborators.filter(c => c !== collab));
+    }
+
+    const addEntry = (_: React.MouseEvent) => {
+        setCollaborators(collaborators.concat(new Collaborator()))
+    }
+
+    return (
+        <InputSection>
+            <InputLabel>Collaborators (max 5):</InputLabel>
+            {collaborators.map((c, i) => {
+                let key = `${c.id}-${i}`;
+                return (
+                    <MinusInput key={key} 
+                        value={c.name}
+                        onChange={entryUpdated(c)}
+                        onClick={removeEntry(c)} />
+                );
+            })}
+            {collaborators.length < 5 && <button onClick={addEntry}>+</button>}
+            <FieldError>{error}</FieldError>
+        </InputSection>
+    )
+}
+
+function MinusInput({value, onChange, onClick}: {value: string, 
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, 
+    onClick: (e: React.MouseEvent) => void}): JSX.Element
+{
+    return (
+        <MinusInputContainer>
+            <input type="text"
+                value={value}
+                onChange={onChange} />
+            <MinusButton onClick={onClick} />
+        </MinusInputContainer>
+    );
+}
+
+function MinusButton({onClick}: {onClick: (e: React.MouseEvent) => void}): JSX.Element {
+    return (
+        <InlineButton onClick={onClick}>-</InlineButton>
+    );
 }
 
 export default UserSettings

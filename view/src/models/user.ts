@@ -36,7 +36,7 @@ export default class User {
         user.calendars = response.calendars;
         user.selectedCalendar = user.calendars.find(c => c.id == response.selectedCalendar);
         user.eventTypes = response.eventTypes.map(x => new EventType(x));
-        user.collaborators = response.collaborators;
+        user.collaborators = response.collaborators.map(x => new Collaborator(x));
         user.isSubscribed = response.isSubscribed;
 
         return user;
