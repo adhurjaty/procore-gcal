@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
 import { getUserSettings } from '../backend_interface/api_interface';
 import Calendar from '../models/caldendar';
-import GCalButton from '../components/GCalButton';
+import GCalButton from './GCalButton';
 import EventType from '../models/eventType';
 import User from '../models/user';
 import Enablable from '../models/Enablable';
@@ -65,14 +65,21 @@ const InlineButton = styled.button`
     padding-bottom: 2px;
 `
 
-function UserSettings(): JSX.Element {
-    let { userId } = useParams();
-    const user = getUserSettings(userId);
+const SubmitButton = styled.button`
+    align-self: flex-end;
+    margin-right: 30px;
+`
 
+function UserSettingsForm({user, submitRequest, children}: 
+    {user: User, submitRequest: (user: User) => Request, children?: React.ReactNode}): 
+    JSX.Element 
+{
     const [fullNameError, setFullNameError] = useState("");
     const [calendarError, setCalendarError] = useState("");
     const [collaboratorError, setCollaboratorError] = useState("");
-    const [isSubscribed, setSubscribed] = useState(user.isSubscribed);
+    const [subscribeError, setSubscribeError] = useState("");
+
+    const initSubscribed = user.isSubscribed;
 
     const validate = () => {
         if(!/[\w\-_ ]+/.test(user.fullName)) {
@@ -94,35 +101,31 @@ function UserSettings(): JSX.Element {
             return;
         }
 
-        fetch(new Request(API_USER(userId), {
-            method: 'POST',
-            body: JSON.stringify({
-                id: -1,
-                email: user.email,
-                fullName: user.fullName,
-                selectedCalendar: (user.selectedCalendar as Calendar).id,
-                eventTypes: user.eventTypes.map(x => x.json()),
-                collaborators: user.collaborators.map(x => x.json()),
-                emailSettings: user.emailSettings.map(x => x.json()),
-                isSubscribed: isSubscribed
+        fetch(submitRequest(user))
+            .then((resp) => {
+                // TODO: show success
             })
-        }));
+            .catch((reason) => {
+                // TODO: show failure
+            });
     }
     
     return (
         <Container>
             <Heading>User Settings</Heading>
-            <SettingsForm>
+            <SettingsForm onSubmit={e => e.preventDefault()}>
                 <EmailSection user={user} />
                 <NameSection user={user} error={fullNameError} />
                 <CalendarSection user={user} error={calendarError} />
                 <EventTypesSection user={user} />
                 <CollaboratorSection user={user} error={collaboratorError} />
                 <EmailSettingsSection user={user} />
-                {!user.isSubscribed && 
-                    <SubscriptionSection isSubscribed={isSubscribed} 
-                        setSubscribed={setSubscribed} />}
-                <button onClick={handleSubmit}>Submit</button>
+                {!initSubscribed && 
+                    <SubscriptionSection user={user} error={subscribeError} />}
+
+                {children}
+
+                <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
             </SettingsForm>
         </Container>
     )
@@ -350,9 +353,14 @@ function EmailSettingsSection({user}: {user: User}): JSX.Element {
     );
 }
 
-function SubscriptionSection({isSubscribed, setSubscribed}: 
-    {isSubscribed: boolean, setSubscribed: (s: boolean) => void}): JSX.Element
+function SubscriptionSection({user, error}: {user: User, error: string}): JSX.Element
 {
+    const [isSubscribed, setSubscribed] = useState(user.isSubscribed);
+
+    useEffect(() => {
+        user.isSubscribed = isSubscribed;
+    });
+
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSubscribed(!isSubscribed);
     }
@@ -366,7 +374,9 @@ function SubscriptionSection({isSubscribed, setSubscribed}:
             <RadioButton checked={isSubscribed} 
                 onChange={onChange}
                 label="Subscription" />
+            <br/>
             {isSubscribed && <PayPalButton amount="0.01" />}
+            <FieldError>{error}</FieldError>
         </InputSection>
     );
 }
@@ -385,4 +395,4 @@ function RadioButton({checked, onChange, label}: {checked: boolean,
     );
 }
 
-export default UserSettings
+export default UserSettingsForm

@@ -1,3 +1,4 @@
-export const USER_SETTINGS_ROUTE = '/users/:user_id';
+export const USER_SETTINGS_ROUTE = '/users/:userId';
+export const NEW_USER_ROUTE = '/users/new';
 export const LOGIN_ROUTE = '/login';
-export const COLLABORATOR_ROUTE = '/contributor/:contributor_id';
+export const COLLABORATOR_ROUTE = '/contributor/:contributorId';

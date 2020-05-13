@@ -45,4 +45,17 @@ export default class User {
 
         return user;
     }
+
+    toJson() {
+        return {
+            id: this.id,
+            email: this.email,
+            fullName: this.fullName,
+            selectedCalendar: (this.selectedCalendar as Calendar).id,
+            eventTypes: this.eventTypes.map(x => x.json()),
+            collaborators: this.collaborators.map(x => x.json()),
+            emailSettings: this.emailSettings.map(x => x.json()),
+            isSubscribed: this.isSubscribed
+        }
+    }
 }
