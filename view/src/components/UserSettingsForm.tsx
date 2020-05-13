@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
-import { getUserSettings } from '../backend_interface/api_interface';
+import { getUserSettings, StatusMessage } from '../backend_interface/api_interface';
 import Calendar from '../models/caldendar';
 import GCalButton from './GCalButton';
 import EventType from '../models/eventType';
@@ -70,14 +70,16 @@ const SubmitButton = styled.button`
     margin-right: 30px;
 `
 
-function UserSettingsForm({user, submitRequest, children}: 
-    {user: User, submitRequest: (user: User) => Request, children?: React.ReactNode}): 
+function UserSettingsForm({user, submitRequest, children}: {user: User, 
+    submitRequest: (user: User) => Promise<StatusMessage>, children?: React.ReactNode}): 
     JSX.Element 
 {
     const [fullNameError, setFullNameError] = useState("");
     const [calendarError, setCalendarError] = useState("");
     const [collaboratorError, setCollaboratorError] = useState("");
     const [subscribeError, setSubscribeError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const [requestErrorMessage, setRequestErrorMessage] = useState("");
 
     const initSubscribed = user.isSubscribed;
 
@@ -101,12 +103,13 @@ function UserSettingsForm({user, submitRequest, children}:
             return;
         }
 
-        fetch(submitRequest(user))
-            .then((resp) => {
-                // TODO: show success
-            })
-            .catch((reason) => {
-                // TODO: show failure
+        submitRequest(user)
+            .then((result) => {
+                if(result.status === 'error') {
+                    setRequestErrorMessage(result.message);
+                } else {
+                    setSuccessMessage(result.message);
+                }
             });
     }
     

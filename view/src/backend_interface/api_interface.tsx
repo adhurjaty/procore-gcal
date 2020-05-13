@@ -1,4 +1,39 @@
 import User from "../models/user"
+import EventType from "../models/eventType";
+import EmailSetting from "../models/emailSetting";
+import { API_NEW_USER, API_USER } from "../AppSettings";
+
+const TOKEN_COOKIE_NAME = 'auth_token'
+
+export interface StatusMessage {
+    status: string,
+    message: string
+}
+
+function getToken() {
+    return document.cookie
+        .split(';')
+        .map(c => c.trim())
+        .find(c => c.startsWith(`${TOKEN_COOKIE_NAME}=`));
+}
+
+function setToken() {
+
+}
+
+function withTokenHeader(req: Request): Request {
+    req.headers.append('Authorization', `Bearer ${getToken()}`);
+    return req;
+}
+
+async function sendRequest(req: Request): Promise<StatusMessage> {
+    const response = await fetch(withTokenHeader(req));
+    const data = await response.json();
+    return {
+        status: data.status,
+        message: data.message
+    };
+}
 
 export function getUserSettings(userId: string): User {
     let response = {
@@ -55,4 +90,66 @@ export function getUserSettings(userId: string): User {
     }
 
     return User.fromJSON(response);
+}
+
+export function getEventTypes(): EventType[] {
+    let eventTypes = [
+        {
+            id: 0,
+            name: "RFIs",
+            enabled: false,
+        },
+        {
+            id: 1,
+            name: "Submittals",
+            enabled: false,
+        },
+        {
+            id: 2,
+            name: "Change Orders",
+            enabled: false,
+        }
+    ];
+    return eventTypes.map(x => new EventType(x));
+}
+
+export function getEmailSettings(): EmailSetting[] {
+    let emailSettings = [
+        {
+            id: 0,
+            name: "Google Calendar Events",
+            enabled: false
+        },
+        {
+            id: 1,
+            name: "Add/Remove Caldendar",
+            enabled: false
+        },
+        {
+            id: 2,
+            name: "User Updates",
+            enabled: false
+        },
+    ];
+    return emailSettings.map(x => new EmailSetting(x));
+}
+
+export async function createNewUser(user: User) : Promise<StatusMessage> {
+    return sendRequest(new Request(API_NEW_USER, {
+        method: 'POST',
+        body: JSON.stringify(user.toJson())
+    }));
+}
+
+export async function updateUser(user: User) : Promise<StatusMessage> {
+    return sendRequest(new Request(API_USER('' + user.id), {
+        method: 'PATCH',
+        body: JSON.stringify(user.toJson()),
+    }));
+}
+
+export async function deleteUser(user: User) : Promise<StatusMessage> {
+    return sendRequest(new Request(API_USER('' + user.id), {
+        method: 'DELETE'
+    }));
 }

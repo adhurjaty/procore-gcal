@@ -1,29 +1,23 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useParams } from 'react-router-dom'
 import User from '../models/user';
 import UserSettingsForm from '../components/UserSettingsForm';
-import { NEW_USER_ROUTE } from '../Routes';
-import { API_NEW_USER } from '../AppSettings';
+import { getEventTypes, getEmailSettings, createNewUser } from '../backend_interface/api_interface';
 
 function NewUser(): JSX.Element {
-    const user = new User();
-
-    let requestFn = (user: User) => {
-        return new Request(API_NEW_USER, {
-            method: 'POST',
-            body: JSON.stringify(user.toJson())
-        });
-    }
+    const user = InitUser();
 
     return (
-        <UserSettingsForm user={user} submitRequest={requestFn} />
+        <UserSettingsForm user={user} submitRequest={createNewUser} />
     )
 }
 
-function CreateNewUser(): User {
+function InitUser(): User {
     let user = new User();
-    
+    user.eventTypes = getEventTypes();
+    user.emailSettings = getEmailSettings();
+
+    return user;
 }
 
 export default NewUser;
