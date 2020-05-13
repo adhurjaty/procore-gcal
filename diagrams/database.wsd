@@ -56,12 +56,33 @@ entity ApplicationSettings {
     * trial_period : timespan
 }
 
-entity EmailSettings {
+entity EmailSetting {
     * id : key
     ---
+    * name : string
+}
+
+entity EventType {
+    * id : key
+    ---
+    * procore_id : string
+    * name : string
+}
+
+entity UserEmailSetting {
+    * id : key
+    ---
+    * setting_id : foreign_key
     * user_id : foreign_key
-    * eventChange : bool
-    * addCollaborator : bool
+    * enabled : bool
+}
+
+entity UserEventType {
+    * id : key
+    ---
+    * event_id : foreign_key
+    * user_id : foreign_key
+    * enabled : bool
 }
 
 AccountManager ||-- ProcoreSettings
@@ -71,5 +92,9 @@ User ||-- Collaborator
 AccountManager }|-- Collaborator
 ProcoreSettings ||-- Oauth2Token
 CalendarSettings ||-- Oauth2Token
+AccountManager }|-- UserEmailSetting
+AccountManager }|-- UserEventType
+UserEventType ||-- EventType
+UserEmailSetting ||-- EmailSetting
 
 @enduml
