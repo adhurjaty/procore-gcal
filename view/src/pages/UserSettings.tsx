@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
 import { getUserSettings } from '../backend_interface/api_interface';
@@ -8,6 +8,8 @@ import EventType from '../models/eventType';
 import User from '../models/user';
 import Enablable from '../models/Enablable';
 import Collaborator from '../models/collaborator';
+import { PayPalButton } from "react-paypal-button-v2";
+import { API_USER } from '../AppSettings';
 
 
 const Container = styled.div`
@@ -67,25 +69,60 @@ function UserSettings(): JSX.Element {
     let { userId } = useParams();
     const user = getUserSettings(userId);
 
-    const handleSubmit = (evt: React.FormEvent<HTMLFormElement>) => {
-        evt.preventDefault();
-    }
-
     const [fullNameError, setFullNameError] = useState("");
     const [calendarError, setCalendarError] = useState("");
     const [collaboratorError, setCollaboratorError] = useState("");
-    const [emailSettings, setEmailSettings] = useState(user.emailSettings);
     const [isSubscribed, setSubscribed] = useState(user.isSubscribed);
+
+    const validate = () => {
+        if(!/[\w\-_ ]+/.test(user.fullName)) {
+            setFullNameError("Must enter a full name");
+            return false;
+        }
+        if(!user.selectedCalendar) {
+            setCalendarError("Must select a calendar");
+            return false;
+        }
+        // TODO: collaborator error check
+        // TODO: subscribe error check
+
+        return true;
+    };
+    
+    const handleSubmit = (evt: React.MouseEvent) => {
+        if(!validate()) {
+            return;
+        }
+
+        fetch(new Request(API_USER(userId), {
+            method: 'POST',
+            body: JSON.stringify({
+                id: -1,
+                email: user.email,
+                fullName: user.fullName,
+                selectedCalendar: (user.selectedCalendar as Calendar).id,
+                eventTypes: user.eventTypes.map(x => x.json()),
+                collaborators: user.collaborators.map(x => x.json()),
+                emailSettings: user.emailSettings.map(x => x.json()),
+                isSubscribed: isSubscribed
+            })
+        }));
+    }
     
     return (
         <Container>
             <Heading>User Settings</Heading>
-            <SettingsForm onSubmit={handleSubmit}>
+            <SettingsForm>
                 <EmailSection user={user} />
                 <NameSection user={user} error={fullNameError} />
                 <CalendarSection user={user} error={calendarError} />
                 <EventTypesSection user={user} />
                 <CollaboratorSection user={user} error={collaboratorError} />
+                <EmailSettingsSection user={user} />
+                {!user.isSubscribed && 
+                    <SubscriptionSection isSubscribed={isSubscribed} 
+                        setSubscribed={setSubscribed} />}
+                <button onClick={handleSubmit}>Submit</button>
             </SettingsForm>
         </Container>
     )
@@ -102,6 +139,9 @@ function EmailSection({user}: {user: User}): JSX.Element {
 
 function NameSection({user, error}: {user: User, error: string}): JSX.Element {
     const [fullName, setFullName] = useState(user.fullName);
+    useEffect(() => {
+        user.fullName = fullName;
+    });
 
     return (
         <InputSection>
@@ -117,6 +157,9 @@ function NameSection({user, error}: {user: User, error: string}): JSX.Element {
 
 function CalendarSection({user, error}: {user: User, error: string}): JSX.Element {
     const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
+    useEffect(() => {
+        user.selectedCalendar = selectedCalendar;
+    });
 
     return (
         <InputSection>
@@ -136,6 +179,7 @@ function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar,
         const newCal = calendars.find(c => c.id === parseInt(e.target.value));
         setSelectedCalendar(newCal as Calendar);
     }
+
     return (
         <CalendarSelector onChange={onSelect}>
             {calendars.map((c, i) => {
@@ -163,13 +207,18 @@ function renderGCalButton(): React.ReactNode {
 function EventTypesSection({user}: {user: User}): JSX.Element {
     const [eventTypes, setEventTypes] = useState(user.eventTypes);
 
+    useEffect(() => {
+        user.eventTypes = eventTypes;
+    })
+
+    const checkFn = onCheckedFn(eventTypes, setEventTypes);
+
     return (
         <InputSection>
             <InputLabel>Event Types:</InputLabel>
             {eventTypes.map((et, i) => (
-                <Checkbox onChange={onCheckedFn(eventTypes, setEventTypes)}
-                    id={et.id}
-                    key={`${et.id}${i}`}
+                <Checkbox onChange={checkFn(et)}
+                    key={`${et.id}-${i}`}
                     label={et.name} 
                     checked={et.enabled} />
             ))}
@@ -177,16 +226,15 @@ function EventTypesSection({user}: {user: User}): JSX.Element {
     );
 }
 
-function Checkbox({checked, onChange, label, id}: {checked: boolean, 
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, label: string, id: number}):
+function Checkbox({checked, onChange, label}: {checked: boolean, 
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, label: string}):
     JSX.Element
 {
     return (
         <label>
             <input type="checkbox"
                 onChange={onChange}
-                checked={checked}
-                name={`${id}`} />
+                checked={checked} />
             <span className="checkable">{label}</span>
         </label>
     );
@@ -194,11 +242,11 @@ function Checkbox({checked, onChange, label, id}: {checked: boolean,
 
 function onCheckedFn(checkFields: Enablable[], 
     setCheckFields: (fields: Enablable[]) => void) : 
-    (e: React.ChangeEvent<HTMLInputElement>) => void
+    (field: Enablable) => (e: React.ChangeEvent<HTMLInputElement>) => void
 {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
+    return (field: Enablable) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setCheckFields(checkFields.map((et, i) => {
-            if(et.id === parseInt(e.target.name)) {
+            if(field === et) {
                 let newEvent = et.copy();
                 newEvent.enabled = e.target.checked;
                 return newEvent;
@@ -210,6 +258,10 @@ function onCheckedFn(checkFields: Enablable[],
 
 function CollaboratorSection({user, error}: {user: User, error: string}): JSX.Element {
     const [collaborators, setCollaborators] = useState(user.collaborators);
+
+    useEffect(() => {
+        user.collaborators = collaborators;
+    })
 
     const entryUpdated = (collab: Collaborator) => 
         (e: React.ChangeEvent<HTMLInputElement>) => 
@@ -244,7 +296,7 @@ function CollaboratorSection({user, error}: {user: User, error: string}): JSX.El
                         onClick={removeEntry(c)} />
                 );
             })}
-            {collaborators.length < 5 && <button onClick={addEntry}>+</button>}
+            {collaborators.length < 5 && <PlusButton onClick={addEntry} />}
             <FieldError>{error}</FieldError>
         </InputSection>
     )
@@ -267,6 +319,69 @@ function MinusInput({value, onChange, onClick}: {value: string,
 function MinusButton({onClick}: {onClick: (e: React.MouseEvent) => void}): JSX.Element {
     return (
         <InlineButton onClick={onClick}>-</InlineButton>
+    );
+}
+
+function PlusButton({onClick}: {onClick: (e: React.MouseEvent) => void}): JSX.Element {
+    return (
+        <button onClick={onClick}>+</button>
+    );
+}
+
+function EmailSettingsSection({user}: {user: User}): JSX.Element {
+    const [emailSettings, setEmailSettings] = useState(user.emailSettings);
+
+    useEffect(() => {
+        user.emailSettings = emailSettings;
+    })
+
+    const checkFn = onCheckedFn(emailSettings, setEmailSettings);
+
+    return (
+        <InputSection>
+            <InputLabel>Email Notification Settings:</InputLabel>
+            {emailSettings.map((es, i) => (
+                <Checkbox onChange={checkFn(es)}
+                    key={`${es.id}-${i}`}
+                    label={es.name} 
+                    checked={es.enabled} />
+            ))}
+        </InputSection>
+    );
+}
+
+function SubscriptionSection({isSubscribed, setSubscribed}: 
+    {isSubscribed: boolean, setSubscribed: (s: boolean) => void}): JSX.Element
+{
+    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSubscribed(!isSubscribed);
+    }
+    
+    return (
+        <InputSection>
+            <InputLabel>Subsrciption:</InputLabel>
+            <RadioButton checked={!isSubscribed} 
+                onChange={onChange}
+                label="Free Trial (1 month)" />
+            <RadioButton checked={isSubscribed} 
+                onChange={onChange}
+                label="Subscription" />
+            {isSubscribed && <PayPalButton amount="0.01" />}
+        </InputSection>
+    );
+}
+
+function RadioButton({checked, onChange, label}: {checked: boolean, 
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, label: string}):
+    JSX.Element
+{
+    return (
+        <label>
+            <input type="radio"
+                onChange={onChange}
+                checked={checked} />
+            <span className="checkable">{label}</span>
+        </label>
     );
 }
 

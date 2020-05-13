@@ -17,4 +17,12 @@ export default abstract class Enablable {
     }
 
     abstract copy(): Enablable;
+
+    json(): SelectableItem {
+        return {
+            id: this.id,
+            name: this.name,
+            enabled: this.enabled
+        };
+    }
 }

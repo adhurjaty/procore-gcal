@@ -16,4 +16,11 @@ export default class Collaborator {
     copy(): Collaborator {
         return new Collaborator({id: this.id, name: this.name});
     }
+
+    json(): NamedItem {
+        return {
+            id: this.id,
+            name: this.name
+        };
+    }
 }

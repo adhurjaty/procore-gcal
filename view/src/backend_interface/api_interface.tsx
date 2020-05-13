@@ -2,6 +2,7 @@ import User from "../models/user"
 
 export function getUserSettings(userId: string): User {
     let response = {
+        id: 4,
         email: "adhurjaty@gmail.com",
         fullName: "Anil Dhurjaty",
         calendars: [
