@@ -2,7 +2,7 @@ import Calendar from "./caldendar";
 import EventType from "./eventType";
 import EmailSetting from "./emailSetting";
 import Collaborator from "./collaborator";
-import { SelectableItem, NamedItem } from "./interfaces";
+import { SelectableItem, NamedItem, UserItem } from "./interfaces";
 
 interface CollaboratorResponse {
     name: string
@@ -15,7 +15,7 @@ interface UserResponse {
     calendars: NamedItem[],
     selectedCalendar: number,
     eventTypes: SelectableItem[],
-    collaborators: NamedItem[],
+    collaborators: UserItem[],
     emailSettings: SelectableItem[],
     isSubscribed: boolean;
 };

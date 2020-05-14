@@ -2,6 +2,7 @@ import User from "../models/user"
 import EventType from "../models/eventType";
 import EmailSetting from "../models/emailSetting";
 import { API_NEW_USER, API_USER } from "../AppSettings";
+import Collaborator from "../models/collaborator";
 
 const TOKEN_COOKIE_NAME = 'auth_token'
 
@@ -132,6 +133,16 @@ export function getEmailSettings(): EmailSetting[] {
         },
     ];
     return emailSettings.map(x => new EmailSetting(x));
+}
+
+export function getCollaborator(id: string): Collaborator {
+    let collab = {
+        id: parseInt(id),
+        name: 'Carl Contractor',
+        email: 'ccontractor@example.com'
+    };
+
+    return new Collaborator(collab);
 }
 
 export async function createNewUser(user: User) : Promise<StatusMessage> {

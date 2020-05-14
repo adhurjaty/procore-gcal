@@ -10,41 +10,11 @@ import Enablable from '../models/Enablable';
 import Collaborator from '../models/collaborator';
 import { PayPalButton } from "react-paypal-button-v2";
 import { API_USER } from '../AppSettings';
-
+import { Heading, SettingsForm, InputSection, InputLabel, FieldError } from './GlobalStyles';
 
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-`
-
-const Heading = styled.h2`
-    align-self: center;
-`
-
-const SettingsForm = styled.form`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-`
-
-const InputSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    margin-left: 20px;
-`
-
-const InputLabel = styled.label`
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 5px;
-`
-
-const FieldError = styled.div`
-    color: red;
-    margin-top: 5px;
 `
 
 const CalendarSelector = styled.select`
@@ -69,6 +39,8 @@ const SubmitButton = styled.button`
     align-self: flex-end;
     margin-right: 30px;
 `
+
+// TODO: add storing form values into local storage
 
 function UserSettingsForm({user, submitRequest, children}: {user: User, 
     submitRequest: (user: User) => Promise<StatusMessage>, children?: React.ReactNode}): 
@@ -147,7 +119,7 @@ function NameSection({user, error}: {user: User, error: string}): JSX.Element {
     const [fullName, setFullName] = useState(user.fullName);
     useEffect(() => {
         user.fullName = fullName;
-    });
+    }, [fullName]);
 
     return (
         <InputSection>
@@ -165,7 +137,7 @@ function CalendarSection({user, error}: {user: User, error: string}): JSX.Elemen
     const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
     useEffect(() => {
         user.selectedCalendar = selectedCalendar;
-    });
+    }, [selectedCalendar]);
 
     return (
         <InputSection>
@@ -215,7 +187,7 @@ function EventTypesSection({user}: {user: User}): JSX.Element {
 
     useEffect(() => {
         user.eventTypes = eventTypes;
-    })
+    }, [eventTypes])
 
     const checkFn = onCheckedFn(eventTypes, setEventTypes);
 
@@ -267,7 +239,7 @@ function CollaboratorSection({user, error}: {user: User, error: string}): JSX.El
 
     useEffect(() => {
         user.collaborators = collaborators;
-    })
+    }, [collaborators])
 
     const entryUpdated = (collab: Collaborator) => 
         (e: React.ChangeEvent<HTMLInputElement>) => 
@@ -339,7 +311,7 @@ function EmailSettingsSection({user}: {user: User}): JSX.Element {
 
     useEffect(() => {
         user.emailSettings = emailSettings;
-    })
+    }, [emailSettings]);
 
     const checkFn = onCheckedFn(emailSettings, setEmailSettings);
 
@@ -362,7 +334,7 @@ function SubscriptionSection({user, error}: {user: User, error: string}): JSX.El
 
     useEffect(() => {
         user.isSubscribed = isSubscribed;
-    });
+    }, [isSubscribed]);
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSubscribed(!isSubscribed);

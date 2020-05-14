@@ -14,13 +14,13 @@ from util.utils import parallel_for
 API_VERSION = 'v2'
 
 INDEX_ROUTE = '/api'
-LOGIN_ROUTE = '/api/login'
+LOGIN_ROUTE = '/login'
 REGISTER_ROUTE = '/api/register'
 PROCORE_AUTH_ROUTE = '/authorize'
 WEBHOOK_HANDLER_ROUTE = '/api/webhook_handler'
 TEST_ROUTE = '/api/test'
-GCAL_LOGIN_ROUTE = '/api/gcal_login'
-GCAL_AUTH_ROUTE = '/api/gcal_authorize'
+GCAL_LOGIN_ROUTE = '/gcal_login'
+GCAL_AUTH_ROUTE = '/gcal_authorize'
 
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
@@ -94,20 +94,26 @@ def authorize():
         user.set_procore_token(token)
         controller.update_user(user)
     else:
+        # TODO: don't create user here. get user info from procore api
         controller.create_user(**procore_user, **token)
 
-    redirect_url = app.config.get('FRONT_END_DOMAIN') + '/users/' + \
-        str(user.id) if user else 'new'
-    
-    response = make_response(redirect(redirect_url))
-    response.set_cookie('auth_token', token['access_token'])
-
-    return response
+    return redirect_to_user_page(user, token.get('access_token'))
 
 
 def get_procore_user_from_token(token) -> dict:
     result = oauth.procore.get(PROCORE_GET_USER)
     return result.json()
+
+
+def redirect_to_user_page(user, procore_token=None):
+    redirect_url = app.config.get('FRONT_END_DOMAIN') + '/users/' + \
+        str(user.id) if user.id else 'new'
+    
+    # TODO: put email and name in new user params
+    response = make_response(redirect(redirect_url))
+    if(procore_token):
+        response.set_cookie('auth_token', procore_token)
+    return response
     
 
 @app.route(WEBHOOK_HANDLER_ROUTE, methods=['POST'])
@@ -175,9 +181,14 @@ def gcal_login():
 def gcal_authorize():
     token = oauth.gcal.authorize_access_token()
     user = g.user
+
+    # TODO: handle case where request comes from collaborator (no user returned)
+
     user.set_gcal_token(token)
     controller.update_user(user)
-    return show_success()
+
+    return redirect_to_user_page(user)
+
 
 def show_success():
     return {
