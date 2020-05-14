@@ -1,5 +1,5 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, url_for, request, g
+from flask import Flask, url_for, request, g, redirect, make_response
 from flask_httpauth import HTTPTokenAuth
 from flask_cors import CORS
 import json
@@ -13,14 +13,14 @@ from util.utils import parallel_for
 
 API_VERSION = 'v2'
 
-INDEX_ROUTE = '/'
-LOGIN_ROUTE = '/login'
-REGISTER_ROUTE = '/register'
+INDEX_ROUTE = '/api'
+LOGIN_ROUTE = '/api/login'
+REGISTER_ROUTE = '/api/register'
 PROCORE_AUTH_ROUTE = '/authorize'
-WEBHOOK_HANDLER_ROUTE = '/webhook_handler'
-TEST_ROUTE = '/test'
-GCAL_LOGIN_ROUTE = '/gcal_login'
-GCAL_AUTH_ROUTE = '/gcal_authorize'
+WEBHOOK_HANDLER_ROUTE = '/api/webhook_handler'
+TEST_ROUTE = '/api/test'
+GCAL_LOGIN_ROUTE = '/api/gcal_login'
+GCAL_AUTH_ROUTE = '/api/gcal_authorize'
 
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
@@ -96,7 +96,13 @@ def authorize():
     else:
         controller.create_user(**procore_user, **token)
 
-    return show_success()
+    redirect_url = app.config.get('FRONT_END_DOMAIN') + '/users/' + \
+        str(user.id) if user else 'new'
+    
+    response = make_response(redirect(redirect_url))
+    response.set_cookie('auth_token', token['access_token'])
+
+    return response
 
 
 def get_procore_user_from_token(token) -> dict:
@@ -173,7 +179,6 @@ def gcal_authorize():
     controller.update_user(user)
     return show_success()
 
-
 def show_success():
     return {
         'result': 'success'
@@ -201,4 +206,5 @@ def update_procore_token(token: dict, refresh_token: str = '', access_token: str
     controller.update_user(manager)
 
     return controller.save_token(**token)
+
 
