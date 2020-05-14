@@ -1,7 +1,7 @@
 import User from "../models/user"
 import EventType from "../models/eventType";
 import EmailSetting from "../models/emailSetting";
-import { API_NEW_USER, API_USER } from "../AppSettings";
+import { API_NEW_USER, API_USER, API_NEW_COLLABORATOR } from "../AppSettings";
 import Collaborator from "../models/collaborator";
 
 const TOKEN_COOKIE_NAME = 'auth_token'
@@ -135,7 +135,7 @@ export function getEmailSettings(): EmailSetting[] {
     return emailSettings.map(x => new EmailSetting(x));
 }
 
-export function getCollaborator(id: string): Collaborator {
+export async function getCollaborator(id: string): Promise<Collaborator> {
     let collab = {
         id: parseInt(id),
         name: 'Carl Contractor',
@@ -162,5 +162,14 @@ export async function updateUser(user: User) : Promise<StatusMessage> {
 export async function deleteUser(user: User) : Promise<StatusMessage> {
     return sendRequest(new Request(API_USER('' + user.id), {
         method: 'DELETE'
+    }));
+}
+
+export async function createCollaborator(collaborator: Collaborator): 
+    Promise<StatusMessage>
+{
+    return sendRequest(new Request(API_NEW_COLLABORATOR('' + collaborator.id), {
+        method: 'POST',
+        body: JSON.stringify(collaborator.json())
     }));
 }
