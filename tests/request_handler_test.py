@@ -2,6 +2,7 @@ import pytest
 import json
 import os
 from pathlib import Path
+import re
 
 import controller.request_handler as rh
 import controller.api_endpoints as endpoints
@@ -54,22 +55,16 @@ def user_controller_mock(controller_mock) -> ControllerMock:
     
 
 def test_hello_world(test_client):
-    response = test_client.get('/')
+    response = test_client.get(rh.INDEX_ROUTE)
     
     assert response.status_code == 200
     assert response.data == b'Hello world!'
 
 
 def test_login(test_client, procore_oauth_mock):
-    test_client.get('/login')
+    test_client.get(rh.LOGIN_ROUTE)
 
     assert procore_oauth_mock.redirect_uri == 'http://localhost/authorize'
-
-
-def test_register(test_client, procore_oauth_mock):
-    test_client.get('/register')
-
-    assert procore_oauth_mock.redirect_uri == 'http://localhost/authorize?new_user=True'
 
 
 def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
@@ -81,11 +76,6 @@ def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
         'other_thing': 'asdfsda'
     }
     procore_oauth_mock.set_token(sample_token)
-    procore_oauth_mock.get = lambda endpoint: OauthResponseMock({
-        'id': 42,
-        'login': 'sean@example.com',
-        'name': 'Sean Black'
-    })
 
     manager = AccountManagerDto()
     manager.id = 69
@@ -93,39 +83,12 @@ def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
     manager.full_name = 'Sean Black'
     controller_mock.set_manager(manager)
 
-    resp = test_client.get('/authorize')
+    resp = test_client.get(rh.PROCORE_AUTH_ROUTE, follow_redirects=False)
 
-    assert manager.procore_data.access_token == 'sample access token'
-    assert manager.procore_data.refresh_token == 'sample refresh token'
-    assert manager.procore_data.token_type == 'Bearer'
-    assert manager.procore_data.expires_at == 1000
-    assert resp.json == {
-        'result': 'success'
-    }
-
-
-def test_authorize_login_no_user(test_client, procore_oauth_mock, controller_mock):
-    sample_token = {
-        'access_token': 'sample access token',
-        'refresh_token': 'sample refresh token',
-        'token_type': 'Bearer',
-        'expires_at': 1000,
-        'other_thing': 'asdfsda'
-    }
-    procore_oauth_mock.set_token(sample_token)
-    procore_oauth_mock.get = lambda endpoint: OauthResponseMock({
-        'id': 42,
-        'login': 'sean@example.com',
-        'name': 'Sean Black'
-    })
-
-    resp = test_client.get('/authorize')
-
-    assert resp.status_code == 401
-    assert resp.json == {
-        'result': 'error',
-        'error': 'User does not exist'
-    }
+    assert resp.status_code == 302
+    assert resp.location == f'{get_front_end_domain(test_client)}/users/69'
+    cookie = resp.headers.get('Set-Cookie')
+    assert extract_cookie(cookie, 'auth_token') == 'sample access token'
 
 
 def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
@@ -143,42 +106,20 @@ def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
         'name': 'Sean Black'
     })
 
-    resp = test_client.get('/authorize?new_user=True')
+    def init_user(login='', name='', **kwargs):
+        user = AccountManagerDto()
+        user.email = login
+        user.full_name = name
+        return user
 
-    assert controller_mock.manager.email == 'sean@example.com'
-    assert controller_mock.manager.full_name == 'Sean Black'
-    assert controller_mock.manager.procore_data.access_token == 'sample access token'
-    assert resp.status_code == 200
+    controller_mock.init_user = init_user
 
+    resp = test_client.get(rh.PROCORE_AUTH_ROUTE, follow_redirects=False)
 
-def test_authorize_signup_existing_user(test_client, procore_oauth_mock, controller_mock):
-    sample_token = {
-        'access_token': 'sample access token',
-        'refresh_token': 'sample refresh token',
-        'token_type': 'Bearer',
-        'expires_at': 1000,
-        'other_thing': 'asdfsda'
-    }
-    procore_oauth_mock.set_token(sample_token)
-    procore_oauth_mock.get = lambda endpoint: OauthResponseMock({
-        'id': 42,
-        'login': 'sean@example.com',
-        'name': 'Sean Black'
-    })
-
-    manager = AccountManagerDto()
-    manager.id = 69
-    manager.email = 'sean@example.com'
-    manager.full_name = 'Sean Black'
-    controller_mock.set_manager(manager)
-
-    resp = test_client.get('/authorize?new_user=True')
-
-    assert resp.status_code == 403
-    assert resp.json == {
-        'result': 'error',
-        'error': 'User already exists'
-    }
+    assert resp.status_code == 302
+    assert resp.location == f'{get_front_end_domain(test_client)}/users/new?fullName=Sean+Black&email=sean%40example.com'
+    cookie = resp.headers.get('Set-Cookie')
+    assert extract_cookie(cookie, 'auth_token') == 'sample access token'
 
 
 def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
@@ -223,8 +164,16 @@ def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
     controller_mock.update_gcal = update_gcal
     controller_mock.get_users_in_project = lambda pid: [AccountManagerDto()]
 
-    resp = test_client.post('/webhook_handler', json=webhook_data)
+    resp = test_client.post(rh.WEBHOOK_HANDLER_ROUTE, json=webhook_data)
 
     assert resp.status_code == 200
     assert controller_mock.updated_gcal
 
+
+def get_front_end_domain(client):
+    return client.application.config.get('FRONT_END_DOMAIN')
+
+
+def extract_cookie(text, key):
+    matches = re.findall(key + r'="(.*?)";', text)
+    return matches and matches[0]

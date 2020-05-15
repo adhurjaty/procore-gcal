@@ -8,7 +8,7 @@ from typing import List
 from .api_endpoints import *
 from .controller import Controller
 import controller.server_connector as connector
-from util.utils import parallel_for
+from util.utils import parallel_for, build_url
 
 
 API_VERSION = 'v2'
@@ -58,6 +58,8 @@ def create_app(cont):
 @auth.verify_token
 def verify_token(token):
     user = controller.get_user_from_token(token)
+    if not user:
+        return None
     g.user = user
     return user
 
@@ -72,30 +74,17 @@ def login():
     redirect_uri = url_for('authorize', _external=True)
     return oauth.procore.authorize_redirect(redirect_uri)
 
-
-@app.route(REGISTER_ROUTE)
-def register():
-    redirect_uri = url_for('authorize', _external=True, new_user=True)
-    return oauth.procore.authorize_redirect(redirect_uri)
-
-
 @app.route(PROCORE_AUTH_ROUTE)
 def authorize():
     token = oauth.procore.authorize_access_token()
-    procore_user = get_procore_user_from_token(token)
-    user = controller.get_account_manager(procore_user.get('login'))
-
-    if user and request.args.get('new_user'):
-        return show_error('User already exists'), 403
-    if not user and not request.args.get('new_user'):
-        return show_error('User does not exist'), 401
+    user = controller.get_user_from_token(token.get('access_token'))
     
     if user:
         user.set_procore_token(token)
         controller.update_user(user)
     else:
-        # TODO: don't create user here. get user info from procore api
-        controller.create_user(**procore_user, **token)
+        procore_user = get_procore_user_from_token(token)
+        user = controller.init_user(**procore_user)
 
     return redirect_to_user_page(user, token.get('access_token'))
 
@@ -106,8 +95,9 @@ def get_procore_user_from_token(token) -> dict:
 
 
 def redirect_to_user_page(user, procore_token=None):
-    redirect_url = app.config.get('FRONT_END_DOMAIN') + '/users/' + \
-        str(user.id) if user.id else 'new'
+    path = '/users/' + (str(user.id) if user and user.id else 'new')
+    param_dict = {} if user and user.id else {'fullName': user.full_name, 'email': user.email}
+    redirect_url = build_url(app.config.get("FRONT_END_DOMAIN"), path, param_dict)    
     
     # TODO: put email and name in new user params
     response = make_response(redirect(redirect_url))

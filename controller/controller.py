@@ -3,9 +3,6 @@ from interactor.account_manager_dto import AccountManagerDto
 
 procore_token_file = 'temp_db/procore_token.json'
 
-
-
-
 class Controller:
     rfis = []
     def __init__(self):
@@ -57,3 +54,10 @@ class Controller:
 
     def update_gcal(self, users, event_object):
         self.rfis.append(event_object)
+
+    def init_user(self, login: str = '', name: str = '', **kwargs) -> AccountManagerDto:
+        user = AccountManagerDto()
+        user.email = login
+        user.full_name = name
+        user.id = ''
+        return user
