@@ -4,6 +4,7 @@ export default class Collaborator {
     id: number = -1;
     email: string = "";
     name: string = "";
+    isPending: boolean = true;
 
     constructor()
     constructor(object: UserItem)
@@ -11,6 +12,7 @@ export default class Collaborator {
         if(object) {
             this.id = object.id;
             this.name = object.name;
+            this.email = object.email;
         }
     }
 

@@ -159,13 +159,11 @@ function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar,
     }
 
     return (
-        <CalendarSelector onChange={onSelect}>
+        <CalendarSelector onChange={onSelect} value={selectedCalendar.id}>
             {calendars.map((c, i) => {
-                const isSelected = selectedCalendar.id === c.id;
                 return (
                     <option key={`${c.id}-${i}`}
-                        value={c.id}
-                        selected={isSelected}>
+                        value={c.id}>
                         {c.name}
                     </option>
                 )

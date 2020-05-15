@@ -9,7 +9,8 @@ import Collaborator from '../models/collaborator';
 enum PageStateEnum {
     Loading,
     CollabForm,
-    Success
+    Success,
+    AlreadyRegistered
 }
 
 interface PageState {
@@ -46,10 +47,16 @@ function CollaboratorRegister(): JSX.Element {
 
     useEffect(() => {
         getCollaborator(collaboratorId).then((collab) => {
-            setPageState(Object.assign(pageState, {
-                state: PageStateEnum.CollabForm,
-                collaborator: collab
-            }));
+            if(collab.isPending) {
+                setPageState(Object.assign({}, pageState, {
+                    state: PageStateEnum.CollabForm,
+                    collaborator: collab
+                }));
+            } else {
+                setPageState(Object.assign({}, pageState, {
+                    state: PageStateEnum.AlreadyRegistered
+                }));
+            }
         });
     }, [])
 
@@ -64,12 +71,6 @@ function CollaboratorRegister(): JSX.Element {
 function PageContents({state, setState}: {state: PageState, setState: (s: PageState) => void}):
     JSX.Element
 {
-    const [stateInfo, setStateInfo] = useState(state.state)
-
-    useEffect(() => {
-        setStateInfo(state.state);
-    }, [state]);
-
     switch (state.state) {
         case PageStateEnum.Loading:
             return <LoadingPage />
@@ -77,6 +78,8 @@ function PageContents({state, setState}: {state: PageState, setState: (s: PageSt
             return <CollaboratorForm state={state} setState={setState} />
         case PageStateEnum.Success:
             return <SuccessPage />
+        case PageStateEnum.AlreadyRegistered:
+            return <AlreadyRegisteredPage />
         default:
             throw new Error("Invalid page state");
     }
@@ -120,10 +123,10 @@ function CollaboratorForm({state, setState}: {state: PageState, setState: (s: Pa
 
         let collaborator = state.collaborator as Collaborator
         createCollaborator(collaborator).then((resp) => {
-            if(resp.status == 'error') {
+            if(resp.status === 'error') {
                 setNameError(resp.message);
             } else {
-                setState(Object.assign(state, {state: PageStateEnum.Success}));
+                setState(Object.assign({}, state, {state: PageStateEnum.Success}));
             }
         });
     }
@@ -132,7 +135,9 @@ function CollaboratorForm({state, setState}: {state: PageState, setState: (s: Pa
         <SettingsForm>
             <EmailSection email={collaborator.email} />
             <NameSection collab={collaborator} error={nameError} />
-            <GCalButton />
+            <InputSection>
+                <GCalButton />
+            </InputSection>
             <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
         </SettingsForm>
     )
@@ -170,6 +175,14 @@ function SuccessPage(): JSX.Element {
         <CenterContainer>
             <h4>Success</h4>
 
+        </CenterContainer>
+    )
+}
+
+function AlreadyRegisteredPage(): JSX.Element {
+    return (
+        <CenterContainer>
+            <div>User has already been registered</div>
         </CenterContainer>
     )
 }

@@ -142,7 +142,8 @@ export async function getCollaborator(id: string): Promise<Collaborator> {
         email: 'ccontractor@example.com'
     };
 
-    return new Collaborator(collab);
+    let c = new Collaborator(collab);
+    return c;
 }
 
 export async function createNewUser(user: User) : Promise<StatusMessage> {
