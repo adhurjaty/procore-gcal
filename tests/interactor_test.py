@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 
+from interactor.change_order import ChangeOrder
 from interactor.person import Person
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
@@ -53,3 +54,22 @@ def test_create_submittal():
     assert submittal.attachments[0].url == "http://www.example.com/"
     assert submittal.attachments[0].filename == "january_receipt_copy.jpg"
     assert submittal.required_on_site_date == datetime(2016, 11, 28).date()
+
+
+def test_create_change_order():
+    with open(os.path.join(objects_path, 'change_order.json')) as f:
+        contents_dict = json.load(f)
+    change_order = ChangeOrder()
+    change_order.update_from_dict(contents_dict)
+
+    assert change_order.number == "H-38"
+    assert change_order.title == "Additional Time & Materials"
+    assert change_order.location == ''
+    assert change_order.description == "Additional Time & Materials for October"
+    assert change_order.due_date == datetime(2016, 10, 23).date()
+    # assert submittal.ball_in_court.full_name == 'Carl Contractor' 
+    # assert submittal.ball_in_court.email == 'exampleuser@website.com' 
+    # assert submittal.approver.full_name == "Other Contractor"
+    # assert submittal.approver.email == "otherexampleuser@website.com"
+    # assert submittal.attachments[0].url == "http://www.example.com/"
+    # assert submittal.attachments[0].filename == "january_receipt_copy.jpg"

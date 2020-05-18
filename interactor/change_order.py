@@ -1,10 +1,8 @@
 from typing import List
 
-from .procore_event import ProcoreEvent
+from .ball_in_court_event import BallInCourtEvent
 
 
-class ChangeOrder(ProcoreEvent):
-    ball_in_court: str = ''
-    approver: str = ''
-    attachments: List[str] = []
+class ChangeOrder(BallInCourtEvent):
+    pass
     
