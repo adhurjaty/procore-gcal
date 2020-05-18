@@ -17,3 +17,4 @@ class ProcoreEvent:
                 continue
             setattr(self, key, val)
 
+        self.location = self.location and self.location.get('node_name')

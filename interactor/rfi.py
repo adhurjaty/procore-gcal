@@ -23,7 +23,6 @@ class Rfi(ProcoreEvent):
     def update_from_dict(self, values):
         super().update_from_dict(values)
         
-        self.location = self.location and self.location.get('node_name')
         self.assignees = self.assignees and [Person(**a) for a in self.assignees]
         self.rfi_manager = self.rfi_manager and Person(**self.rfi_manager)
         self.cost_impact = self.cost_impact and float(self.cost_impact.get('value'))

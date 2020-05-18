@@ -76,9 +76,9 @@
         "sent_date": "2014-05-04",
         "due_date": "2014-05-05",
         "user": {
-          "login": "exampleuser@website.com",
+          "login": "otherexampleuser@website.com",
           "id": 161072,
-          "name": "Carl the Contractor"
+          "name": "Other Contractor"
         },
         "attachments": [
           {
