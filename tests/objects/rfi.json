@@ -1,0 +1,135 @@
+{
+    "accepted": false,
+    "custom_textfield_1": {
+      "label": "foobar",
+      "value": "foobar"
+    },
+    "custom_textfield_2": {
+      "label": "foobar",
+      "value": "foobar"
+    },
+    "distribution_list": [
+      {
+        "login": "exampleuser@website.com",
+        "id": 161072,
+        "name": "Carl the Contractor"
+      }
+    ],
+    "draft": false,
+    "drawing_ids": [
+      999
+    ],
+    "drawing_number": "107.3D",
+    "questions": [
+      {
+        "id": 42,
+        "question_date": "2016-08-02T20:49:35.000Z",
+        "plain_text_body": "Are the items listed on Schedule C acceptable?",
+        "rich_text_body": "<p>Are the items listed on Schedule C acceptable?</p>",
+        "created_by": "Joseph Shabadoo",
+        "attachments": [
+          {
+            "id": 42,
+            "name": "foobar",
+            "url": "foobar",
+            "filename": "foobar"
+          }
+        ],
+        "answers": [
+          {
+            "id": 999,
+            "official": true,
+            "answer_date": "2016-08-29T14:37:22.000Z",
+            "plain_text_body": "No, they need to follow the guidelines on Schedule D",
+            "rich_text_body": "<p>No, they need to follow the guidelines on Schedule D</p>",
+            "created_by": "Jane Doe",
+            "attachments": [
+              {
+                "id": 42,
+                "name": "foobar",
+                "url": "foobar",
+                "filename": "foobar"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specification_section": {
+      "id": 42,
+      "description": "foobar",
+      "number": "foobar"
+    },
+    "id": 999,
+    "assignee": {
+      "login": "exampleuser@website.com",
+      "id": 161072,
+      "name": "Carl the Contractor"
+    },
+    "assignees": [
+      {
+        "login": "exampleuser@website.com",
+        "id": 161072,
+        "name": "Carl the Contractor"
+      }
+    ],
+    "ball_in_court": {
+      "login": "exampleuser@website.com",
+      "id": 161072,
+      "name": "Carl the Contractor"
+    },
+    "ball_in_courts": [
+      {
+        "login": "exampleuser@website.com",
+        "id": 161072,
+        "name": "Carl the Contractor"
+      }
+    ],
+    "cost_code": {
+      "id": 12345,
+      "name": "Earthwork"
+    },
+    "cost_impact": {
+      "status": "yes_known",
+      "value": 12039.55
+    },
+    "created_at": "2016-08-23T15:23:57.000Z",
+    "deleted": true,
+    "deleted_at": "2016-08-23T15:23:57.000Z",
+    "due_date": "2017-01-18T00:00:00.000Z",
+    "initiated_at": "2016-08-23T15:23:57.000Z",
+    "location": {
+      "id": 15504,
+      "name": "1space>1 space",
+      "node_name": "1 space",
+      "parent_id": 788866,
+      "created_at": "2016-08-01T23:33:54Z",
+      "updated_at": "2016-08-01T23:33:54Z"
+    },
+    "number": "C-1477",
+    "private": true,
+    "received_from": {
+      "login": "exampleuser@website.com",
+      "id": 161072,
+      "name": "Carl the Contractor"
+    },
+    "reference": "Schedule C",
+    "responsible_contractor": {
+      "id": 161072,
+      "name": "SID Architecture"
+    },
+    "rfi_manager": {
+      "login": "exampleuser@website.com",
+      "id": 161072,
+      "name": "Carl the Contractor"
+    },
+    "schedule_impact": {
+      "status": "yes_known",
+      "value": 14
+    },
+    "status": "open",
+    "translated_status": "Abierto",
+    "subject": "Specifications [99 14.44B]",
+    "time_resolved": "2017-01-12T17:09:15.000Z",
+    "updated_at": "2012-10-24T21:39:40.000Z"
+  }

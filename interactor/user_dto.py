@@ -1,6 +1,7 @@
+from .person import Person
 from models.gcal_user_settings import GCalUserSettings
 
-class UserDto:
+class UserDto(Person):
     id = ''
     full_name = ''
     email = ''

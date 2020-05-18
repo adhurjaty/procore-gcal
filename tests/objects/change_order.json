@@ -1,0 +1,142 @@
+{
+    "id": 239475,
+    "contract_id": 64545,
+    "created_at": "2016-10-23T21:39:40.000Z",
+    "deleted_at": "2016-10-27T21:39:40.000Z",
+    "description": "Additional Time & Materials for October",
+    "due_date": "2016-10-23T00:00:00.000Z",
+    "erp_rejected": false,
+    "erp_reviewable": false,
+    "executed": true,
+    "grand_total": "23474.0",
+    "invoiced_date": "2016-10-26T00:00:00.000Z",
+    "number": "H-38",
+    "origin_code": "ABC-123",
+    "origin_data": "OD-123654789",
+    "origin_id": "654987123",
+    "paid_date": "2016-11-23T21:39:40.000Z",
+    "position": 4,
+    "private": true,
+    "rejected_message": "Already in ERP",
+    "review_notes": "Make sure Jon sees this before proceeding",
+    "reviewed_at": "2016-10-24T15:42:33.000Z",
+    "revised_substantial_completion_date": "2017-10-30T00:00:00.000Z",
+    "revision": 1,
+    "schedule_impact_amount": 5,
+    "signed_change_order_received_date": "2016-10-23",
+    "status": "draft",
+    "title": "Additional Time & Materials",
+    "type": "PrimeContractChangeOrder",
+    "updated_at": "2016-10-26T21:43:40.000Z",
+    "creator": {
+      "id": 160586,
+      "login": "exampleuser@website.com",
+      "name": "Carl Contractor"
+    },
+    "designated_reviewer": {
+      "id": 160586,
+      "login": "exampleuser@website.com",
+      "name": "Carl Contractor"
+    },
+    "reviewer": {
+      "id": 160586,
+      "login": "exampleuser@website.com",
+      "name": "Carl Contractor"
+    },
+    "line_items": [
+      {
+        "id": 453927,
+        "position": 3,
+        "description": "Extra materials",
+        "quantity": 30,
+        "uom": "lbs",
+        "total_amount": 60,
+        "extended_amount": "900.0",
+        "cost_code_id": 3282649,
+        "unit_cost": 2,
+        "cost_code": {
+          "id": 12345,
+          "biller": "Campus",
+          "biller_id": 12345,
+          "biller_type": "Project",
+          "budgeted": false,
+          "code": "300",
+          "created_at": "2015-05-15T00:00:00.000Z",
+          "deleted_at": "2017-07-29T21:39:40.000Z",
+          "full_code": "02-300",
+          "name": "Earthwork",
+          "origin_data": "OD-129947",
+          "origin_id": "9874484",
+          "parent": {
+            "id": 2345
+          },
+          "position": 1,
+          "sortable_code": "02-300",
+          "standard_cost_code_id": 122334,
+          "updated_at": "2015-05-15T00:00:00.000Z",
+          "line_item_types": [
+            {
+              "id": 12345,
+              "name": "Equipment",
+              "code": "LB",
+              "base_type": "materials",
+              "origin_data": "OD-2398273424",
+              "origin_id": "ABC123"
+            }
+          ]
+        },
+        "holder": {
+          "id": 233245,
+          "holder_type": "WorkOrderContract"
+        },
+        "line_item_type": {
+          "id": 12345,
+          "name": "Equipment",
+          "code": "LB",
+          "base_type": "materials",
+          "origin_data": "OD-2398273424",
+          "origin_id": "ABC123"
+        },
+        "markup_line_items": [
+          {
+            "id": 352362,
+            "amount": "foobar",
+            "created_at": "2017-08-14T21:39:40.000Z",
+            "updated_at": "2017-08-14T21:39:40.000Z",
+            "markup": {
+              "id": 462136,
+              "position": 1,
+              "markup_set": "horizontal",
+              "name": "Foo",
+              "percentage": "10",
+              "compounds_markups_above": false,
+              "created_at": "2017-08-14T21:39:40.000Z",
+              "updated_at": "2017-08-14T21:39:40.000Z",
+              "destination_cost_code": {
+                "origin_id": "9874484",
+                "origin_data": "OD-129947"
+              },
+              "destination_line_item_type": {
+                "id": 12345,
+                "name": "Equipment",
+                "code": "LB",
+                "base_type": "materials",
+                "origin_data": "OD-2398273424",
+                "origin_id": "ABC123"
+              },
+              "desitination_budget_line_item_id": 362262,
+              "destination_sub_job": {
+                "origin_id": "foobar",
+                "origin_data": "{\"data_field\":{\"is_important\":true}}",
+                "created_at": "2017-08-14T21:39:40.000Z",
+                "updated_at": "2017-08-15T21:39:40.000Z",
+                "id": 3483483,
+                "name": "Floor 2",
+                "code": "18"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
