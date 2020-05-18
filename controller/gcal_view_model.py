@@ -37,7 +37,7 @@ class GCalViewModel:
     user = None
 
     def __init__(self, user, procore_event):
-        self.oauth = OAuth2Session(token=user.gcal_token.token,
+        self.oauth = OAuth2Session(token=user.gcal_data.access_token,
             update_token=self.update_token)
         self.user = user
         self.event = self.convert_procore_event(procore_event)

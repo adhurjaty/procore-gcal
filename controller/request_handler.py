@@ -92,7 +92,7 @@ def authorize():
 
         user = controller.init_user(**procore_user)
 
-    return redirect_to_user_page(user, token.get('access_token'))
+    return redirect_to_manager_page(user, token.get('access_token'))
 
 
 def get_procore_user_from_token(token) -> dict:
@@ -103,12 +103,15 @@ def get_procore_user_from_token(token) -> dict:
     return result.json()
 
 
-def redirect_to_user_page(user, procore_token=None):
+def redirect_to_manager_page(user, procore_token=None):
     path = '/users/' + (str(user.id) if user and user.id else 'new')
+    return redirect_to_user_page(path, user, procore_token)
+
+    
+def redirect_to_user_page(path, user, procore_token=None):
     param_dict = {} if user and user.id else {'fullName': user.full_name, 'email': user.email}
     redirect_url = build_url(app.config.get("FRONT_END_DOMAIN"), path, param_dict)    
     
-    # TODO: put email and name in new user params
     response = make_response(redirect(redirect_url))
     if(procore_token):
         response.set_cookie('auth_token', procore_token)
@@ -193,7 +196,7 @@ def gcal_authorize():
         # if this is an account manager update
         if auth_token:
             user = update_user_gcal_token(auth_token, gcal_token)
-            return redirect_to_user_page(user)
+            return redirect_to_manager_page(user)
         else:
             collaborator = update_collaborator_gcal_token(gcal_token)
             return redirect_to_collaborator_page(collaborator)
@@ -219,6 +222,12 @@ def update_collaborator_gcal_token(token):
     collaborator = controller.get_collaborator(collaborator_id)
     collaborator.set_gcal_token(token)
     controller.update_user(collaborator)
+    return collaborator
+
+
+def redirect_to_collaborator_page(collaborator):
+    path = f'/collaborators/{collaborator.id}'
+    return redirect_to_user_page(path, collaborator)
 
 
 @app.route(USERS_ROUTE, methods=['POST'])
@@ -248,14 +257,15 @@ def update_user_fields(id='', email='', fullName='', selectedCalendar='', eventT
 
 def show_success():
     return {
-        'result': 'success'
+        'result': 'success',
+        'message': 'success'
     }
 
 
 def show_error(error_text):
     return {
         'result': 'error',
-        'error': error_text
+        'message': error_text
     }
 
 

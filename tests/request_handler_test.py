@@ -8,6 +8,7 @@ import controller.request_handler as rh
 import controller.api_endpoints as endpoints
 from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.user_dto import UserDto
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -64,12 +65,11 @@ def user_controller_mock(controller_mock) -> ControllerMock:
 
 @pytest.fixture(scope='module')
 def collab_controller_mock(controller_mock) -> ControllerMock:
-    manager = AccountManagerDto()
-    manager.id = 69
-    manager.email = 'sean@example.com'
-    manager.full_name = 'Sean Black'
-    manager.project_id = 12345
-    controller_mock.set_manager(manager)
+    collab = UserDto()
+    collab.id = 70
+    collab.email = 'sean@example.com'
+    collab.full_name = 'Sean Black'
+    controller_mock.get_collaborator = lambda x: collab
     
     return controller_mock
     
@@ -219,6 +219,55 @@ def test_update_gcal_token(test_client, gcal_oauth_mock, user_controller_mock):
     assert verifications.user.gcal_data.access_token == 'sample access token'
     assert verifications.user.gcal_data.refresh_token == 'sample refresh token'
     assert verifications.user == user_controller_mock.manager
+
+
+def test_update_collab_gcal_token(test_client, gcal_oauth_mock, collab_controller_mock):
+    verifications = MockObject()
+    verifications.user = None
+
+    sample_token = {
+        'access_token': 'sample access token',
+        'refresh_token': 'sample refresh token',
+        'token_type': 'Bearer',
+        'expires_at': 1000,
+    }
+
+    gcal_oauth_mock.authorize_access_token = lambda: sample_token
+
+    def on_update(user):
+        verifications.user = user
+
+    collab_controller_mock.update_user = on_update
+
+    test_client.get(rh.GCAL_AUTH_ROUTE, query_string={'collaborator_id': '70'})
+
+    assert verifications.user.gcal_data.access_token == 'sample access token'
+    assert verifications.user.gcal_data.refresh_token == 'sample refresh token'
+    assert verifications.user == collab_controller_mock.get_collaborator(70)
+
+
+def test_update_gcal_error(test_client, gcal_oauth_mock, user_controller_mock):
+    verifications = MockObject()
+    verifications.user = None
+
+    sample_token = {
+        'access_token': 'sample access token',
+        'refresh_token': 'sample refresh token',
+        'token_type': 'Bearer',
+        'expires_at': 1000,
+    }
+
+    gcal_oauth_mock.authorize_access_token = lambda: sample_token
+
+    def on_update(user):
+        verifications.user = user
+
+    user_controller_mock.update_user = on_update
+
+    resp = test_client.get(rh.GCAL_AUTH_ROUTE)
+
+    assert resp.status_code == 400
+    assert resp.json['message'] == 'Malformed redirect URL'
     
 
 def get_front_end_domain(client):
