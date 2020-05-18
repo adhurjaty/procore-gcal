@@ -7,6 +7,7 @@ from .procore_event import ProcoreEvent
 class Rfi(ProcoreEvent):
     assignees: List[Person] = []
     rfi_manager: Person = None
+    schedule_impact: int = 0
     cost_impact: float = 0.0
     cost_code: str = ''
     questions: str = ''
@@ -25,6 +26,7 @@ class Rfi(ProcoreEvent):
         
         self.assignees = self.assignees and [Person(**a) for a in self.assignees]
         self.rfi_manager = self.rfi_manager and Person(**self.rfi_manager)
+        self.schedule_impact = self.schedule_impact and int(self.schedule_impact.get('value'))
         self.cost_impact = self.cost_impact and float(self.cost_impact.get('value'))
         self.cost_code = self.cost_code and self.cost_code.get('name')
         self.questions = self.questions and '\n'.join(q.get('plain_text_body') 

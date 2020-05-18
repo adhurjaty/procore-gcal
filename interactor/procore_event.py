@@ -3,12 +3,14 @@ from datetime import datetime
 
 
 class ProcoreEvent:
+    id: int = -1
     number: str = ''
     title: str = ''
     description: str = ''
     link: str = ''
     location: str = ''
     due_date: datetime = None
+    deleted: bool = False
 
     def update_from_dict(self, values):
         for key, val in ((k, v) for k, v in values.items() if hasattr(self, k)):
