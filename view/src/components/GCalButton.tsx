@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import {GCAL_LOGIN_URL} from '../AppSettings';
 
 
 const ButtonBase = ({href, className=''}: {href: string, className?: string}) => (
@@ -13,9 +12,9 @@ const StyledButton = styled(ButtonBase)`
     height: 45px;
 `;
 
-function GCalButton() {
+export function GCalButton({loginUrl}: {loginUrl: string}) {
     return (
-        <StyledButton href={GCAL_LOGIN_URL} />
+        <StyledButton href={loginUrl} />
     )
 }
 

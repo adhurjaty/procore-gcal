@@ -5,6 +5,7 @@ import GCalButton from '../components/GCalButton';
 import { useParams } from 'react-router-dom';
 import { getCollaborator, createCollaborator } from '../backend_interface/api_interface';
 import Collaborator from '../models/collaborator';
+import { GCAL_COLLABORATOR_LOGIN_URL } from '../AppSettings';
 
 enum PageStateEnum {
     Loading,
@@ -136,7 +137,7 @@ function CollaboratorForm({state, setState}: {state: PageState, setState: (s: Pa
             <EmailSection email={collaborator.email} />
             <NameSection collab={collaborator} error={nameError} />
             <InputSection>
-                <GCalButton />
+                <GCalButton loginUrl={GCAL_COLLABORATOR_LOGIN_URL('' + collaborator.id)} />
             </InputSection>
             <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
         </SettingsForm>

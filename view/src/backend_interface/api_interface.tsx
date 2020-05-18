@@ -11,7 +11,7 @@ export interface StatusMessage {
     message: string
 }
 
-function getToken() {
+export function getToken() {
     return document.cookie
         .split(';')
         .map(c => c.trim())

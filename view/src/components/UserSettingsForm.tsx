@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
-import { getUserSettings, StatusMessage } from '../backend_interface/api_interface';
+import { getUserSettings, StatusMessage, getToken } from '../backend_interface/api_interface';
 import Calendar from '../models/caldendar';
 import GCalButton from './GCalButton';
 import EventType from '../models/eventType';
@@ -9,7 +9,7 @@ import User from '../models/user';
 import Enablable from '../models/Enablable';
 import Collaborator from '../models/collaborator';
 import { PayPalButton } from "react-paypal-button-v2";
-import { API_USER } from '../AppSettings';
+import { API_USER, GCAL_USER_LOGIN_URL } from '../AppSettings';
 import { Heading, SettingsForm, InputSection, InputLabel, FieldError } from './GlobalStyles';
 
 const Container = styled.div`
@@ -175,7 +175,7 @@ function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar,
 function renderGCalButton(): React.ReactNode {
     return (
         <ButtonContainer>
-            <GCalButton />
+            <GCalButton loginUrl={GCAL_USER_LOGIN_URL(getToken() as string)} />
         </ButtonContainer>
     );
 }
