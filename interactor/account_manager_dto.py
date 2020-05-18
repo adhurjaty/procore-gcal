@@ -1,3 +1,5 @@
+from typing import List
+
 from models.procore_user_settings import ProcoreUserSettings
 from models.gcal_user_settings import GCalUserSettings
 
@@ -9,6 +11,9 @@ class AccountManagerDto:
     project_id: str = ''
     procore_data = ProcoreUserSettings()
     gcal_data = GCalUserSettings()
+    collaborators = []
+    subscribed: bool = False
+    temporary: bool = True
 
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)

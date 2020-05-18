@@ -21,6 +21,7 @@ WEBHOOK_HANDLER_ROUTE = '/api/webhook_handler'
 TEST_ROUTE = '/api/test'
 GCAL_LOGIN_ROUTE = '/gcal_login'
 GCAL_AUTH_ROUTE = '/gcal_authorize'
+USERS_ROUTE = '/api/users'
 
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
@@ -84,6 +85,9 @@ def authorize():
         controller.update_user(user)
     else:
         procore_user = get_procore_user_from_token(token)
+        if not procore_user:
+            return show_error('Invalid authorization token'), 400
+
         user = controller.init_user(**procore_user)
 
     return redirect_to_user_page(user, token.get('access_token'))
@@ -91,6 +95,9 @@ def authorize():
 
 def get_procore_user_from_token(token) -> dict:
     result = oauth.procore.get(PROCORE_GET_USER)
+    user = result and result.json()
+    if not user or 'login' not in user or 'name' not in user:
+        return None
     return result.json()
 
 
@@ -178,6 +185,31 @@ def gcal_authorize():
     controller.update_user(user)
 
     return redirect_to_user_page(user)
+
+
+@app.route(USERS_ROUTE, methods=['POST'])
+@auth.login_required
+def create_user():
+    update_user_fields(**request.json)
+    try:
+        controller.create_user(g.user)
+        return show_success()
+    except Exception as e:
+        return show_error(str(e)), 400
+
+
+def update_user_fields(id='', email='', fullName='', selectedCalendar='', eventTypes=[],
+    collaborators=[], emailSettings=[], isSubscribed=''):
+
+    user = g.user
+    user.id = id
+    user.email = email
+    user.full_name = fullName
+    user.gcal_data.calendar_id = selectedCalendar
+    user.procore_data.calendar_event_types = [t for t in eventTypes]
+    user.collaborators = [c for c in collaborators]
+    user.procore_data.email_settings = [s for s in emailSettings]
+    user.subscribed = bool(isSubscribed)
 
 
 def show_success():

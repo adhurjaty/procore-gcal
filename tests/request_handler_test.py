@@ -43,6 +43,14 @@ def procore_oauth_mock() -> OauthMock:
 
 
 @pytest.fixture(scope='module')
+def gcal_oauth_mock() -> OauthMock:
+    oauth_mock = MockObject()
+    oauth_mock.gcal = OauthMock()
+    rh.oauth = oauth_mock
+    return oauth_mock.gcal
+
+
+@pytest.fixture(scope='module')
 def user_controller_mock(controller_mock) -> ControllerMock:
     manager = AccountManagerDto()
     manager.id = 69
@@ -169,6 +177,37 @@ def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
     assert resp.status_code == 200
     assert controller_mock.updated_gcal
 
+
+def test_gcal_login(test_client, gcal_oauth_mock):
+    test_client.get(rh.GCAL_LOGIN_ROUTE)
+
+    assert gcal_oauth_mock.redirect_uri == f'http://localhost{rh.GCAL_AUTH_ROUTE}'
+
+
+def test_update_gcal_token(test_client, gcal_oauth_mock, user_controller_mock):
+    verifications = MockObject()
+    verifications.user = None
+
+    sample_token = {
+        'access_token': 'sample access token',
+        'refresh_token': 'sample refresh token',
+        'token_type': 'Bearer',
+        'expires_at': 1000,
+    }
+
+    gcal_oauth_mock.authorize_access_token = lambda: sample_token
+
+    def on_update(user):
+        verifications.user = user
+
+    user_controller_mock.update_user = on_update
+
+    test_client.get(rh.GCAL_AUTH_ROUTE)
+
+    assert verifications.user.gcal_data.access_token == 'sample access token'
+    assert verifications.user.gcal_data.refresh_token == 'sample refresh token'
+    assert verifications.user == user_controller_mock.manager
+    
 
 def get_front_end_domain(client):
     return client.application.config.get('FRONT_END_DOMAIN')

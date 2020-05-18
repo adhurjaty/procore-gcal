@@ -60,4 +60,11 @@ class Controller:
         user.email = login
         user.full_name = name
         user.id = ''
+
+        # TODO: save user as temporary user
+
         return user
+
+    def create_user(self, user: AccountManagerDto):
+        user.temporary = False
+        pass
