@@ -268,6 +268,63 @@ def test_update_gcal_error(test_client, gcal_oauth_mock, user_controller_mock):
 
     assert resp.status_code == 400
     assert resp.json['message'] == 'Malformed redirect URL'
+
+
+def test_update_user(test_client, user_controller_mock):
+    verifications = MockObject()
+    verifications.user = None
+    verifications.user_data = None
+
+    test_data = {
+        'id': 69,
+        'fullName': 'Anil Dhurjaty'
+    }
+
+    def test_update(user, data):
+        verifications.user = user
+        verifications.data = data
+
+    user_controller_mock.update_user = test_update 
+
+    test_client.patch('/api/users/69', json=test_data)
+
+    assert verifications.user == user_controller_mock.manager
+    assert verifications.data == test_data
+
+
+def test_delete_user(test_client, user_controller_mock):
+    verifications = MockObject()
+    verifications.user_id = None
+
+    def test_delete(user_id):
+        verifications.user_id = user_id
+
+    user_controller_mock.delete_user = test_delete 
+
+    test_client.delete('/api/users/69')
+
+    assert verifications.user_id == '69'
+
+
+def test_update_user_not_logged_in(test_client, controller_mock):
+    verifications = MockObject()
+    verifications.user = None
+    verifications.user_data = None
+
+    test_data = {
+        'id': 69,
+        'fullName': 'Anil Dhurjaty'
+    }
+
+    def test_update(user, data):
+        verifications.user = user
+        verifications.data = data
+
+    user_controller_mock.update_user = test_update 
+
+    resp = test_client.patch('/api/users/69', json=test_data)
+
+    assert resp.status_code == 401
     
 
 def get_front_end_domain(client):

@@ -65,6 +65,26 @@ class Controller:
 
         return user
 
-    def create_user(self, user: AccountManagerDto):
+    def update_user(self, user: AccountManagerDto, request_dict):
         user.temporary = False
+        self.update_user_fields(user, **request_dict)
+        
+        # TODO: create user saving logic
+        return user
+    
+    def update_user_fields(self, user: AccountManagerDto, id='', email='', fullName='', 
+        selectedCalendar='', eventTypes=[], collaborators=None, emailSettings=[], 
+        isSubscribed='', **kwargs):
+
+        user.id = id or user.id
+        user.email = email or user.email
+        user.full_name = fullName or user.full_name
+        user.gcal_data.calendar_id = selectedCalendar or user.gcal_data.calendar_id
+        user.procore_data.calendar_event_types = [t for t in eventTypes] or user.procore_data.calendar_event_types
+        user.collaborators = [c for c in collaborators] if collaborators else user.collaborators
+        user.procore_data.email_settings = [s for s in emailSettings] or user.procore_data.email_settings
+        user.subscribed = bool(isSubscribed) or user.subscribed
+
+    def delete_user(self, user_id):
         pass
+

@@ -22,7 +22,7 @@ TEST_ROUTE = '/api/test'
 GCAL_LOGIN_ROUTE = '/gcal_login'
 GCAL_COLLABORATOR_LOGIN_ROUTE = '/gcal_login_collab/<collaborator_id>'
 GCAL_AUTH_ROUTE = '/gcal_authorize'
-USERS_ROUTE = '/api/users'
+USER_ROUTE = '/api/users/<user_id>'
 
 
 app = Flask(__name__)
@@ -230,29 +230,24 @@ def redirect_to_collaborator_page(collaborator):
     return redirect_to_user_page(path, collaborator)
 
 
-@app.route(USERS_ROUTE, methods=['POST'])
+@app.route(USER_ROUTE, methods=['PATCH'])
 @auth.login_required
-def create_user():
-    update_user_fields(**request.json)
+def update_user(user_id):
     try:
-        controller.create_user(g.user)
+        controller.update_user(g.user, request.json)
         return show_success()
     except Exception as e:
         return show_error(str(e)), 400
 
 
-def update_user_fields(id='', email='', fullName='', selectedCalendar='', eventTypes=[],
-    collaborators=[], emailSettings=[], isSubscribed=''):
-
-    user = g.user
-    user.id = id
-    user.email = email
-    user.full_name = fullName
-    user.gcal_data.calendar_id = selectedCalendar
-    user.procore_data.calendar_event_types = [t for t in eventTypes]
-    user.collaborators = [c for c in collaborators]
-    user.procore_data.email_settings = [s for s in emailSettings]
-    user.subscribed = bool(isSubscribed)
+@app.route(USER_ROUTE, methods=['DELETE'])
+@auth.login_required
+def delete_user(user_id):
+    try:
+        controller.delete_user(user_id)
+        return show_success()
+    except Exception as e:
+        return show_error(str(e)), 400
 
 
 def show_success():
