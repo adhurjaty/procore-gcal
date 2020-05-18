@@ -25,14 +25,14 @@ def test_create_rfi():
     assert rfi.title == "Specifications [99 14.44B]"
     assert rfi.location == "1 space"
     assert rfi.description == ''
-    assert rfi.due_date == datetime(2017, 1, 18)
-    assert len(rfi.asignees) == 1
-    assert rfi.asignees[0].email == "exampleuser@website.com"
-    assert rfi.asignees[0].full_name =='Carl the Contractor'
+    assert rfi.due_date == datetime(2017, 1, 18).date()
+    assert len(rfi.assignees) == 1
+    assert rfi.assignees[0].email == "exampleuser@website.com"
+    assert rfi.assignees[0].full_name =='Carl the Contractor'
     assert rfi.rfi_manager.email == "exampleuser@website.com"
     assert rfi.rfi_manager.full_name =='Carl the Contractor'
     assert rfi.cost_impact == 12039.55
-    assert rfi.cost_code == 12345
+    assert rfi.cost_code == "Earthwork"
     assert rfi.questions == "Are the items listed on Schedule C acceptable?"
     assert rfi.drawing_number == "107.3D"
     assert rfi.subject == "Specifications [99 14.44B]"
