@@ -60,6 +60,18 @@ def user_controller_mock(controller_mock) -> ControllerMock:
     controller_mock.set_manager(manager)
     
     return controller_mock
+
+
+@pytest.fixture(scope='module')
+def collab_controller_mock(controller_mock) -> ControllerMock:
+    manager = AccountManagerDto()
+    manager.id = 69
+    manager.email = 'sean@example.com'
+    manager.full_name = 'Sean Black'
+    manager.project_id = 12345
+    controller_mock.set_manager(manager)
+    
+    return controller_mock
     
 
 def test_hello_world(test_client):
@@ -202,7 +214,7 @@ def test_update_gcal_token(test_client, gcal_oauth_mock, user_controller_mock):
 
     user_controller_mock.update_user = on_update
 
-    test_client.get(rh.GCAL_AUTH_ROUTE)
+    test_client.get(rh.GCAL_AUTH_ROUTE, query_string={'auth_token': 'blah'})
 
     assert verifications.user.gcal_data.access_token == 'sample access token'
     assert verifications.user.gcal_data.refresh_token == 'sample refresh token'

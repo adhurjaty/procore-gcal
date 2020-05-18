@@ -20,8 +20,10 @@ PROCORE_AUTH_ROUTE = '/authorize'
 WEBHOOK_HANDLER_ROUTE = '/api/webhook_handler'
 TEST_ROUTE = '/api/test'
 GCAL_LOGIN_ROUTE = '/gcal_login'
+GCAL_COLLABORATOR_LOGIN_ROUTE = '/gcal_login_collab/<collaborator_id>'
 GCAL_AUTH_ROUTE = '/gcal_authorize'
 USERS_ROUTE = '/api/users'
+
 
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
@@ -168,23 +170,55 @@ def test():
     
 
 @app.route(GCAL_LOGIN_ROUTE)
+@auth.login_required
 def gcal_login():
-    redirect_uri = url_for('gcal_authorize', _external=True)
+    auth_token = g.user.procore_data.access_token
+
+    redirect_uri = url_for('gcal_authorize', _external=True, auth_token=auth_token)
+    return oauth.gcal.authorize_redirect(redirect_uri)
+
+
+@app.route(GCAL_COLLABORATOR_LOGIN_ROUTE)
+def gcal_collaborator_login(collaborator_id):
+    redirect_uri = url_for('gcal_authorize', _external=True, collaborator=collaborator_id)
     return oauth.gcal.authorize_redirect(redirect_uri)
 
 
 @app.route(GCAL_AUTH_ROUTE)
-@auth.login_required
 def gcal_authorize():
-    token = oauth.gcal.authorize_access_token()
-    user = g.user
+    gcal_token = oauth.gcal.authorize_access_token()
+    auth_token = request.args.get('auth_token')
 
-    # TODO: handle case where request comes from collaborator (no user returned)
+    try:
+        # if this is an account manager update
+        if auth_token:
+            user = update_user_gcal_token(auth_token, gcal_token)
+            return redirect_to_user_page(user)
+        else:
+            collaborator = update_collaborator_gcal_token(gcal_token)
+            return redirect_to_collaborator_page(collaborator)
+        
+    except Exception as e:
+        return show_error(str(e)), 400
 
-    user.set_gcal_token(token)
+
+def update_user_gcal_token(auth_token, gcal_token):
+    user = controller.get_user_from_token(auth_token)
+    if not user:
+        raise Exception('Invalid authorization token')
+    user.set_gcal_token(gcal_token)
     controller.update_user(user)
+    return user
 
-    return redirect_to_user_page(user)
+
+def update_collaborator_gcal_token(token):
+    collaborator_id = request.args.get('collaborator_id')
+    if not collaborator_id:
+        raise Exception('Malformed redirect URL')
+
+    collaborator = controller.get_collaborator(collaborator_id)
+    collaborator.set_gcal_token(token)
+    controller.update_user(collaborator)
 
 
 @app.route(USERS_ROUTE, methods=['POST'])
