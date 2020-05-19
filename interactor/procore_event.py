@@ -20,3 +20,6 @@ class ProcoreEvent:
             setattr(self, key, val)
 
         self.location = self.location and self.location.get('node_name')
+
+    def __getattr__(self, item):
+        return None

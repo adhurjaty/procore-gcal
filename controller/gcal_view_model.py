@@ -1,20 +1,23 @@
 import arrow
 from authlib.integrations.requests_client import OAuth2Session
-from typing import List
 from enum import Enum
-from util.utils import parallel_for
+import inflect
+from typing import List
 
 from .api_endpoints import *
+from interactor.account_manager_dto import AccountManagerDto
 from interactor.attachment import Attachment
 from interactor.person import Person
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
 from interactor.procore_event import ProcoreEvent
+from util.utils import parallel_for
 
 
 RESROUCE_ID_PREFIX = 'Procore resource ID: '
 
+p_engine = inflect.engine()
 
 class ViewMode(Enum):
     PLAIN_TEXT = 0
@@ -46,7 +49,7 @@ class GCalEvent:
 
 class GCalViewModel:
     oauth: OAuth2Session = None
-    user = None
+    user: AccountManagerDto = None
     view_mode: ViewMode = ViewMode.PLAIN_TEXT
 
     def __init__(self, user, view_mode=None):
@@ -61,7 +64,7 @@ class GCalViewModel:
         if existing_event and rfi.deleted:
             self.delete_event(existing_event)
 
-        cal_event = self.build_event(rfi)
+        cal_event = self.build_event(rfi, title)
         if existing_event:
             self.update_event(existing_event.get('id'), cal_event)
         else:
@@ -76,7 +79,7 @@ class GCalViewModel:
                 self.delete_event(existing_event)
 
             due_date = submittal.required_on_site_date if is_on_site else submittal.due_date
-            cal_event = self.build_event(submittal, override_due_date=due_date)
+            cal_event = self.build_event(submittal, title, override_due_date=due_date)
             if existing_event:
                 self.update_event(existing_event.get('id'), cal_event)
             else:
@@ -84,17 +87,16 @@ class GCalViewModel:
 
         parallel_for(set_submittal_event, [True, False])
         
-
-    def build_event(self, procore_event, override_due_date=None):
+    def build_event(self, procore_event: ProcoreEvent, title: str, override_due_date=None):
         gcal_event = GCalEvent()
-        gcal_event.summary = self.create_title(procore_event)
+        gcal_event.summary = title
         gcal_event.location = procore_event.location
-        gcal_event.start = self.format_date(override_due_date or gcal_event.due_date)
+        gcal_event.start = self.format_date(override_due_date or procore_event.due_date)
         gcal_event.end = gcal_event.start
         gcal_event.attachments = procore_event.attachments and [self.render_attachment(a) 
             for a in procore_event.attachments]
         gcal_event.description = self.render_description(procore_event)
-
+        return gcal_event
 
     def format_date(self, date) -> str:
         return arrow.get(date).format('YYYY-MM-DD')
@@ -110,49 +112,43 @@ class GCalViewModel:
         raise Exception('Invalid view mode')
 
     def render_plain_text_description(self, event: ProcoreEvent):
-        text = ''
-        text += event.link + '\n\n'
-        text += event.description and f'Description: {event.description}\n'
-        text += event.submittal_type and f'Submittal Type: {event.submittal_type}\n'
-        text += event.assignees and f'Assignees: {self.render_people(event.assignees)}\n'
-        text += event.approver and f'Approver: {self.render_person(event.approver)}\n'
-        text += event.manager and f'RFI Manger: {self.render_person(event.manger)}\n'
-        text += event.schedule_impact and f'Schedule Impact: {event.schedule_impact}\n'
-        text += event.cost_impact and f'Cost Impact: {event.cost_impact}\n'
-        text += event.cost_code and f'Cost Code: {event.code_code}\n'
-        text += event.questions and f'Questions: {event.questions}\n'
-        text += event.drawing_number and f'Drawing Number: {event.drawing_number}\n'
+        text = event.link + '\n\n'
+        text += event.description and f'Description: {event.description}\n' or ''
+        text += event.submittal_type and f'Submittal Type: {event.submittal_type}\n' or ''
+        text += event.assignees and f'Assignees: {self.render_people(event.assignees)}\n' or ''
+        text += event.approver and f'Approver: {self.render_person(event.approver)}\n' or ''
+        text += event.rfi_manager and f'RFI Manager: {self.render_person(event.rfi_manager)}\n' or ''
+        text += event.schedule_impact and (f'Schedule Impact: {event.schedule_impact}' + \
+            f' {p_engine.plural("day", event.schedule_impact)}\n') or ''
+        text += event.cost_impact and f'Cost Impact: ${event.cost_impact}\n' or ''
+        text += event.cost_code and f'Cost Code: {event.cost_code}\n' or ''
+        text += event.questions and f'Questions: {event.questions}\n' or ''
+        text += event.drawing_number and f'Drawing Number: {event.drawing_number}\n' or ''
+        return text.strip()
 
     def render_people(self, people: List[Person]):
-        return ', '.join(render_person(p) for p in people)
+        return ', '.join(self.render_person(p) for p in people)
 
     def render_person(self, person: Person):
         return f'{person.full_name} <{person.email}>'
-        
-    def create_submittal_events(self, submittal):
-        pass
-
-    def create_change_order_event(self, change_order):
-        pass    
 
     def update_token(self, token):
         self.user.set_gcal_token(token)
 
-    def find_existing_event(self, resource_id: str) -> dict:
-        resp = self.oauth.get(self.events_endpoint(), 
-            q=f'{RESROUCE_ID_PREFIX}{resource_id}')
+    def find_existing_event(self, title: str) -> dict:
+        resp = self.oauth.get(self.events_endpoint(), q=title)
         return resp and resp.json()
 
-    def create_event(self):
-        self.oauth.post(GCAL_EVENTS, json=self.event.to_dict())
+    def create_event(self, event):
+        self.oauth.post(self.events_endpoint(), json=event.to_dict())
         
     def update_event(self, existing_event):
         self.oauth.put()
 
     def events_endpoint(self) -> str:
-        return GCAL_EVENTS.format(calendar_id=self.user.gcal.calendar_id)
+        return GCAL_EVENTS.format(calendar_id=self.user.gcal_data.calendar_id)
 
     def event_endpoint(self, event_id) -> str:
-        return GCAL_EVENT.format(calendar_id=self.user.gcal.calendar_id,
+        return GCAL_EVENT.format(calendar_id=self.user.gcal_data.calendar_id,
             event_id=event_id)
 

@@ -1,4 +1,5 @@
 import pytest
+import json
 import os
 from pathlib import Path
 
@@ -8,6 +9,9 @@ import controller.server_connector as server_connector
 import controller.api_endpoints as endpoints
 from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.rfi import Rfi
+from interactor.submittal import Submittal
+from interactor.change_order import ChangeOrder
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -18,30 +22,42 @@ def define_url_for_webhooks():
 
 
 @pytest.fixture()
-def oauth_mock():
+def oauth_mock() -> OauthMock:
     mock = OauthMock()
     return mock
 
 
 @pytest.fixture()
-def sample_user():
+def sample_user() -> AccountManagerDto:
     manager = AccountManagerDto()
     manager.id = 69
     manager.email = 'sean@example.com'
     manager.full_name = 'Sean Black'
     manager.project_id = 12345
+    manager.gcal_data.calendar_id = 42
     return manager
 
 
 @pytest.fixture()
-def procore_vm(oauth_mock, sample_user):
+def procore_vm(oauth_mock, sample_user) -> ProcoreViewModel:
     vm = ProcoreViewModel(sample_user)
     vm.oauth = oauth_mock
     return vm
 
+@pytest.fixture()
+def gcal_vm(oauth_mock, sample_user) -> GCalViewModel:
+    vm = GCalViewModel(sample_user)
+    vm.oauth = oauth_mock
+    return vm
+
 @pytest.fixture(scope='module')
-def sample_procore_event():
-    pass
+def rfi_event() -> Rfi:
+    with open(os.path.join(objects_path, 'rfi.json')) as f:
+        contents_dict = json.load(f)
+    rfi = Rfi()
+    rfi.link = 'https://procore.com/rfi/42'
+    rfi.update_from_dict(contents_dict)
+    return rfi
 
 
 def test_create_new_webhooks(oauth_mock, sample_user, procore_vm):
@@ -209,8 +225,34 @@ def test_add_and_delete_webhooks(oauth_mock, sample_user, procore_vm):
         [endpoints.PROCORE_TRIGGER.format(hook_id='43593499', trigger_id='231346546')] * 3
 
 
-def test_convert_event(sample_user, sample_procore_event):
-    vm = GCalViewModel(sample_user, sample_procore_event)
-    gcal_event = {}
+def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_event: Rfi):
+    validations = MockObject()
+    validations.q_endpoint = ''
+    validations.q = ''
+    validations.create_endpoint = ''
+    validations.event = None
 
-    assert vm.event == gcal_event
+    def oauth_get(endpoint, **query):
+        validations.q_endpoint = endpoint
+        validations.q = query.get('q')
+        return None
+
+    def oauth_post(endpoint, json=None):
+        validations.create_endpoint = endpoint
+        validations.event = json
+
+    oauth_mock.get = oauth_get
+    oauth_mock.post = oauth_post
+
+    gcal_vm.set_rfi_event(rfi_event)
+
+    with open(os.path.join(objects_path, 'rfi_description.txt'), 'r') as f:
+        body = f.read()
+    assert validations.q_endpoint == '/calendars/42/events'
+    assert validations.q == 'RFI #C-1477 - Specifications [99 14.44B]'
+    assert validations.create_endpoint == '/calendars/42/events'
+    assert validations.event.get('summary') == 'RFI #C-1477 - Specifications [99 14.44B]'
+    assert validations.event.get('location') == '1 space'
+    assert validations.event.get('description') == body
+    assert validations.event.get('start') == '2017-01-18'
+    assert validations.event.get('end') == '2017-01-18'

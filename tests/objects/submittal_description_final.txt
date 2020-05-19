@@ -1,0 +1,6 @@
+https://procore/submittal/42
+
+Description: Thermal Insulation submittal
+Submittal Type: Final
+Assignees: Carl Contractor <exampleuser@website.com>
+Approver: Other Contractor <otherexampleuser@website.com>

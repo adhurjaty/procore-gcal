@@ -1,0 +1,9 @@
+https://procore.com/rfi/42
+
+Assignees: Carl the Contractor <exampleuser@website.com>
+RFI Manager: Carl the Contractor <exampleuser@website.com>
+Schedule Impact: 14 days
+Cost Impact: $12039.55
+Cost Code: Earthwork
+Questions: Are the items listed on Schedule C acceptable?
+Drawing Number: 107.3D
