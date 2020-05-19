@@ -4,9 +4,9 @@ import os
 from pathlib import Path
 import re
 
+from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 import controller.request_handler as rh
 import controller.api_endpoints as endpoints
-from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.user_dto import UserDto
 
