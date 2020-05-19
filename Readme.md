@@ -37,3 +37,17 @@ This is an application for syncing events on Procore (RFI's, calendar events, et
 ## Architecure
 
 ![Architecture](out/diagrams/architecture/Architecture.png)
+
+## Screenshots
+
+### Login Screen
+
+![Login screen](out/images/login_screen.png)
+
+### User Screen
+
+![User screen](out/images/user_screen.png)
+
+### Collaborator Screen
+
+![Collaborator screen](out/images/collaborator_screen.png)
