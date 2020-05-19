@@ -6,7 +6,6 @@ class UserDto(Person):
     full_name = ''
     email = ''
     temporary: bool = True
-
     gcal_data = GCalUserSettings()
 
     def set_gcal_token(self, token: dict):

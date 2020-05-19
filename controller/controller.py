@@ -1,11 +1,19 @@
 import json
+
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.use_case_interactor import UseCaseInteracor
+from interactor.rfi import Rfi
+from interactor.submittal import Submittal
+from interactor.change_order import ChangeOrder
 
 procore_token_file = 'temp_db/procore_token.json'
 
 class Controller:
-    rfis = []
-    def __init__(self):
+    use_case: UseCaseInteracor = None
+
+    def __init__(self, use_case):
+        self.use_case = use_case
+
         self.manager = AccountManagerDto()
         self.manager.id = 55
         self.manager.email = 'adhurjaty@gmail.com'
@@ -13,65 +21,40 @@ class Controller:
         self.manager.project_id = 12345
         self.manager.company_id = 26972
 
-    def save_token(self, access_token=None, refresh_token=None, token_type=None, 
-        expires_at=None, **kwargs):
-        
-        # temporary implementation
-        contents = {
-            'token': access_token,
-            'refresh_token': refresh_token,
-            'token_type': token_type,
-            'expires_at': expires_at
-        }
-        with open(procore_token_file, 'w') as f:
-            json.dump(contents, f)
+    def get_user_from_token(self, token: str) -> AccountManagerDto:
+        return use_case.get_user_from_token(token)
 
-    def get_token(self, email):
-        with open(procore_token_file, 'r') as f:
-            token = json.load(f)
-        result = {
-            'access_token': token['token'],
-            'token_type': 'Bearer',
-            'refresh_token': token['refresh_token'],
-            'expires_at': token['expires_at']
-        }
-        return result
+    def update_user(self, user: AccountManagerDto):
+        use_case.update_user(user)
 
-    def update_token(self, email, token, refresh_token=None, access_token=None):
-        self.save_token(**token)
+    def get_users_in_project(self, project_id: int):
+        return use_case.get_users_in_project(project_id)
 
-    def get_account_manager(self, login: str):
-        return self.manager
+    def update_gcal(self, users, resource_name, event_object):
+        event = None
+        if resource_name == 'RFIs':
+            event = Rfi()
+            event.update_from_dict(event_object)
+        if resource_name == 'Submittals':
+            event = Submittal()
+            event.update_from_dict(event_object)
 
-    def get_user_from_token(self, token):
-        return self.manager
+        if not event:
+            raise Exception('Unsupported resource')
 
-    def update_user(self, user):
-        self.manager = user
+        use_case.update_gcal(users, event)
 
-    def get_users_in_project(self, project_id):
-        return [self.manager]
+    def init_user(self, token: dict) -> AccountManagerDto:
+        procore_user = use_case.get_procore_user_info(token)
+        if not procore_user:
+            raise Exception('Invalid authorization token')
+        user = AccountManagerDto(**kwargs)
+        user.temporary = True
 
-    def update_gcal(self, users, event_object):
-        self.rfis.append(event_object)
-
-    def init_user(self, login: str = '', name: str = '', **kwargs) -> AccountManagerDto:
-        user = AccountManagerDto()
-        user.email = login
-        user.full_name = name
-        user.id = ''
-
-        # TODO: save user as temporary user
+        user = use_case.create_user()
 
         return user
 
-    def update_user(self, user: AccountManagerDto, request_dict):
-        user.temporary = False
-        self.update_user_fields(user, **request_dict)
-        
-        # TODO: create user saving logic
-        return user
-    
     def update_user_fields(self, user: AccountManagerDto, id='', email='', fullName='', 
         selectedCalendar='', eventTypes=[], collaborators=None, emailSettings=[], 
         isSubscribed='', **kwargs):

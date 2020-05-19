@@ -18,7 +18,6 @@ LOGIN_ROUTE = '/login'
 REGISTER_ROUTE = '/api/register'
 PROCORE_AUTH_ROUTE = '/authorize'
 WEBHOOK_HANDLER_ROUTE = '/api/webhook_handler'
-TEST_ROUTE = '/api/test'
 GCAL_LOGIN_ROUTE = '/gcal_login'
 GCAL_COLLABORATOR_LOGIN_ROUTE = '/gcal_login_collab/<collaborator_id>'
 GCAL_AUTH_ROUTE = '/gcal_authorize'
@@ -30,7 +29,7 @@ auth = HTTPTokenAuth(scheme='Bearer')
 controller: Controller = None
 oauth: OAuth = None
 
-def create_app(cont):
+def create_app(cont: Controller) -> Flask:
     global app, auth, controller, oauth
 
     CORS(app, origins=[r'https?:\/\/[^\/]+\.procore\.com.*'])
@@ -81,18 +80,17 @@ def login():
 def authorize():
     token = oauth.procore.authorize_access_token()
     user = controller.get_user_from_token(token.get('access_token'))
-    
-    if user:
-        user.set_procore_token(token)
-        controller.update_user(user)
-    else:
-        procore_user = get_procore_user_from_token(token)
-        if not procore_user:
-            return show_error('Invalid authorization token'), 400
 
-        user = controller.init_user(**procore_user)
+    try: 
+        if user:
+            user.set_procore_token(token)
+            controller.update_user(user)
+        else:
+            user = controller.init_user(token)
 
-    return redirect_to_manager_page(user, token.get('access_token'))
+        return redirect_to_manager_page(user, token.get('access_token'))
+    except Exception as e:
+        return show_error(str(e)), 400
 
 
 def get_procore_user_from_token(token) -> dict:
@@ -138,7 +136,7 @@ def dispatch_webhook(data: dict):
 
     g.user = users[0]
     event_object = get_procore_event_object(**event_info)
-    controller.update_gcal(users, event_object)
+    controller.update_gcal(users, event_info.get('resource_name'), event_object)
 
 
 def parse_webhook(data: dict) -> dict:
@@ -162,15 +160,6 @@ def get_procore_event_object(resource_name: str = '', resource_id: str = '',
     resp = oauth.procore.get(endpoint)
     return resp.json()
 
-
-@app.route(TEST_ROUTE)
-def test():
-    rfis = controller.rfis
-    lst = '\n'.join(f'<li><a href="{rfi["link"]}">{rfi["subject"]}</a></li>' 
-        for rfi in rfis)
-    html = f'<ul>{lst}</ul>'
-    return html
-    
 
 @app.route(GCAL_LOGIN_ROUTE)
 @auth.login_required
@@ -265,18 +254,14 @@ def show_error(error_text):
 
 
 def fetch_procore_token(name: str = ''):
-    return controller.get_token(g.user.email)
+    return g.user.procore_data.get_token()
 
 
 def update_procore_token(token: dict, refresh_token: str = '', access_token: str = ''):
-    email = g.user and g.user.email
-    if not email:
+    user = g.user
+    if not user:
         raise Exception('User not logged in')
     
-    manager = controller.get_account_manager(email)
-    manager.set_procore_token(token)
-    controller.update_user(manager)
-
-    return controller.save_token(**token)
-
+    user.set_procore_token(token)
+    controller.update_user(user)
 

@@ -120,16 +120,11 @@ def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
         'other_thing': 'asdfsda'
     }
     procore_oauth_mock.set_token(sample_token)
-    procore_oauth_mock.get = lambda endpoint: OauthResponseMock({
-        'id': 42,
-        'login': 'sean@example.com',
-        'name': 'Sean Black'
-    })
 
-    def init_user(login='', name='', **kwargs):
+    def init_user(token):
         user = AccountManagerDto()
-        user.email = login
-        user.full_name = name
+        user.email = 'sean@example.com'
+        user.full_name = 'Sean Black'
         return user
 
     controller_mock.init_user = init_user
