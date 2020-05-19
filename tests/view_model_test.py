@@ -57,6 +57,7 @@ def rfi_event() -> Rfi:
     rfi = Rfi()
     rfi.link = 'https://procore.com/rfi/42'
     rfi.update_from_dict(contents_dict)
+    rfi.deleted = False
     return rfi
 
 @pytest.fixture(scope='module')
@@ -66,6 +67,7 @@ def submittal_event() -> Submittal:
     submittal = Submittal()
     submittal.link = 'https://procore.com/submittal/42'
     submittal.update_from_dict(contents_dict)
+    submittal.deleted = False
     return submittal
 
 
@@ -311,3 +313,76 @@ def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock,
     assert final_sub.get('end') == '2014-07-22'
     for event in validations.events:
         assert event.get('location') == '1 space'
+
+
+def test_delete_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_event: Rfi):
+    validations = MockObject()
+    validations.q_endpoint = ''
+    validations.q = ''
+    validations.delete_endpoint = ''
+    validations.create_endpoint = ''
+    validations.event = None
+
+    def oauth_get(endpoint, **query):
+        validations.q_endpoint = endpoint
+        validations.q = query.get('q')
+        return OauthResponseMock({
+            'id': 'unique_id'
+        })
+
+    def oauth_delete(endpoint):
+        validations.delete_endpoint = endpoint
+
+    def oauth_post(endpoint, json=None):
+        validations.create_endpoint = endpoint
+        validations.event = json
+
+    rfi_event.deleted = True
+
+    oauth_mock.get = oauth_get
+    oauth_mock.delete = oauth_delete
+    oauth_mock.post = oauth_post
+
+    gcal_vm.set_rfi_event(rfi_event)
+
+    assert validations.q_endpoint == '/calendars/42/events'
+    assert validations.q == 'RFI #C-1477 - Specifications [99 14.44B]'
+    assert validations.delete_endpoint == '/calendars/42/events/unique_id'
+    assert validations.create_endpoint == ''
+    assert validations.event == None
+
+def test_update_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_event: Rfi):
+    validations = MockObject()
+    validations.q_endpoint = ''
+    validations.q = ''
+    validations.patch_endpoint = ''
+    validations.create_endpoint = ''
+    validations.event = None
+
+    def oauth_get(endpoint, **query):
+        validations.q_endpoint = endpoint
+        validations.q = query.get('q')
+        return OauthResponseMock({
+            'id': 'unique_id'
+        })
+
+    def oauth_patch(endpoint, json=None):
+        validations.patch_endpoint = endpoint
+        validations.event = json
+
+    def oauth_post(endpoint, json=None):
+        validations.create_endpoint = endpoint
+
+    rfi_event.deleted = False
+
+    oauth_mock.get = oauth_get
+    oauth_mock.patch = oauth_patch
+    oauth_mock.post = oauth_post
+
+    gcal_vm.set_rfi_event(rfi_event)
+
+    assert validations.q_endpoint == '/calendars/42/events'
+    assert validations.q == 'RFI #C-1477 - Specifications [99 14.44B]'
+    assert validations.patch_endpoint == '/calendars/42/events/unique_id'
+    assert validations.create_endpoint == ''
+    assert validations.event != None

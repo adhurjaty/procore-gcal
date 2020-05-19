@@ -1,5 +1,6 @@
 import arrow
 from authlib.integrations.requests_client import OAuth2Session
+from copy import deepcopy
 from enum import Enum
 import inflect
 from typing import List
@@ -60,37 +61,36 @@ class GCalViewModel:
 
     def set_rfi_event(self, rfi: Rfi):
         title = f'RFI #{rfi.number} - {rfi.title}'
-        existing_event = self.find_existing_event(title)
-        if existing_event and rfi.deleted:
-            self.delete_event(existing_event)
-
-        cal_event = self.build_event(rfi, title)
-        if existing_event:
-            self.update_event(existing_event.get('id'), cal_event)
-        else:
-            self.create_event(cal_event)
+        self.set_event(rfi, title)
 
     def set_submittal_events(self, submittal: Submittal):
-        def set_submittal_event(is_on_site: bool):
-            temp_submittal = submittal.copy()
+        def split_submittal():
+            for is_on_site in [True, False]:
+                status_str = 'On Site' if is_on_site else 'Final'
+                temp_submittal = deepcopy(submittal)
+                temp_submittal.submittal_type = status_str
+                temp_submittal.due_date = submittal.required_on_site_date \
+                    if is_on_site else submittal.due_date
+                yield temp_submittal
 
-            status_str = 'On Site' if is_on_site else 'Final'
-            temp_submittal.submittal_type = status_str
+        def set_submittal_event(sub: Submittal):
+            title = f'Submittal #{submittal.number} - {submittal.title} {sub.submittal_type}'
+            self.set_event(sub, title)
 
-            title = f'Submittal #{submittal.number} - {submittal.title} {status_str}'
-            existing_event = self.find_existing_event(title)
-            if existing_event and submittal.deleted:
-                self.delete_event(existing_event)
+        parallel_for(set_submittal_event, split_submittal())
 
-            temp_submittal.due_date = submittal.required_on_site_date \
-                if is_on_site else submittal.due_date
-            cal_event = self.build_event(temp_submittal, title)
-            if existing_event:
-                self.update_event(existing_event.get('id'), cal_event)
-            else:
-                self.create_event(cal_event)
+    def set_event(self, event, title):
+        existing_event = self.find_existing_event(title)
+        if existing_event and event.deleted:
+            self.delete_event(existing_event)
+        if event.deleted:
+            return
 
-        parallel_for(set_submittal_event, [True, False])
+        cal_event = self.build_event(event, title)
+        if existing_event:
+            self.update_event(existing_event, cal_event)
+        else:
+            self.create_event(cal_event)
         
     def build_event(self, procore_event: ProcoreEvent, title: str):
         gcal_event = GCalEvent()
@@ -98,7 +98,7 @@ class GCalViewModel:
         gcal_event.location = procore_event.location
         gcal_event.start = self.format_date(procore_event.due_date)
         gcal_event.end = gcal_event.start
-        gcal_event.attachments = procore_event.attachments and [self.render_attachment(a) 
+        gcal_event.attachments = hasattr(procore_event, 'attachments') and [self.render_attachment(a) 
             for a in procore_event.attachments]
         gcal_event.description = self.render_description(procore_event)
         return gcal_event
@@ -118,17 +118,19 @@ class GCalViewModel:
 
     def render_plain_text_description(self, event: ProcoreEvent):
         text = event.link + '\n\n'
-        text += event.description and f'Description: {event.description}\n' or ''
-        text += event.submittal_type and f'Submittal Type: {event.submittal_type}\n' or ''
-        text += event.ball_in_court and f'Assignee: {self.render_person(event.ball_in_court)}\n' or ''
-        text += event.approver and f'Approver: {self.render_person(event.approver)}\n' or ''
-        text += event.rfi_manager and f'RFI Manager: {self.render_person(event.rfi_manager)}\n' or ''
-        text += event.schedule_impact and (f'Schedule Impact: {event.schedule_impact}' + \
+        text += hasattr(event, 'description') and event.description and \
+            f'Description: {event.description}\n' or ''
+        text += hasattr(event, 'submittal_type') and f'Submittal Type: {event.submittal_type}\n' or ''
+        text += hasattr(event, 'assignees') and f'Assignees: {self.render_people(event.assignees)}\n' or ''
+        text += hasattr(event, 'ball_in_court') and f'Assignee: {self.render_person(event.ball_in_court)}\n' or ''
+        text += hasattr(event, 'approver') and f'Approver: {self.render_person(event.approver)}\n' or ''
+        text += hasattr(event, 'rfi_manager') and f'RFI Manager: {self.render_person(event.rfi_manager)}\n' or ''
+        text += hasattr(event, 'schedule_impact') and (f'Schedule Impact: {event.schedule_impact}' + \
             f' {p_engine.plural("day", event.schedule_impact)}\n') or ''
-        text += event.cost_impact and f'Cost Impact: ${event.cost_impact}\n' or ''
-        text += event.cost_code and f'Cost Code: {event.cost_code}\n' or ''
-        text += event.questions and f'Questions: {event.questions}\n' or ''
-        text += event.drawing_number and f'Drawing Number: {event.drawing_number}\n' or ''
+        text += hasattr(event, 'cost_impact') and f'Cost Impact: ${event.cost_impact}\n' or ''
+        text += hasattr(event, 'cost_code') and f'Cost Code: {event.cost_code}\n' or ''
+        text += hasattr(event, 'questions') and f'Questions: {event.questions}\n' or ''
+        text += hasattr(event, 'drawing_number') and f'Drawing Number: {event.drawing_number}\n' or ''
         return text.strip()
 
     def render_people(self, people: List[Person]):
@@ -144,11 +146,15 @@ class GCalViewModel:
         resp = self.oauth.get(self.events_endpoint(), q=title)
         return resp and resp.json()
 
-    def create_event(self, event):
+    def create_event(self, event: GCalEvent):
         self.oauth.post(self.events_endpoint(), json=event.to_dict())
+
+    def delete_event(self, gcal_event: GCalEvent):
+        self.oauth.delete(self.event_endpoint(gcal_event.get('id')))
         
-    def update_event(self, existing_event):
-        self.oauth.put()
+    def update_event(self, existing_event: dict, event: GCalEvent):
+        self.oauth.patch(self.event_endpoint(existing_event.get('id')), 
+            json=event.to_dict())
 
     def events_endpoint(self) -> str:
         return GCAL_EVENTS.format(calendar_id=self.user.gcal_data.calendar_id)
