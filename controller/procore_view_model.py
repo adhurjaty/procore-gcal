@@ -1,4 +1,5 @@
 from authlib.integrations.requests_client import OAuth2Session
+from threading import Lock
 from typing import List
 
 from .api_endpoints import *
@@ -53,6 +54,8 @@ class ProcoreTrigger:
     
 
 class ProcoreViewModel:
+    lock = Lock()
+
     def __init__(self, user: AccountManagerDto = None, token: dict = None):
         if user:
             self.oauth = OAuth2Session(token=user.procore_data.access_token,
@@ -127,11 +130,44 @@ class ProcoreViewModel:
         parallel_for(delete_trigger, triggers)
 
     def get_user_info(self):
+        user_resp = self._get_user_from_api()
+        company_ids = self._get_company_ids()
+
+        return self._get_projects(company_ids)
+
+    def _get_user_from_api(self) -> dict:
         user_resp = self.oauth.get(PROCORE_GET_USER)
         if user_resp.status_code != 200:
-            return None
-        
-        # TODO: get project info
-
+            raise Exception('Invalid access token')
         return user_resp.json()
+
+    def _get_company_ids(self) -> List[int]:
+        company_resp = self.oauth.get(PROCORE_COMPANIES)
+        if company_resp.status_code != 200:
+            raise Exception('Invalid access token')
+        companies = [c for c in company_resp.json() if c.get('is_active')]
+        
+        if len(companies) == 0:
+            raise Exception('User does not belong to any companies')
+
+        return [c.get('id') for c in companies]
+
+    def _get_projects(self, company_ids: List[int]) -> List[dict]:
+        projects = []
+        
+        def get_project(company_id: int):
+            resp = self.oauth.get(PROCORE_PROJECTS, params={'company_id': company_id, 
+                'per_page': 100})
+            if resp.status_code == 401:
+                raise Exception('Invalid access token')
+            project_list = resp.json()
+            active_projects = [p for p in project_list if p.get('active')]
+            with self.lock:
+                projects += [{key: p[key] for key in 'id name'.split()} 
+                    for p in active_projects]
+        
+        parallel_for(get_project, company_ids)
+        return projects
+
+
         
