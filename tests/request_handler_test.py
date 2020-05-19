@@ -171,9 +171,10 @@ def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
         }
     }
 
-    def update_gcal(users, data):
+    def update_gcal(users, name, data):
         assert len(users) == 1
         assert data['title'] == "Smiths - Teardown & Assembly Bldg"
+        assert name == "Submittals"
         controller_mock.updated_gcal = True
 
     controller_mock.update_gcal = update_gcal
@@ -185,10 +186,11 @@ def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
     assert controller_mock.updated_gcal
 
 
-def test_gcal_login(test_client, gcal_oauth_mock):
-    test_client.get(rh.GCAL_LOGIN_ROUTE)
+def test_gcal_login(test_client, user_controller_mock, gcal_oauth_mock):
+    user_controller_mock.manager.procore_data.access_token = 'accesstoken'
+    test_client.get(rh.GCAL_LOGIN_ROUTE, follow_redirects=False)
 
-    assert gcal_oauth_mock.redirect_uri == f'http://localhost{rh.GCAL_AUTH_ROUTE}'
+    assert gcal_oauth_mock.redirect_uri == f'http://localhost{rh.GCAL_AUTH_ROUTE}?auth_token=accesstoken'
 
 
 def test_update_gcal_token(test_client, gcal_oauth_mock, user_controller_mock):

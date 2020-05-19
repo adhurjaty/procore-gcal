@@ -53,10 +53,13 @@ class ProcoreTrigger:
     
 
 class ProcoreViewModel:
-    def __init__(self, user: AccountManagerDto):
-        self.oauth = OAuth2Session(token=user.procore_data.access_token,
-            update_token=self._update_token)
-        self.user = user
+    def __init__(self, user: AccountManagerDto = None, token: dict = None):
+        if user:
+            self.oauth = OAuth2Session(token=user.procore_data.access_token,
+                update_token=self._update_token)
+            self.user = user
+        elif token:
+            self.oauth = OAuth2Session(token=token)
 
     def _update_token(self, token):
         self.user.set_procore_token(token)
@@ -122,4 +125,13 @@ class ProcoreViewModel:
             self.oauth.delete(uri)
 
         parallel_for(delete_trigger, triggers)
-    
+
+    def get_user_info(self):
+        user_resp = self.oauth.get(PROCORE_GET_USER)
+        if user_resp.status_code != 200:
+            return None
+        
+        # TODO: get project info
+
+        return user_resp.json()
+        

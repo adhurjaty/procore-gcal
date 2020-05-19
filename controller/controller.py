@@ -45,13 +45,12 @@ class Controller:
         use_case.update_gcal(users, event)
 
     def init_user(self, token: dict) -> AccountManagerDto:
-        procore_user = use_case.get_procore_user_info(token)
-        if not procore_user:
+        user = use_case.get_procore_user_info(token)
+        if not user:
             raise Exception('Invalid authorization token')
-        user = AccountManagerDto(**kwargs)
         user.temporary = True
 
-        user = use_case.create_user()
+        user = use_case.create_user(user)
 
         return user
 

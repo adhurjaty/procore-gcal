@@ -45,8 +45,8 @@ def create_app(cont: Controller) -> Flask:
     controller = cont
 
     oauth = OAuth(app)
-    oauth.register('procore', fetch_token=fetch_procore_token, 
-        update_token=update_procore_token)
+    oauth.register('procore', fetch_token=_fetch_procore_token, 
+        update_token=_update_procore_token)
     oauth.register('gcal', 
         client_kwargs={'scope': 'https://www.googleapis.com/auth/calendar'})
 
@@ -88,12 +88,12 @@ def authorize():
         else:
             user = controller.init_user(token)
 
-        return redirect_to_manager_page(user, token.get('access_token'))
+        return _redirect_to_manager_page(user, token.get('access_token'))
     except Exception as e:
-        return show_error(str(e)), 400
+        return _show_error(str(e))
 
 
-def get_procore_user_from_token(token) -> dict:
+def _get_procore_user_from_token(token) -> dict:
     result = oauth.procore.get(PROCORE_GET_USER)
     user = result and result.json()
     if not user or 'login' not in user or 'name' not in user:
@@ -101,12 +101,12 @@ def get_procore_user_from_token(token) -> dict:
     return result.json()
 
 
-def redirect_to_manager_page(user, procore_token=None):
+def _redirect_to_manager_page(user, procore_token=None):
     path = '/users/' + (str(user.id) if user and user.id else 'new')
-    return redirect_to_user_page(path, user, procore_token)
+    return _redirect_to_user_page(path, user, procore_token)
 
     
-def redirect_to_user_page(path, user, procore_token=None):
+def _redirect_to_user_page(path, user, procore_token=None):
     param_dict = {} if user and user.id else {'fullName': user.full_name, 'email': user.email}
     redirect_url = build_url(app.config.get("FRONT_END_DOMAIN"), path, param_dict)    
     
@@ -120,26 +120,26 @@ def redirect_to_user_page(path, user, procore_token=None):
 def webhook_handler():
     data = request.json
     try:
-        dispatch_webhook(data)
-        return show_success()
+        _dispatch_webhook(data)
+        return _show_success()
     except Exception as e:
         # TODO: report error to error tracker
-        return show_error(str(e)), 400
+        return _show_error(str(e))
     
 
-def dispatch_webhook(data: dict):
-    event_info = parse_webhook(data)
+def _dispatch_webhook(data: dict):
+    event_info = _parse_webhook(data)
 
     users = controller.get_users_in_project(event_info['project_id'])
     if not users:
         return
 
     g.user = users[0]
-    event_object = get_procore_event_object(**event_info)
+    event_object = _get_procore_event_object(**event_info)
     controller.update_gcal(users, event_info.get('resource_name'), event_object)
 
 
-def parse_webhook(data: dict) -> dict:
+def _parse_webhook(data: dict) -> dict:
     out_dict = {}
     attrs = 'project_id resource_name resource_id'.split()
     for attr in attrs:
@@ -150,7 +150,7 @@ def parse_webhook(data: dict) -> dict:
     return out_dict
 
 
-def get_procore_event_object(resource_name: str = '', resource_id: str = '',
+def _get_procore_event_object(resource_name: str = '', resource_id: str = '',
     project_id: str = '', **kwargs) -> dict:
 
     endpoint = procore_resource_endpoint_dict[resource_name].format(
@@ -184,17 +184,17 @@ def gcal_authorize():
     try:
         # if this is an account manager update
         if auth_token:
-            user = update_user_gcal_token(auth_token, gcal_token)
-            return redirect_to_manager_page(user)
+            user = _update_user_gcal_token(auth_token, gcal_token)
+            return _redirect_to_manager_page(user)
         else:
-            collaborator = update_collaborator_gcal_token(gcal_token)
-            return redirect_to_collaborator_page(collaborator)
+            collaborator = _update_collaborator_gcal_token(gcal_token)
+            return _redirect_to_collaborator_page(collaborator)
         
     except Exception as e:
-        return show_error(str(e)), 400
+        return _show_error(str(e))
 
 
-def update_user_gcal_token(auth_token, gcal_token):
+def _update_user_gcal_token(auth_token, gcal_token):
     user = controller.get_user_from_token(auth_token)
     if not user:
         raise Exception('Invalid authorization token')
@@ -203,7 +203,7 @@ def update_user_gcal_token(auth_token, gcal_token):
     return user
 
 
-def update_collaborator_gcal_token(token):
+def _update_collaborator_gcal_token(token):
     collaborator_id = request.args.get('collaborator_id')
     if not collaborator_id:
         raise Exception('Malformed redirect URL')
@@ -214,9 +214,9 @@ def update_collaborator_gcal_token(token):
     return collaborator
 
 
-def redirect_to_collaborator_page(collaborator):
+def _redirect_to_collaborator_page(collaborator):
     path = f'/collaborators/{collaborator.id}'
-    return redirect_to_user_page(path, collaborator)
+    return _redirect_to_user_page(path, collaborator)
 
 
 @app.route(USER_ROUTE, methods=['PATCH'])
@@ -224,9 +224,9 @@ def redirect_to_collaborator_page(collaborator):
 def update_user(user_id):
     try:
         controller.update_user(g.user, request.json)
-        return show_success()
+        return _show_success()
     except Exception as e:
-        return show_error(str(e)), 400
+        return _show_error(str(e))
 
 
 @app.route(USER_ROUTE, methods=['DELETE'])
@@ -234,30 +234,30 @@ def update_user(user_id):
 def delete_user(user_id):
     try:
         controller.delete_user(user_id)
-        return show_success()
+        return _show_success()
     except Exception as e:
-        return show_error(str(e)), 400
+        return _show_error(str(e))
 
 
-def show_success():
+def _show_success():
     return {
         'result': 'success',
         'message': 'success'
     }
 
 
-def show_error(error_text):
+def _show_error(error_text, code=400):
     return {
         'result': 'error',
         'message': error_text
-    }
+    }, code
 
 
-def fetch_procore_token(name: str = ''):
+def _fetch_procore_token(name: str = ''):
     return g.user.procore_data.get_token()
 
 
-def update_procore_token(token: dict, refresh_token: str = '', access_token: str = ''):
+def _update_procore_token(token: dict, refresh_token: str = '', access_token: str = ''):
     user = g.user
     if not user:
         raise Exception('User not logged in')
