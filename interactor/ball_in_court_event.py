@@ -6,7 +6,7 @@ from .procore_event import ProcoreEvent
 
 class BallInCourtEvent(ProcoreEvent):
     ball_in_court: str = ''
-    approver: str = ''
+    approver: Person = None
     attachments: List[str] = []
 
     def update_from_dict(self, values):

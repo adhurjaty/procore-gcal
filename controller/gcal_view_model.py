@@ -112,11 +112,16 @@ class GCalViewModel:
     def render_plain_text_description(self, event: ProcoreEvent):
         text = ''
         text += event.link + '\n\n'
+        text += event.description and f'Description: {event.description}\n'
+        text += event.submittal_type and f'Submittal Type: {event.submittal_type}\n'
         text += event.assignees and f'Assignees: {self.render_people(event.assignees)}\n'
+        text += event.approver and f'Approver: {self.render_person(event.approver)}\n'
         text += event.manager and f'RFI Manger: {self.render_person(event.manger)}\n'
         text += event.schedule_impact and f'Schedule Impact: {event.schedule_impact}\n'
         text += event.cost_impact and f'Cost Impact: {event.cost_impact}\n'
         text += event.cost_code and f'Cost Code: {event.code_code}\n'
+        text += event.questions and f'Questions: {event.questions}\n'
+        text += event.drawing_number and f'Drawing Number: {event.drawing_number}\n'
 
     def render_people(self, people: List[Person]):
         return ', '.join(render_person(p) for p in people)
