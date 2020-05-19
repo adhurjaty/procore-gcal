@@ -5,7 +5,7 @@ from .person import Person
 from .procore_event import ProcoreEvent
 
 class BallInCourtEvent(ProcoreEvent):
-    ball_in_court: str = ''
+    ball_in_court: Person = None
     approver: Person = None
     attachments: List[str] = []
 

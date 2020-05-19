@@ -59,6 +59,15 @@ def rfi_event() -> Rfi:
     rfi.update_from_dict(contents_dict)
     return rfi
 
+@pytest.fixture(scope='module')
+def submittal_event() -> Submittal:
+    with open(os.path.join(objects_path, 'submittal.json')) as f:
+        contents_dict = json.load(f)
+    submittal = Submittal()
+    submittal.link = 'https://procore.com/submittal/42'
+    submittal.update_from_dict(contents_dict)
+    return submittal
+
 
 def test_create_new_webhooks(oauth_mock, sample_user, procore_vm):
     verifications = MockObject()
@@ -256,3 +265,49 @@ def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_eve
     assert validations.event.get('description') == body
     assert validations.event.get('start') == '2017-01-18'
     assert validations.event.get('end') == '2017-01-18'
+
+
+def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, 
+    submittal_event: Rfi):
+
+    validations = MockObject()
+    validations.q_endpoint = ''
+    validations.qs = []
+    validations.create_endpoint = ''
+    validations.events = []
+
+    def oauth_get(endpoint, **query):
+        validations.q_endpoint = endpoint
+        validations.qs.append(query.get('q'))
+        return None
+
+    def oauth_post(endpoint, json=None):
+        validations.create_endpoint = endpoint
+        validations.events.append(json)
+
+    oauth_mock.get = oauth_get
+    oauth_mock.post = oauth_post
+
+    gcal_vm.set_submittal_events(submittal_event)
+
+    with open(os.path.join(objects_path, 'submittal_description_on_site.txt'), 'r') as f:
+        body_on_site = f.read()
+    with open(os.path.join(objects_path, 'submittal_description_final.txt'), 'r') as f:
+        body_final = f.read()
+    assert validations.q_endpoint == '/calendars/42/events'
+    assert set(validations.qs) == {'Submittal #118 - Smiths - Teardown & Assembly Bldg On Site',
+        'Submittal #118 - Smiths - Teardown & Assembly Bldg Final'}
+    assert validations.create_endpoint == '/calendars/42/events'
+    assert set(e.get('summary') for e in validations.events) == \
+        {'Submittal #118 - Smiths - Teardown & Assembly Bldg On Site',
+        'Submittal #118 - Smiths - Teardown & Assembly Bldg Final'}
+    on_site_sub = next((e for e in validations.events if 'On Site' in e.get('summary')), None)
+    final_sub = next((e for e in validations.events if 'Final' in e.get('summary')), None)
+    assert on_site_sub.get('description') == body_on_site 
+    assert final_sub.get('description') == body_final
+    assert on_site_sub.get('start') == '2016-11-28'
+    assert on_site_sub.get('end') == '2016-11-28'
+    assert final_sub.get('start') == '2014-07-22'
+    assert final_sub.get('end') == '2014-07-22'
+    for event in validations.events:
+        assert event.get('location') == '1 space'

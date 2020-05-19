@@ -72,14 +72,19 @@ class GCalViewModel:
 
     def set_submittal_events(self, submittal: Submittal):
         def set_submittal_event(is_on_site: bool):
+            temp_submittal = submittal.copy()
+
             status_str = 'On Site' if is_on_site else 'Final'
+            temp_submittal.submittal_type = status_str
+
             title = f'Submittal #{submittal.number} - {submittal.title} {status_str}'
             existing_event = self.find_existing_event(title)
             if existing_event and submittal.deleted:
                 self.delete_event(existing_event)
 
-            due_date = submittal.required_on_site_date if is_on_site else submittal.due_date
-            cal_event = self.build_event(submittal, title, override_due_date=due_date)
+            temp_submittal.due_date = submittal.required_on_site_date \
+                if is_on_site else submittal.due_date
+            cal_event = self.build_event(temp_submittal, title)
             if existing_event:
                 self.update_event(existing_event.get('id'), cal_event)
             else:
@@ -87,11 +92,11 @@ class GCalViewModel:
 
         parallel_for(set_submittal_event, [True, False])
         
-    def build_event(self, procore_event: ProcoreEvent, title: str, override_due_date=None):
+    def build_event(self, procore_event: ProcoreEvent, title: str):
         gcal_event = GCalEvent()
         gcal_event.summary = title
         gcal_event.location = procore_event.location
-        gcal_event.start = self.format_date(override_due_date or procore_event.due_date)
+        gcal_event.start = self.format_date(procore_event.due_date)
         gcal_event.end = gcal_event.start
         gcal_event.attachments = procore_event.attachments and [self.render_attachment(a) 
             for a in procore_event.attachments]
@@ -101,7 +106,7 @@ class GCalViewModel:
     def format_date(self, date) -> str:
         return arrow.get(date).format('YYYY-MM-DD')
 
-    def render_attachments(self, attachment: Attachment) -> str:
+    def render_attachment(self, attachment: Attachment) -> str:
         return attachment.filename
 
     def render_description(self, event):
@@ -115,7 +120,7 @@ class GCalViewModel:
         text = event.link + '\n\n'
         text += event.description and f'Description: {event.description}\n' or ''
         text += event.submittal_type and f'Submittal Type: {event.submittal_type}\n' or ''
-        text += event.assignees and f'Assignees: {self.render_people(event.assignees)}\n' or ''
+        text += event.ball_in_court and f'Assignee: {self.render_person(event.ball_in_court)}\n' or ''
         text += event.approver and f'Approver: {self.render_person(event.approver)}\n' or ''
         text += event.rfi_manager and f'RFI Manager: {self.render_person(event.rfi_manager)}\n' or ''
         text += event.schedule_impact and (f'Schedule Impact: {event.schedule_impact}' + \

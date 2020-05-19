@@ -12,3 +12,20 @@ class Submittal(BallInCourtEvent):
 
         self.required_on_site_date = self.required_on_site_date and \
             arrow.get(self.required_on_site_date).datetime.date()
+
+    def copy(self):
+        dup = Submittal()
+        dup.id = self.id
+        dup.number = self.number
+        dup.title = self.title
+        dup.description = self.description
+        dup.link = self.link
+        dup.location = self.location
+        dup.due_date = self.due_date
+        dup.deleted = self.deleted
+        dup.ball_in_court = self.ball_in_court
+        dup.approver = self.approver
+        dup.attachments = self.attachments
+        dup.required_on_site_date = self.required_on_site_date
+        dup.submittal_type = self.submittal_type
+        return dup
