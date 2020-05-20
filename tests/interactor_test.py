@@ -214,3 +214,13 @@ def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token
     assert user.gcal_data.access_token == 'access'
     assert not user.temporary
     assert validations.table == 'Collaborator'
+
+
+def test_get_users_in_project(test_interactor, db_mock):
+    users = [AccountManager(), AccountManager()]
+
+    db_mock.get_users_from_project_id = lambda x: users
+
+    db_users = test_interactor.get_users_in_project('pid')
+
+    assert db_users == users

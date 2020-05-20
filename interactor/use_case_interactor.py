@@ -54,15 +54,17 @@ class UseCaseInteracor:
         return [c.id for c in collabs]
 
     def get_users_in_project(self, project_id: int) -> List[AccountManagerDto]:
-        pass
+        return self.db_int.get_users_from_project_id(project_id)
 
     def get_event(self, project_id: int = 0, resource_name: str = '', 
         resource_id: int = 0) -> ProcoreEvent:
 
-        pass
+        return self.presenter.get_event(project_id=project_id, resource_name=resource_name,
+            resource_id=resource_id)
 
     def update_gcal(self, users: List[AccountManagerDto], event: ProcoreEvent):
-        pass
+        def update_cal(user: AccountManagerDto):
+            pass
 
     def get_procore_user_info(self, token: dict):
         pass
