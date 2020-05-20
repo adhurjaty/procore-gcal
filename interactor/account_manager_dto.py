@@ -8,7 +8,7 @@ from models.gcal_user_settings import GCalUserSettings
 class AccountManagerDto(UserDto):
     project_id: str = ''
     procore_data = ProcoreUserSettings()
-    collaborators: List[UserDto] = []
+    collaborators: List[str] = []
     subscribed: bool = False
 
     def set_procore_token(self, token: dict):
