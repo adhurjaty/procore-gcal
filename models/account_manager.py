@@ -5,7 +5,7 @@ from .procore_user_settings import ProcoreUserSettings
 from .calendar_user import CalendarUser
 
 class AccountManager(CalendarUser):
-    procore_data: ProcoreUserSettings = None
+    procore_data: ProcoreUserSettings = ProcoreUserSettings()
     subscribed: bool = False
     trial_start: datetime = None
     payment_id: str = ''

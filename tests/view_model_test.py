@@ -12,6 +12,7 @@ from interactor.account_manager_dto import AccountManagerDto
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
+from models.account_manager import AccountManager
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -35,7 +36,7 @@ def oauth_mock() -> OauthMock:
 
 @pytest.fixture()
 def sample_user() -> AccountManagerDto:
-    manager = AccountManagerDto()
+    manager = AccountManagerDto(AccountManager())
     manager.id = 69
     manager.email = 'sean@example.com'
     manager.full_name = 'Sean Black'

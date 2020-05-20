@@ -31,7 +31,7 @@ def sample_rfi():
 @pytest.fixture(scope='function')
 def sample_submittal():
     submittal = Submittal()
-    submittal.update_from_dict(load_json('sumbittal.json'))
+    submittal.update_from_dict(load_json('submittal.json'))
     return submittal
 
 
@@ -84,7 +84,9 @@ def sample_token():
 
 @pytest.fixture(scope='function')
 def input_manager(sample_token):
-    manager = AccountManagerDto(full_name='Anil Dhurjaty', email='adhurjaty@example.com')
+    manager = AccountManagerDto(AccountManager())
+    manager.full_name='Anil Dhurjaty'
+    manager.email='adhurjaty@example.com'
     manager.id = '22'
 
     manager.collaborators = [Person(full_name='Aaron', email='aaron@procore.com'),
@@ -196,7 +198,9 @@ def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token
     validations.table = ''
     validations.update_user = None
     
-    input_collab = UserDto(full_name='Aaron', email='aaron@procore.com')
+    input_collab = UserDto(CalendarUser())
+    input_collab.full_name='Aaron'
+    input_collab.email='aaron@procore.com'
     input_collab.id = '11'
     input_collab.gcal_data = sample_token
     input_collab.temporary = False

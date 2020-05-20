@@ -9,24 +9,18 @@ from models.calendar_user import CalendarUser
 
 
 class AccountManagerDto(UserDto):
-    project_id: str = ''
-    procore_data = ProcoreUserSettings()
+    parent: AccountManager = None
     collaborators: List[Person] = []
-    subscribed: bool = False
-    payment_id: str = ''
+
+    def __init__(self, parent: AccountManager):
+        super().__init__(parent)
 
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)
 
-    def from_model(self, user: AccountManager):
-        super().from_model(user)
-        self.project_id = user.project_id
-        self.procore_data = user.procore_data
-        self.subscribed = user.subscribed
-        self.email = user.email
-        self.full_name = user.full_name
-
     def add_collaborators(self, collaborators: List[CalendarUser]):
         self.collaborators = [Person(full_name=c.full_name, email=c.email) 
             for c in collaborators]
+
+    
 

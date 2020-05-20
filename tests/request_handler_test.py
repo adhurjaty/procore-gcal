@@ -9,8 +9,19 @@ import controller.request_handler as rh
 import controller.api_endpoints as endpoints
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.user_dto import UserDto
+from models.account_manager import AccountManager
+from models.calendar_user import CalendarUser
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
+
+
+def sample_account_mananger():
+    manager = AccountManagerDto(AccountManager())
+    manager.id = 69
+    manager.email = 'sean@example.com'
+    manager.full_name = 'Sean Black'
+    manager.project_id = 12345
+    return manager
 
 
 @pytest.fixture(scope='module')
@@ -53,19 +64,14 @@ def gcal_oauth_mock() -> OauthMock:
 
 @pytest.fixture(scope='module')
 def user_controller_mock(controller_mock) -> ControllerMock:
-    manager = AccountManagerDto()
-    manager.id = 69
-    manager.email = 'sean@example.com'
-    manager.full_name = 'Sean Black'
-    manager.project_id = 12345
-    controller_mock.set_manager(manager)
+    controller_mock.set_manager(sample_account_mananger())
     
     return controller_mock
 
 
 @pytest.fixture(scope='module')
 def collab_controller_mock(controller_mock) -> ControllerMock:
-    collab = UserDto()
+    collab = UserDto(CalendarUser())
     collab.id = 70
     collab.email = 'sean@example.com'
     collab.full_name = 'Sean Black'
@@ -97,10 +103,7 @@ def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
     }
     procore_oauth_mock.set_token(sample_token)
 
-    manager = AccountManagerDto()
-    manager.id = 69
-    manager.email = 'sean@example.com'
-    manager.full_name = 'Sean Black'
+    manager = sample_account_mananger()
     controller_mock.set_manager(manager)
 
     resp = test_client.get(rh.PROCORE_AUTH_ROUTE, follow_redirects=False)
@@ -112,6 +115,9 @@ def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
 
 
 def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
+    validations = MockObject()
+    validations.user = None
+    
     sample_token = {
         'access_token': 'sample access token',
         'refresh_token': 'sample refresh token',
@@ -122,9 +128,11 @@ def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
     procore_oauth_mock.set_token(sample_token)
 
     def init_user(token):
-        user = AccountManagerDto()
+        user = sample_account_mananger()
+        user.id = '42'
         user.email = 'sean@example.com'
         user.full_name = 'Sean Black'
+        validations.user = user
         return user
 
     controller_mock.init_user = init_user
@@ -132,9 +140,10 @@ def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
     resp = test_client.get(rh.PROCORE_AUTH_ROUTE, follow_redirects=False)
 
     assert resp.status_code == 302
-    assert resp.location == f'{get_front_end_domain(test_client)}/users/new?fullName=Sean+Black&email=sean%40example.com'
+    assert resp.location == f'{get_front_end_domain(test_client)}/users/42'
     cookie = resp.headers.get('Set-Cookie')
     assert extract_cookie(cookie, 'auth_token') == 'sample access token'
+    assert validations.user.full_name == 'Sean Black'
 
 
 def test_submittal_webhook(test_client, controller_mock):

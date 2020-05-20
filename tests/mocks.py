@@ -1,4 +1,5 @@
 from interactor.account_manager_dto import AccountManagerDto
+from models.account_manager import AccountManager
 
 class MockObject:
     def __init__(self):
@@ -44,7 +45,7 @@ class ControllerMock:
         pass
 
     def create_user(self, login: str = '', name: str = '', **token):
-        self.manager = AccountManagerDto()
+        self.manager = AccountManagerDto(AccountManager)
         self.manager.email = login
         self.manager.full_name = name
         self.manager.set_procore_token(token)

@@ -1,4 +1,5 @@
 import pytest
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -9,6 +10,8 @@ from controller.controller import Controller
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
+from models.account_manager import AccountManager
+from models.calendar_user import CalendarUser
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -25,7 +28,7 @@ def test_controller(use_case_mock) -> Controller:
 
 @pytest.fixture(scope='function')
 def sample_user() -> AccountManagerDto:
-    manager = AccountManagerDto()
+    manager = AccountManagerDto(AccountManager())
     manager.id = 55
     manager.email = 'adhurjaty@gmail.com'
     manager.full_name = 'Anil Dhurjaty'
@@ -142,8 +145,10 @@ def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
     validations.users = None
     validations.event = None
 
-    users = [AccountManagerDto(full_name='Carl Contractor', email='this@example.com'),
-        AccountManagerDto(full_name='Anil Dhurjaty', email='adhurjaty@example.com')]
+    user1 = deepcopy(sample_user)
+    user1.full_name = 'Carl Contractor'
+    user1.email = 'this@example.com'
+    users = [user1, sample_user]
 
     def get_users(pid):
         return users
@@ -209,7 +214,10 @@ def test_delete_user(test_controller, use_case_mock):
 
 
 def test_get_collaborator(test_controller, use_case_mock):
-    use_case_mock.get_collaborator = lambda x: UserDto('Anil Dhurjaty', 'anil@example.com')
+    collab_user = UserDto(CalendarUser())
+    collab_user.full_name = 'Anil Dhurjaty'
+    collab_user.email = 'anil@example.com'
+    use_case_mock.get_collaborator = lambda x: collab_user
 
     collab = test_controller.get_collaborator('id')
 
