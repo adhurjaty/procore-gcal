@@ -6,6 +6,7 @@ from pathlib import Path
 from .mocks import MockObject
 from controller.controller import Controller
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
@@ -165,4 +166,49 @@ def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
     assert validations.resource_id == 'rid'
     assert validations.users == users
     assert isinstance(validations.event, Rfi)
+
+
+def test_init_user(test_controller, use_case_mock, sample_user):
+    validations = MockObject()
+    validations.user = None
     
+    token = {'access_token': 'access_token'}
+
+    def get_user_info(t):
+        return sample_user
+
+    def create_user(user):
+        validations.user = user
+        return user
+
+    use_case_mock.get_procore_user_info = get_user_info
+    use_case_mock.create_user = create_user
+
+    user = test_controller.init_user(token)
+    
+    assert user != None
+    assert user == validations.user
+    assert user.temporary
+
+
+def test_delete_user(test_controller, use_case_mock):
+    validations = MockObject
+    validations.user_id = ''
+
+    def delete(user_id):
+        validations.user_id = user_id
+
+    use_case_mock.delete_user = delete
+
+    test_controller.delete_user('44')
+
+    assert validations.user_id == '44'
+
+
+def test_get_collaborator(test_controller, use_case_mock):
+    use_case_mock.get_collaborator = lambda x: UserDto('Anil Dhurjaty', 'anil@example.com')
+
+    collab = test_controller.get_collaborator('id')
+
+    assert collab.full_name == 'Anil Dhurjaty'
+    assert collab.email == 'anil@example.com'

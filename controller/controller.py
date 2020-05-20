@@ -44,6 +44,7 @@ class Controller:
     def update_gcal(self, project_id='', resource_name='', resource_id=''):
         users = self.get_users_in_project(project_id)
         if not users:
+            # TODO: add logging here
             return
 
         event = self.use_case.get_event(project_id=project_id, resource_name=resource_name,
@@ -63,8 +64,6 @@ class Controller:
 
     def init_user(self, token: dict) -> AccountManagerDto:
         user = self.use_case.get_procore_user_info(token)
-        if not user:
-            raise Exception('Invalid authorization token')
         user.temporary = True
 
         user = self.use_case.create_user(user)
