@@ -435,3 +435,40 @@ def test_get_user_info(oauth_mock, procore_vm):
         {'id': 12731, 'name': 'This project'},
         {'id': 12738, 'name': 'Lakeside Mixed Use'}
     ]
+
+
+def test_get_event_from_api(oauth_mock, procore_vm):
+    validations = MockObject()
+    validations.endpoint = ''
+
+    def get(endpoint):
+        validations.endpoint = endpoint
+        return OauthResponseMock({
+            'key': 'value'
+        })
+
+    oauth_mock.get = get
+
+    resp = procore_vm.get_event(project_id=42, resource_id=3, resource_name='RFIs')
+
+    assert validations.endpoint == '/vapid/projects/42/rfis/3'
+    assert resp['key'] == 'value'
+
+
+def test_get_event_invalid_type(oauth_mock, procore_vm):
+    validations = MockObject()
+    validations.endpoint = ''
+
+    def get(endpoint):
+        validations.endpoint = endpoint
+        return OauthResponseMock({
+            'key': 'value'
+        })
+
+    oauth_mock.get = get
+
+    try:
+        resp = procore_vm.get_event(project_id=42, resource_id=3, resource_name='Missing')
+        assert '' == 'Exception not raised'
+    except Exception as e:
+        assert str(e) == 'Unsupported resource type'
