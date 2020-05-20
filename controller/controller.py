@@ -6,6 +6,7 @@ from interactor.use_case_interactor import UseCaseInteracor
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
+from interactor.person import Person
 
 procore_token_file = 'temp_db/procore_token.json'
 
@@ -34,7 +35,7 @@ class Controller:
         user.procore_data.calendar_event_types = {
             t.get('name'): t.get('enabled') for t in eventTypes
         } or user.procore_data.calendar_event_types
-        user.collaborators = [c for c in collaborators] if collaborators else user.collaborators
+        user.collaborators = [Person(**c) for c in collaborators] if collaborators else user.collaborators
         user.procore_data.email_settings = [s for s in emailSettings] or user.procore_data.email_settings
         user.subscribed = bool(isSubscribed) or user.subscribed
 

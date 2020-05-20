@@ -1,12 +1,10 @@
 from datetime import datetime
 
-from .gcal_user_settings import GCalUserSettings
 from .procore_user_settings import ProcoreUserSettings
-from .user import User
+from .calendar_user import CalendarUser
 
-class AccountManager(User):
+class AccountManager(CalendarUser):
     procore_data: ProcoreUserSettings = None
-    gcal_data: GCalUserSettings = None
     subscribed: bool = False
     trial_start: datetime = None
     payment_id: str = ''

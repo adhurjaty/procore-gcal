@@ -87,8 +87,14 @@ def test_update_user_with_data(test_controller, use_case_mock, sample_user):
             }
         ],
         'collaborators': [
-            'aaron@procore.com',
-            'aimee@procore.com'
+            { 
+                'name': 'Aaron',
+                'login': 'aaron@procore.com'
+            },
+            {
+                'name': 'Aimee',
+                'login': 'aimee@procore.com'
+            }
         ],
         'emailSettings': [
             {
@@ -113,7 +119,10 @@ def test_update_user_with_data(test_controller, use_case_mock, sample_user):
         'Submittals': True,
         'RFIs': False
     }
-    assert validations.user.collaborators == 'aaron@procore.com aimee@procore.com'.split()
+    assert validations.user.collaborators[0].full_name == 'Aaron'
+    assert validations.user.collaborators[0].email == 'aaron@procore.com'
+    assert validations.user.collaborators[1].full_name == 'Aimee'
+    assert validations.user.collaborators[1].email == 'aimee@procore.com'
     assert validations.user.subscribed == False
 
 

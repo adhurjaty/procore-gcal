@@ -16,7 +16,10 @@ class UseCaseInteracor:
 
     def get_user_from_token(self, token: str) -> AccountManagerDto:
         user = db_int.get_user_from_token(token)
-        
+        user_dto = AccountManagerDto()
+        user_dto.from_model(user)
+
+        return user_dto
 
     def update_user(self, user: AccountManagerDto) -> AccountManagerDto:
         pass
@@ -29,7 +32,7 @@ class UseCaseInteracor:
 
         pass
 
-    def update_gcal(self, users: List[AccountMangaerDto], event: ProcoreEvent):
+    def update_gcal(self, users: List[AccountManagerDto], event: ProcoreEvent):
         pass
 
     def get_procore_user_info(self, token: dict):
