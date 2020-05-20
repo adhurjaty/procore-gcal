@@ -1,2 +1,6 @@
+from .model import Model
+
 class DBInterface:
-    pass
+    
+    def update(self, table_name: str, model: Model):
+        pass

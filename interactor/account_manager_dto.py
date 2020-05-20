@@ -13,6 +13,7 @@ class AccountManagerDto(UserDto):
     procore_data = ProcoreUserSettings()
     collaborators: List[Person] = []
     subscribed: bool = False
+    payment_id: str = ''
 
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)

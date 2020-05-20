@@ -11,8 +11,11 @@ from interactor.person import Person
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.use_case_interactor import UseCaseInteracor
+from interactor.account_manager_dto import AccountManagerDto
+from interactor.user_dto import UserDto
 from models.account_manager import AccountManager
 from models.calendar_user import CalendarUser
+from models.oauth2_token import Oauth2Token
 
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
@@ -63,12 +66,36 @@ def sample_user():
 @pytest.fixture(scope='function')
 def sample_collaborators():
     collab0 = CalendarUser()
+    collab0.id = 'id1'
     collab0.email = 'aaron@procore.com'
     collab0.full_name = 'Aaron'
     collab1 = CalendarUser()
+    collab1.id = 'id2'
     collab1.email = 'aimee@procore.com'
     collab1.full_name = 'Aimee'
     return [collab0, collab1]
+
+
+@pytest.fixture(scope='function')
+def sample_token():
+    return Oauth2Token(access_token='access', refresh_token='refresh',
+        token_type='Bearer', expires_at=999)
+
+
+@pytest.fixture(scope='function')
+def input_manager(sample_token):
+    manager = AccountManagerDto(full_name='Anil Dhurjaty', email='adhurjaty@example.com')
+    manager.id = '22'
+
+    manager.collaborators = [Person(full_name='Aaron', email='aaron@procore.com'),
+        Person(full_name='Aimee', email='aimee@procore.com')]
+    manager.procore_data = sample_token
+    manager.gcal_data = sample_token
+    manager.subscribed = True
+    manager.payment_id = 'payment ID'
+    manager.temporary = False
+
+    return manager
 
 
 def test_create_rfi(sample_rfi):
@@ -136,3 +163,28 @@ def test_get_user_from_token(test_interactor, db_mock, sample_user, sample_colla
     assert user.id == 55
     assert user.collaborators[0].email == 'aaron@procore.com'
     assert user.collaborators[1].full_name == 'Aimee'
+
+
+def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborators, 
+    input_manager):
+    
+    validations = MockObject()
+    validations.table = ''
+    validations.update_user = None
+    
+    def update(table, model):
+        validations.table = table
+        validations.update_user = model
+
+    def get_collaborators(emails):
+        return [c for c in sample_collaborators if c.email in emails]
+    
+    db_mock.update = update
+    db_mock.get_collaborators_from_emails = get_collaborators
+
+    user = test_interactor.update_user(input_manager)
+
+    assert validations.update_user == user
+    assert validations.table == 'AccountManager'
+    assert user.collaborator_ids == 'id1 id2'.split()
+    assert user.procore_data.access_token == 'access'
