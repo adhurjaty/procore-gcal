@@ -10,13 +10,6 @@ class UserDto(object):
     def set_gcal_token(self, token: dict):
         self.gcal_data.set_token(**token)
 
-    def from_model(self, user: CalendarUser):
-        self.id = user.id
-        self.full_name = user.full_name
-        self.email = user.email
-        self.temporary = user.temporary
-        self.gcal_data = user.gcal_data
-
     def __getattr__(self, name):
         try:
             return getattr(self.parent, name)

@@ -4,7 +4,7 @@ from typing import List
 
 from .api_endpoints import *
 from .server_connector import url_for_webhooks
-from interactor.account_manager_dto import AccountManagerDto
+from interactor.account_manager_response import AccountManagerResponse
 from util.utils import parallel_for
 
 
@@ -56,7 +56,7 @@ class ProcoreTrigger:
 class ProcoreViewModel:
     lock = Lock()
 
-    def __init__(self, user: AccountManagerDto = None, token: dict = None):
+    def __init__(self, user: AccountManagerResponse = None, token: dict = None):
         if user:
             self.oauth = OAuth2Session(token=user.procore_data.access_token,
                 update_token=self._update_token)
