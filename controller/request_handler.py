@@ -131,15 +131,6 @@ def _dispatch_webhook(data: dict):
     event_info = _parse_webhook(data)
     controller.update_gcal(**event_info)
 
-    users = controller.get_users_in_project(event_info['project_id'])
-    if not users:
-        return
-
-    g.user = users[0]
-    event_object = _get_procore_event_object(**event_info)
-    controller.update_gcal(users, event_info.get('resource_name'), event_object)
-
-
 def _parse_webhook(data: dict) -> dict:
     out_dict = {}
     attrs = 'project_id resource_name resource_id'.split()
@@ -149,17 +140,6 @@ def _parse_webhook(data: dict) -> dict:
             raise Exception(f'Missing {attr}')
         out_dict[attr] = value
     return out_dict
-
-
-def _get_procore_event_object(resource_name: str = '', resource_id: str = '',
-    project_id: str = '', **kwargs) -> dict:
-
-    endpoint = procore_resource_endpoint_dict[resource_name].format(
-        project_id=project_id, resource_id=resource_id
-    )
-
-    resp = oauth.procore.get(endpoint)
-    return resp.json()
 
 
 @app.route(GCAL_LOGIN_ROUTE)

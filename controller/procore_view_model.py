@@ -170,5 +170,13 @@ class ProcoreViewModel:
         parallel_for(lambda x: get_project(projects, x), company_ids)
         return projects
 
-
+    def get_event(self, project_id: int = 0, resource_id: int = 0, resource_name: str = ''):
+        try:
+            endpoint = procore_resource_endpoint_dict[resource_name].format(
+                project_id=project_id, resource_id=resource_id
+            )
+            resp = self.oauth.get(endpoint)
+            return resp.json()
+        except KeyError:
+            raise Exception('Unsupported resource type')   
         

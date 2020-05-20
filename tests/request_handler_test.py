@@ -137,21 +137,11 @@ def test_authorize_signup(test_client, procore_oauth_mock, controller_mock):
     assert extract_cookie(cookie, 'auth_token') == 'sample access token'
 
 
-def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
-    manager = AccountManagerDto()
-    manager.id = 69
-    manager.email = 'sean@example.com'
-    manager.full_name = 'Sean Black'
-    manager.project_id = 12345
-    controller_mock.set_manager(manager)
-
-    def get_resource(uri):
-        assert uri == '/vapid/projects/12345/submittals/838383'
-        with open(os.path.join(objects_path, 'submittal.json'), 'r') as f:
-            resp = json.load(f)
-        return OauthResponseMock(resp)
-
-    procore_oauth_mock.get = get_resource
+def test_submittal_webhook(test_client, controller_mock):
+    validations = MockObject()
+    validations.project_id = 0
+    validations.resource_name = ''
+    validations.resource_id = ''
 
     webhook_data = {
         'user_id': 66789,
@@ -171,19 +161,19 @@ def test_submittal_webhook(test_client, procore_oauth_mock, controller_mock):
         }
     }
 
-    def update_gcal(users, name, data):
-        assert len(users) == 1
-        assert data['title'] == "Smiths - Teardown & Assembly Bldg"
-        assert name == "Submittals"
-        controller_mock.updated_gcal = True
+    def update_gcal(**data):
+        validations.project_id = data.get('project_id')
+        validations.resource_name = data.get('resource_name')
+        validations.resource_id = data.get('resource_id')
 
     controller_mock.update_gcal = update_gcal
-    controller_mock.get_users_in_project = lambda pid: [AccountManagerDto()]
 
     resp = test_client.post(rh.WEBHOOK_HANDLER_ROUTE, json=webhook_data)
 
     assert resp.status_code == 200
-    assert controller_mock.updated_gcal
+    assert validations.project_id == 12345
+    assert validations.resource_name == 'Submittals'
+    assert validations.resource_id == 838383
 
 
 def test_gcal_login(test_client, user_controller_mock, gcal_oauth_mock):
