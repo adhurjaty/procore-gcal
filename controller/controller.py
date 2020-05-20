@@ -39,21 +39,27 @@ class Controller:
         user.subscribed = bool(isSubscribed) or user.subscribed
 
     def get_users_in_project(self, project_id: int):
-        return use_case.get_users_in_project(project_id)
+        return self.use_case.get_users_in_project(project_id)
 
-    def update_gcal(self, users, resource_name, event_object):
-        event = None
-        if resource_name == 'RFIs':
-            event = Rfi()
-            event.update_from_dict(event_object)
-        if resource_name == 'Submittals':
-            event = Submittal()
-            event.update_from_dict(event_object)
+    def update_gcal(self, project_id='', resource_name='', resource_id=''):
+        users = self.get_users_in_project(project_id)
+        if not users:
+            return
 
-        if not event:
-            raise Exception('Unsupported resource')
-
+        event = self.use_case.get_event(project_id=project_id, resource_name=resource_name,
+            resource_id=resource_id)
         self.use_case.update_gcal(users, event)
+
+        # if resource_name == 'RFIs':
+        #     event = Rfi()
+        #     event.update_from_dict(event_object)
+        # if resource_name == 'Submittals':
+        #     event = Submittal()
+        #     event.update_from_dict(event_object)
+
+        # if not event:
+        #     raise Exception('Unsupported resource')
+
 
     def init_user(self, token: dict) -> AccountManagerDto:
         user = self.use_case.get_procore_user_info(token)

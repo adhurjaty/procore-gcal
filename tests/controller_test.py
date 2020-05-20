@@ -1,8 +1,21 @@
 import pytest
+import json
+import os
+from pathlib import Path
 
 from .mocks import MockObject
 from controller.controller import Controller
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.rfi import Rfi
+
+objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
+
+
+def load_json(filename):
+    path = os.path.join(objects_path, filename)
+    with open(path, 'r') as f:
+        return json.load(f)
+
 
 @pytest.fixture(scope='module')
 def use_case_mock():
@@ -103,4 +116,53 @@ def test_update_user_with_data(test_controller, use_case_mock, sample_user):
     assert validations.user.subscribed == False
 
 
+def test_get_users_in_project(test_controller, use_case_mock, sample_user):
+    validations = MockObject()
+    validations.project_id = 0
+
+    def get_users(pid):
+        validations.project_id = pid
+
+    use_case_mock.get_users_in_project = get_users
+
+    test_controller.get_users_in_project(44)
+
+    assert validations.project_id == 44
+
+
+def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
+    validations = MockObject()
+    validations.project_id = ''
+    validations.resource_name = ''
+    validations.resource_id = ''
+    validations.users = None
+    validations.event = None
+
+    users = [AccountManagerDto(full_name='Carl Contractor', email='this@example.com'),
+        AccountManagerDto(full_name='Anil Dhurjaty', email='adhurjaty@example.com')]
+
+    def get_users(pid):
+        return users
+
+    def get_event(**kwargs):
+        validations.project_id = kwargs.get('project_id')
+        validations.resource_name = kwargs.get('resource_name')
+        validations.resource_id = kwargs.get('resource_id')
+        return Rfi()
+
+    def update(users, event):
+        validations.users = users
+        validations.event = event
+
+    use_case_mock.get_users_in_project = get_users
+    use_case_mock.get_event = get_event
+    use_case_mock.update_gcal = update
+
+    test_controller.update_gcal(project_id='pid', resource_name='RFIs', resource_id='rid')
+
+    assert validations.project_id == 'pid'
+    assert validations.resource_name == 'RFIs'
+    assert validations.resource_id == 'rid'
+    assert validations.users == users
+    assert isinstance(validations.event, Rfi)
     

@@ -129,6 +129,7 @@ def webhook_handler():
 
 def _dispatch_webhook(data: dict):
     event_info = _parse_webhook(data)
+    controller.update_gcal(**event_info)
 
     users = controller.get_users_in_project(event_info['project_id'])
     if not users:
