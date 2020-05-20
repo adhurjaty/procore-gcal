@@ -1,0 +1,2 @@
+class Model:
+    id: str = ''

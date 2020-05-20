@@ -21,10 +21,12 @@ entity AccountManager {
     * id : key
     ---
     * user_id : foreign_key
+    * procore_settings_id: foreign_key
+    * gcal_settings_id: foreign_key
     * is_trial : bool
     * trial_start : datetime
     * payment_id : uuid
-    * org_id : string
+    * project_id : int
 }
 
 entity Collaborator {
@@ -32,19 +34,18 @@ entity Collaborator {
     ---
     * user_id : foreign_key
     * manager_id : foreign_key
+    * gcal_settings_id: foreign_key
 }
 
 entity ProcoreSettings {
     * id : key
     ---
-    * manager_id : foreign_key
     * token_id : foreign_key
 }
 
 entity CalendarSettings {
     * id : key
     ---
-    * user_id : foreign_key
     * token_id : foreign_key
     * google_calendar_id: string
 }

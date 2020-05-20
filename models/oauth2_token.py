@@ -1,8 +1,14 @@
-class Oauth2Token:
-    def __init__(self, **token):
-        self.set_token(**token)
+from datetime import datetime
 
-    def set_token(self, access_token: str = '', refresh_token: str = '', token_type: str = '', 
+from .model import Model
+
+class Oauth2Token(Model):
+    access_token: str = ''
+    refresh_token: str = ''
+    token_type: str = ''
+    expires_at: datetime
+
+    def __init__(self, access_token: str = '', refresh_token: str = '', token_type: str = '', 
         expires_at: int = 0, **kwargs):
 
         self.access_token = access_token
@@ -17,3 +23,5 @@ class Oauth2Token:
             'refresh_token': self.refresh_token,
             'expires_at': self.expires_at
         }
+
+    
