@@ -20,6 +20,8 @@ class OauthMock:
 
     
 class OauthResponseMock:
+    status_code = 200
+    
     def __init__(self, response):
         self.response = response
     

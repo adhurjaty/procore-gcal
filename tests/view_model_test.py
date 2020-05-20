@@ -3,17 +3,23 @@ import json
 import os
 from pathlib import Path
 
+from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from controller.gcal_view_model import GCalViewModel
 from controller.procore_view_model import ProcoreViewModel
 import controller.server_connector as server_connector
 import controller.api_endpoints as endpoints
-from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
+
+
+def load_json(filename):
+    path = os.path.join(objects_path, filename)
+    with open(path, 'r') as f:
+        return json.load(f)
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -386,3 +392,46 @@ def test_update_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
     assert validations.patch_endpoint == '/calendars/42/events/unique_id'
     assert validations.create_endpoint == ''
     assert validations.event != None
+
+
+def test_get_user_info(oauth_mock, procore_vm):
+    
+    def get(endpoint, params={}):
+        if endpoint == endpoints.PROCORE_GET_USER:
+            return OauthResponseMock({
+                "id": 42,
+                "login": "adhurjaty",
+                "name": "Anil Dhurjaty"
+            })
+        if endpoint == endpoints.PROCORE_COMPANIES:
+            return OauthResponseMock([
+                {
+                    "id": 1,
+                    "name": "ABC Drywall",
+                    "is_active": True
+                },
+                {
+                    "id": 2,
+                    "name": "DEF Flooring",
+                    "is_active": True
+                }
+            ])
+        if endpoint == endpoints.PROCORE_PROJECTS:
+            company_id = params.get('company_id')
+            if company_id == 1:
+                return OauthResponseMock(load_json('projects1.json'))
+            if company_id == 2:
+                return OauthResponseMock(load_json('projects2.json'))
+
+    oauth_mock.get = get
+
+    user_info = procore_vm.get_user_info()
+
+    assert user_info.get('login') == 'adhurjaty'
+    assert user_info.get('name') == 'Anil Dhurjaty'
+    projects = user_info.get('projects')
+    assert projects == [
+        {'id': 12732, 'name': 'Other project'},
+        {'id': 12731, 'name': 'This project'},
+        {'id': 12738, 'name': 'Lakeside Mixed Use'}
+    ]

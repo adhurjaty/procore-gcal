@@ -132,8 +132,9 @@ class ProcoreViewModel:
     def get_user_info(self):
         user_resp = self._get_user_from_api()
         company_ids = self._get_company_ids()
-
-        return self._get_projects(company_ids)
+        projects = self._get_projects(company_ids)
+        user_resp.update(projects=projects)
+        return user_resp
 
     def _get_user_from_api(self) -> dict:
         user_resp = self.oauth.get(PROCORE_GET_USER)
@@ -155,7 +156,7 @@ class ProcoreViewModel:
     def _get_projects(self, company_ids: List[int]) -> List[dict]:
         projects = []
         
-        def get_project(company_id: int):
+        def get_project(projects, company_id: int):
             resp = self.oauth.get(PROCORE_PROJECTS, params={'company_id': company_id, 
                 'per_page': 100})
             if resp.status_code == 401:
@@ -166,7 +167,7 @@ class ProcoreViewModel:
                 projects += [{key: p[key] for key in 'id name'.split()} 
                     for p in active_projects]
         
-        parallel_for(get_project, company_ids)
+        parallel_for(lambda x: get_project(projects, x), company_ids)
         return projects
 
 
