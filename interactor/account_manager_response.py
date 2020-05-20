@@ -12,3 +12,6 @@ class AccountManagerResponse(UserResponse):
 
     def set_collaborators(self, collaborators: List[CalendarUser]):
         self.collaborators = [UserResponse(c) for c in collaborators]
+
+    def set_procore_token(self, token: dict):
+        self.procore_data.set_token(**token)

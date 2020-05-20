@@ -1,4 +1,5 @@
 import pytest
+from copy import deepcopy
 from datetime import datetime
 import json
 import os
@@ -12,7 +13,9 @@ from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.use_case_interactor import UseCaseInteracor
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.account_manager_response import AccountManagerResponse
 from interactor.user_dto import UserDto
+from interactor.rfi import Rfi
 from models.account_manager import AccountManager
 from models.calendar_user import CalendarUser
 from models.oauth2_token import Oauth2Token
@@ -228,3 +231,32 @@ def test_get_users_in_project(test_interactor, db_mock):
     db_users = test_interactor.get_users_in_project('pid')
 
     assert db_users == users
+
+
+def test_update_gcal(test_interactor, presenter_mock, sample_user):
+    validations = MockObject()
+    validations.users = []
+    validations.events = []
+
+    def update_gcal(user, event):
+        validations.users.append(user)
+        validations.events.append(event)
+
+    presenter_mock.update_gcal = update_gcal
+
+    user1 = AccountManagerDto(sample_user)
+    other_user = deepcopy(sample_user)
+    other_user.full_name = 'Blah Black'
+    other_user.email = 'bb@example.com'
+    user2 = AccountManagerDto(other_user)
+
+    users = [user1, user2]
+
+    event = Rfi()
+
+    test_interactor.update_gcal(users, event)
+
+    assert len(validations.users) == 2
+    assert isinstance(validations.users[0], AccountManagerResponse)
+    assert [u.parent for u in validations.users] == [u.parent for u in users]
+    assert validations.events == [event] * 2

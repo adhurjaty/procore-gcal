@@ -1,7 +1,9 @@
 from typing import List
 
+from util.utils import parallel_for
 from .presenter_interface import PresenterInterface
 from .account_manager_dto import AccountManagerDto
+from .account_manager_response import AccountManagerResponse
 from .procore_event import ProcoreEvent
 from .user_dto import UserDto
 from models.db_interface import DBInterface
@@ -63,7 +65,10 @@ class UseCaseInteracor:
 
     def update_gcal(self, users: List[AccountManagerDto], event: ProcoreEvent):
         def update_cal(user: AccountManagerDto):
-            pass
+            user_response = AccountManagerResponse(user.parent)
+            self.presenter.update_gcal(user_response, event)
+
+        parallel_for(update_cal, users)
 
     def get_procore_user_info(self, token: dict):
         pass
