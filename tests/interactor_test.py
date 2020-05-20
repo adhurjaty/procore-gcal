@@ -188,3 +188,29 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
     assert validations.table == 'AccountManager'
     assert user.collaborator_ids == 'id1 id2'.split()
     assert user.procore_data.access_token == 'access'
+    assert user.id == '22'
+
+
+def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token):
+    validations = MockObject()
+    validations.table = ''
+    validations.update_user = None
+    
+    input_collab = UserDto(full_name='Aaron', email='aaron@procore.com')
+    input_collab.id = '11'
+    input_collab.gcal_data = sample_token
+    input_collab.temporary = False
+
+    def update(table, model):
+        validations.table = table
+        validations.update_user = model
+
+    db_mock.update = update
+
+    user = test_interactor.update_user(input_collab)
+
+    assert user == validations.update_user
+    assert user.id == '11'
+    assert user.gcal_data.access_token == 'access'
+    assert not user.temporary
+    assert validations.table == 'Collaborator'
