@@ -4,19 +4,13 @@ import os
 from pathlib import Path
 
 from .mocks import MockObject
+from .test_util import load_json
 from controller.controller import Controller
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
-
-
-def load_json(filename):
-    path = os.path.join(objects_path, filename)
-    with open(path, 'r') as f:
-        return json.load(f)
-
 
 @pytest.fixture(scope='module')
 def use_case_mock():

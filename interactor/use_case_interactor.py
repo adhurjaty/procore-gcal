@@ -15,9 +15,11 @@ class UseCaseInteracor:
         self.db_int = db_int
 
     def get_user_from_token(self, token: str) -> AccountManagerDto:
-        user = db_int.get_user_from_token(token)
+        user = self.db_int.get_user_from_token(token)
+        collaborators = self.db_int.get_user_collaborators(user)
         user_dto = AccountManagerDto()
         user_dto.from_model(user)
+        user_dto.add_collaborators(collaborators)
 
         return user_dto
 
