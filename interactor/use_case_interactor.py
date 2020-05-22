@@ -43,6 +43,7 @@ class UseCaseInteracor:
         model_user = user.parent
         if isinstance(user, AccountManagerDto):
             model_user.collaborator_ids = self._get_or_create_collaborators(user.collaborators)
+            self._remove_old_collaborators(user.id, model_user.collaborator_ids)
 
         model_user.save(self.db_int)
         return model_user
@@ -64,7 +65,14 @@ class UseCaseInteracor:
         new_collab.email = email
         new_collab.temporary = True
         new_collab.save(self.db_int)
-        return new_collab        
+        # TODO: send email notification
+        return new_collab
+
+    def _remove_old_collaborators(self, user_id: str, collaborator_ids: List[str]):
+        existing_user = self.db_int.get_manager(user_id)
+        ids_to_remove = set(existing_user.collaborator_ids).difference(collaborator_ids)
+        parallel_for(lambda id: self.db_int.delete(CalendarUser().table_name, id),
+            ids_to_remove)
 
     def _get_collaborator_ids(self, emails: List[str]):
         collabs = self.db_int.get_collaborators_from_emails(emails)

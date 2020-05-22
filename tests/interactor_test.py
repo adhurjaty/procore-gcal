@@ -176,6 +176,8 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
     validations = MockObject()
     validations.table = ''
     validations.update_user = None
+
+    db_user = deepcopy(sample_user)
     
     def update(table, model):
         validations.table = table
@@ -183,9 +185,13 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
 
     def get_collaborators(emails):
         return [c for c in sample_collaborators if c.email in emails]
+
+    def get_user(user_id):
+        return db_user
     
     db_mock.update = update
     db_mock.get_collaborators_from_emails = get_collaborators
+    db_mock.get_manager = get_user
 
     user = test_interactor.update_user(input_manager)
 
@@ -205,13 +211,19 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
     validations.collab_tables = []
     validations.new_collabs = []
     
+    db_user = deepcopy(sample_user)
+
     def update(table, model):
         validations.table = table
         validations.update_user = model
 
     def insert(table, model):
         validations.collab_tables.append(table)
+        model.id = next((c.id for c in sample_collaborators if c.email == model.email))
         validations.new_collabs.append(model)
+
+    def get_user(user_id):
+        return db_user
 
     def get_collaborators(emails):
         collab = CalendarUser()
@@ -222,6 +234,7 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
     db_mock.update = update
     db_mock.insert = insert
     db_mock.get_collaborators_from_emails = get_collaborators
+    db_mock.get_manager = get_user
 
     input_manager.collaborators = sample_collaborators
     user = test_interactor.update_user(input_manager)
@@ -229,8 +242,65 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
     assert validations.update_user == user
     assert validations.table == 'AccountManager'
     assert validations.collab_tables == ['Collaborator'] * 2
-    assert [c.id for c in validations.new_collabs] == 'id1 id2'.split()
-    assert user.collaborator_ids == 'id3 id1 id2'.split()
+    assert set(c.id for c in validations.new_collabs) == set('id1 id2'.split())
+    assert set(user.collaborator_ids) == set('id3 id1 id2'.split())
+    assert user.id == '22'
+
+
+def test_update_manager_remove_collaborators(test_interactor, db_mock, sample_user, 
+    sample_collaborators, input_manager):
+    
+    validations = MockObject()
+    validations.table = ''
+    validations.update_user = None
+    validations.collab_tables = []
+    validations.new_collabs = []
+    validations.delete_tables = []
+    validations.deletes = []
+    
+    db_user = deepcopy(sample_user)
+
+    def update(table, model):
+        validations.table = table
+        validations.update_user = model
+
+    def insert(table, model):
+        validations.collab_tables.append(table)
+        model.id = 'id3'
+        validations.new_collabs.append(model)
+
+    def delete(table, id):
+        validations.delete_tables.append(table)
+        validations.deletes.append(id)
+
+    def get_user(user_id):
+        db_user.collaborator_ids = [c.id for c in sample_collaborators]
+        return db_user
+    
+    def get_collaborators(emails):
+        return []
+    
+    new_collab = CalendarUser()
+    new_collab.full_name = 'Anil Dhurjaty'
+    new_collab.email = 'anil@procore.com'
+
+    db_mock.update = update
+    db_mock.insert = insert
+    db_mock.delete = delete
+    db_mock.get_manager = get_user
+
+    db_mock.get_collaborators_from_emails = get_collaborators
+
+    input_manager.collaborators = [new_collab]
+    user = test_interactor.update_user(input_manager)
+
+    assert validations.update_user == user
+    assert validations.table == 'AccountManager'
+    assert validations.collab_tables == ['Collaborator']
+    assert validations.delete_tables == ['Collaborator'] * 2
+    assert set(validations.deletes) == set('id1 id2'.split())
+    assert [c.id for c in validations.new_collabs] == ['id3']
+    assert user.collaborator_ids == ['id3']
     assert user.id == '22'
 
 
