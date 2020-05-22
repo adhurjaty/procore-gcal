@@ -321,6 +321,23 @@ def test_update_user_not_logged_in(test_client, controller_mock):
     resp = test_client.patch('/api/users/69', json=test_data)
 
     assert resp.status_code == 401
+
+
+def test_get_account_manager(test_client, user_controller_mock):
+    validations = MockObject()
+    validations.user = None
+    
+    def get_manager(user):
+        validations.user = user
+        return {'test': 'succeed'}
+        
+    user_controller_mock.get_manager = get_manager
+
+    resp = test_client.get('/api/users/44')
+
+    assert resp.status_code == 200
+    assert resp.json['test'] == 'succeed'
+    assert validations.user == user_controller_mock.manager
     
 
 def get_front_end_domain(client):

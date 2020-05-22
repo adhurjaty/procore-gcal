@@ -223,3 +223,19 @@ def test_get_collaborator(test_controller, use_case_mock):
 
     assert collab.full_name == 'Anil Dhurjaty'
     assert collab.email == 'anil@example.com'
+
+
+def test_get_manager(test_controller, use_case_mock, sample_user):
+    validations = MockObject()
+    validations.user = None
+
+    def get(user):
+        validations.user = user
+        return {'result': 'success'}
+
+    use_case_mock.get_manager_vm = get
+
+    result = test_controller.get_manager(sample_user)
+
+    assert validations.user == sample_user
+    assert result['result'] == 'success'

@@ -19,6 +19,9 @@ class Controller:
     def get_user_from_token(self, token: str) -> AccountManagerDto:
         return self.use_case.get_user_from_token(token)
 
+    def get_manager(self, user: AccountManagerDto) -> dict:
+        return self.use_case.get_manager_vm(user)
+
     def update_user(self, user: UserDto, user_data=None):
         if user_data:
             self._update_user_fields(user, **user_data)

@@ -26,6 +26,11 @@ class UseCaseInteracor:
 
         return user_dto
 
+    def get_manager_vm(self, user: AccountManagerDto):
+        resp_user = AccountManagerResponse(user.parent)
+        return self.presenter.get_manager_vm(resp_user)
+    
+
     def update_user(self, user: UserDto) -> UserDto:
         model_user = self._convert_to_model_user(user)
         model_user.save(self.db_int)

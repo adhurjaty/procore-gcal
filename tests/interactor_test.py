@@ -311,3 +311,21 @@ def test_get_collaborator(test_interactor, db_mock, sample_collaborators):
 
     assert validations.cid == '44'
     assert user == sample_collaborators[0]
+
+
+def test_get_manager_vm(test_interactor, presenter_mock, input_manager):
+    validations = MockObject()
+    validations.user = None
+
+    def get(user):
+        validations.user = user
+        return {'result': 'success'}
+
+    presenter_mock.get_manager_vm = get
+
+    resp = test_interactor.get_manager_vm(input_manager)
+
+    assert resp['result'] == 'success'
+    assert isinstance(validations.user, AccountManagerResponse)
+    assert validations.user.parent == input_manager.parent
+    
