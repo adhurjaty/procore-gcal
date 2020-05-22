@@ -1,11 +1,14 @@
 from typing import List
 
 from .user_response import UserResponse
+from .named_item import NamedItem
 from models.account_manager import AccountManager
 from models.calendar_user import CalendarUser
 
 class AccountManagerResponse(UserResponse):
     collaborators: List[UserResponse] = []
+    calendars: List[NamedItem] = []
+    projects: List[NamedItem] = []
 
     def __init__(self, parent):
         super().__init__(parent)

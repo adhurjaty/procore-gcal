@@ -27,6 +27,7 @@ USER_ROUTE = '/api/users/<user_id>'
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
 controller: Controller = None
+
 oauth: OAuth = None
 
 def create_app(cont: Controller) -> Flask:
@@ -198,6 +199,15 @@ def _update_collaborator_gcal_token(token):
 def _redirect_to_collaborator_page(collaborator):
     path = f'/collaborators/{collaborator.id}'
     return _redirect_to_user_page(path, collaborator)
+
+
+@app.route(USER_ROUTE, methods=['GET'])
+@auth.login_required
+def get_user(user_id):
+    try:
+        return controller.get_manager(g.user)
+    except Exception as e:
+        return _show_error(str(e))
 
 
 @app.route(USER_ROUTE, methods=['PATCH'])

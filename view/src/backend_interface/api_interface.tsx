@@ -54,17 +54,14 @@ export function getUserSettings(userId: string): User {
         selectedCalendar: 0,
         eventTypes: [
             {
-                id: 0,
                 name: "RFIs",
                 enabled: true,
             },
             {
-                id: 1,
                 name: "Submittals",
                 enabled: true,
             },
             {
-                id: 2,
                 name: "Change Orders",
                 enabled: false,
             }
@@ -72,17 +69,14 @@ export function getUserSettings(userId: string): User {
         collaborators: [],
         emailSettings: [
             {
-                id: 0,
                 name: "Google Calendar Events",
                 enabled: true
             },
             {
-                id: 1,
                 name: "Add/Remove Caldendar",
                 enabled: false
             },
             {
-                id: 2,
                 name: "User Updates",
                 enabled: false
             },
