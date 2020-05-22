@@ -139,7 +139,7 @@ def test_get_users_in_project(test_controller, use_case_mock, sample_user):
 
 def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
     validations = MockObject()
-    validations.project_id = ''
+    validations.user = None
     validations.resource_name = ''
     validations.resource_id = ''
     validations.users = None
@@ -153,8 +153,8 @@ def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
     def get_users(pid):
         return users
 
-    def get_event(**kwargs):
-        validations.project_id = kwargs.get('project_id')
+    def get_event(user, **kwargs):
+        validations.user = user
         validations.resource_name = kwargs.get('resource_name')
         validations.resource_id = kwargs.get('resource_id')
         return Rfi()
@@ -169,7 +169,7 @@ def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
 
     test_controller.update_gcal(project_id='pid', resource_name='RFIs', resource_id='rid')
 
-    assert validations.project_id == 'pid'
+    assert validations.user == user1
     assert validations.resource_name == 'RFIs'
     assert validations.resource_id == 'rid'
     assert validations.users == users

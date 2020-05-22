@@ -16,6 +16,7 @@ from interactor.account_manager_dto import AccountManagerDto
 from interactor.account_manager_response import AccountManagerResponse
 from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
+from interactor.named_item import NamedItem
 from models.account_manager import AccountManager
 from models.calendar_user import CalendarUser
 from models.oauth2_token import Oauth2Token
@@ -421,14 +422,36 @@ def test_get_collaborator(test_interactor, db_mock, sample_collaborators):
     assert user == sample_collaborators[0]
 
 
-def test_get_manager_vm(test_interactor, presenter_mock, input_manager):
+def test_get_manager_vm(test_interactor, presenter_mock, db_mock, input_manager, 
+    sample_collaborators):
+    
     validations = MockObject()
     validations.user = None
+    validations.emails = []
 
     def get(user):
         validations.user = user
         return {'result': 'success'}
 
+    def get_calendars(user):
+        return [
+            NamedItem(0, 'this calendar'),
+            NamedItem(1, 'that calendar'),
+        ]
+
+    def get_collaborators(emails):
+        validations.emails = emails
+        return sample_collaborators
+
+    def get_projects(user):
+        return [
+            NamedItem('id3', 'this project'),
+            NamedItem('id4', 'that project'),
+        ]
+
+    db_mock.get_collaborators_from_emails = get_collaborators
+    db_mock.get_calendars = get_calendars
+    db_mock.get_projects = get_projects
     presenter_mock.get_manager_vm = get
 
     resp = test_interactor.get_manager_vm(input_manager)
@@ -436,4 +459,7 @@ def test_get_manager_vm(test_interactor, presenter_mock, input_manager):
     assert resp['result'] == 'success'
     assert isinstance(validations.user, AccountManagerResponse)
     assert validations.user.parent == input_manager.parent
+    assert [c.id for c in validations.user.calendars] == [0, 1]
+    assert [p.id for p in validations.user.projects] == 'id3 id4'.split()
+
     

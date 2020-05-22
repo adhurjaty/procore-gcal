@@ -31,8 +31,8 @@ class UseCaseInteracor:
     def get_manager_vm(self, user: AccountManagerDto):
         resp_user = AccountManagerResponse(user.parent)
         resp_user.collaborators =  self._get_collaborators(user.collaborators)
-        resp_user.calendars = self.presenter.get_calendars(resp_user)
-        resp_user.projects = self.presenter.get_projects(resp_user)
+        resp_user.calendars = self.db_int.get_calendars(resp_user)
+        resp_user.projects = self.db_int.get_projects(resp_user)
         return self.presenter.get_manager_vm(resp_user)
 
     def _get_collaborators(self, collaborators: List[Person]) -> List[UserResponse]:
@@ -81,10 +81,10 @@ class UseCaseInteracor:
     def get_users_in_project(self, project_id: int) -> List[AccountManagerDto]:
         return self.db_int.get_users_from_project_id(project_id)
 
-    def get_event(self, project_id: int = 0, resource_name: str = '', 
+    def get_event(self, user: UserDto, resource_name: str = '', 
         resource_id: int = 0) -> ProcoreEvent:
 
-        return self.presenter.get_event(project_id=project_id, resource_name=resource_name,
+        return self.presenter.get_event(user, resource_name=resource_name,
             resource_id=resource_id)
 
     def update_gcal(self, users: List[AccountManagerDto], event: ProcoreEvent):
@@ -95,7 +95,7 @@ class UseCaseInteracor:
         parallel_for(update_cal, users)
 
     def get_procore_user_info(self, token: dict):
-        return self.presenter.get_procore_user_info(token)
+        return self.presenter.get_user_info(token)
 
     def delete_manager(self, user_id: str):
         self.db_int.delete_manager(user_id)

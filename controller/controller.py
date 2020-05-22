@@ -44,13 +44,13 @@ class Controller:
     def get_users_in_project(self, project_id: int):
         return self.use_case.get_users_in_project(project_id)
 
-    def update_gcal(self, project_id='', resource_name='', resource_id=''):
+    def update_gcal(self, project_id, resource_name='', resource_id=''):
         users = self.get_users_in_project(project_id)
         if not users:
             # TODO: add logging here
             return
 
-        event = self.use_case.get_event(project_id=project_id, resource_name=resource_name,
+        event = self.use_case.get_event(users[0], resource_name=resource_name,
             resource_id=resource_id)
         self.use_case.update_gcal(users, event)
 
