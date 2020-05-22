@@ -199,16 +199,16 @@ def test_init_user(test_controller, use_case_mock, sample_user):
     assert user.temporary
 
 
-def test_delete_user(test_controller, use_case_mock):
+def test_delete_manager(test_controller, use_case_mock):
     validations = MockObject
     validations.user_id = ''
 
     def delete(user_id):
         validations.user_id = user_id
 
-    use_case_mock.delete_user = delete
+    use_case_mock.delete_manager = delete
 
-    test_controller.delete_user('44')
+    test_controller.delete_manager('44')
 
     assert validations.user_id == '44'
 

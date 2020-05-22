@@ -16,7 +16,6 @@ class Controller:
     def __init__(self, use_case):
         self.use_case = use_case
 
-
     def get_user_from_token(self, token: str) -> AccountManagerDto:
         return self.use_case.get_user_from_token(token)
 
@@ -71,8 +70,8 @@ class Controller:
 
         return user
 
-    def delete_user(self, user_id):
-        self.use_case.delete_user(user_id)
+    def delete_manager(self, user_id):
+        self.use_case.delete_manager(user_id)
 
     def get_collaborator(self, collaborator_id):
         return self.use_case.get_collaborator(collaborator_id)

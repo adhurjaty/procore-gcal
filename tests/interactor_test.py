@@ -260,3 +260,54 @@ def test_update_gcal(test_interactor, presenter_mock, sample_user):
     assert isinstance(validations.users[0], AccountManagerResponse)
     assert [u.parent for u in validations.users] == [u.parent for u in users]
     assert validations.events == [event] * 2
+
+
+def test_get_procore_user_info(test_interactor, presenter_mock, sample_user):
+    validations = MockObject()
+    validations.token = {}
+
+    def get_user(token):
+        validations.token = token
+        return sample_user
+
+    presenter_mock.get_procore_user_info = get_user
+
+    t = {
+        'access_token': 'access',
+        'refresh_token': 'refresh'
+    }
+
+    user = test_interactor.get_procore_user_info(t)
+
+    assert t == validations.token
+    assert user == sample_user
+
+
+def test_delete_manager(test_interactor, db_mock):
+    validations = MockObject()
+    validations.deleted_id = ''
+
+    def delete(user_id):
+        validations.deleted_id = user_id
+
+    db_mock.delete_manager = delete
+
+    test_interactor.delete_manager('55')
+
+    assert validations.deleted_id == '55'
+
+
+def test_get_collaborator(test_interactor, db_mock, sample_collaborators):
+    validations = MockObject()
+    validations.cid = ''
+
+    def get_user(cid):
+        validations.cid = cid
+        return sample_collaborators[0]
+
+    db_mock.get_collaborator = get_user
+
+    user = test_interactor.get_collaborator('44')
+
+    assert validations.cid == '44'
+    assert user == sample_collaborators[0]

@@ -71,11 +71,11 @@ class UseCaseInteracor:
         parallel_for(update_cal, users)
 
     def get_procore_user_info(self, token: dict):
-        pass
+        return self.presenter.get_procore_user_info(token)
 
-    def delete_user(self, user_id: str):
-        pass
+    def delete_manager(self, user_id: str):
+        self.db_int.delete_manager(user_id)
 
     def get_collaborator(self, collaborator_id: str) -> UserDto:
-        pass
+        return self.db_int.get_collaborator(collaborator_id)
         
