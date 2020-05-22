@@ -1,11 +1,13 @@
-from typing import List
+from typing import List, Set
 
 from util.utils import parallel_for
 from .presenter_interface import PresenterInterface
 from .account_manager_dto import AccountManagerDto
 from .account_manager_response import AccountManagerResponse
+from .user_response import UserResponse
 from .procore_event import ProcoreEvent
 from .user_dto import UserDto
+from .person import Person
 from models.db_interface import DBInterface
 from models.calendar_user import CalendarUser
 from models.account_manager import AccountManager
@@ -28,32 +30,41 @@ class UseCaseInteracor:
 
     def get_manager_vm(self, user: AccountManagerDto):
         resp_user = AccountManagerResponse(user.parent)
+        resp_user.collaborators =  self._get_collaborators(user.collaborators)
+        resp_user.calendars = self.presenter.get_calendars(resp_user)
+        resp_user.projects = self.presenter.get_projects(resp_user)
         return self.presenter.get_manager_vm(resp_user)
-    
 
+    def _get_collaborators(self, collaborators: List[Person]) -> List[UserResponse]:
+        emails = [c.email for c in collaborators]
+        return [UserResponse(c) for c in self.db_int.get_collaborators_from_emails(emails)]
+    
     def update_user(self, user: UserDto) -> UserDto:
-        model_user = self._convert_to_model_user(user)
+        model_user = user.parent
+        if isinstance(user, AccountManagerDto):
+            model_user.collaborator_ids = self._get_or_create_collaborators(user.collaborators)
+
         model_user.save(self.db_int)
         return model_user
 
-    def _convert_to_model_user(self, user: UserDto) -> CalendarUser:
-        model_user = CalendarUser()
-        if isinstance(user, AccountManagerDto):
-            model_user = AccountManager()
-            model_user.procore_data = user.procore_data
-            model_user.collaborator_ids = self._get_collaborator_ids(
-                [c.email for c in user.collaborators]
-            )
-            model_user.subscribed = user.subscribed
-            model_user.payment_id = user.payment_id
-        
-        model_user.id = user.id
-        model_user.email = user.email
-        model_user.full_name = user.full_name
-        model_user.gcal_data = user.gcal_data
-        model_user.temporary = user.temporary
+    def _get_or_create_collaborators(self, collaborators: List[Person]) -> List[str]:
+        emails = [c.email for c in collaborators]
+        db_collabs = self.db_int.get_collaborators_from_emails(emails)
+        existing_emails = set(c.email for c in db_collabs)
+        not_existing_emails = set(emails).difference(existing_emails)
+        db_collabs += self._create_collaborators(not_existing_emails)
 
-        return model_user
+        return [c.id for c in db_collabs]
+
+    def _create_collaborators(self, emails: Set[str]) -> List[CalendarUser]:
+        return parallel_for(self._create_collaborator, emails)
+
+    def _create_collaborator(self, email: str) -> CalendarUser:
+        new_collab = CalendarUser()
+        new_collab.email = email
+        new_collab.temporary = True
+        new_collab.save(self.db_int)
+        return new_collab        
 
     def _get_collaborator_ids(self, emails: List[str]):
         collabs = self.db_int.get_collaborators_from_emails(emails)

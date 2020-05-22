@@ -1,5 +1,4 @@
 from authlib.integrations.requests_client import OAuth2Session
-from threading import Lock
 from typing import List
 
 from .api_endpoints import *
@@ -54,7 +53,6 @@ class ProcoreTrigger:
     
 
 class ProcoreViewModel:
-    lock = Lock()
 
     def __init__(self, user: AccountManagerResponse = None, token: dict = None):
         if user:
@@ -154,21 +152,18 @@ class ProcoreViewModel:
         return [c.get('id') for c in companies]
 
     def _get_projects(self, company_ids: List[int]) -> List[dict]:
-        projects = []
-        
-        def get_project(projects, company_id: int):
+        def get_project(company_id: int):
             resp = self.oauth.get(PROCORE_PROJECTS, params={'company_id': company_id, 
                 'per_page': 100})
             if resp.status_code == 401:
                 raise Exception('Invalid access token')
             project_list = resp.json()
             active_projects = [p for p in project_list if p.get('active')]
-            with self.lock:
-                projects += [{key: p[key] for key in 'id name'.split()} 
-                    for p in active_projects]
+            return [{key: p[key] for key in 'id name'.split()} 
+                for p in active_projects]
         
-        parallel_for(lambda x: get_project(projects, x), company_ids)
-        return projects
+        projects = parallel_for(get_project, company_ids)
+        return [p for ps in projects for p in ps]
 
     def get_event(self, project_id: int = 0, resource_id: int = 0, resource_name: str = ''):
         try:

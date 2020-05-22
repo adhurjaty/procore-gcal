@@ -196,6 +196,44 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
     assert user.id == '22'
 
 
+def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user, 
+    sample_collaborators, input_manager):
+    
+    validations = MockObject()
+    validations.table = ''
+    validations.update_user = None
+    validations.collab_tables = []
+    validations.new_collabs = []
+    
+    def update(table, model):
+        validations.table = table
+        validations.update_user = model
+
+    def insert(table, model):
+        validations.collab_tables.append(table)
+        validations.new_collabs.append(model)
+
+    def get_collaborators(emails):
+        collab = CalendarUser()
+        collab.id = 'id3'
+        collab.email = 'anil@procore.com'
+        return [collab]
+    
+    db_mock.update = update
+    db_mock.insert = insert
+    db_mock.get_collaborators_from_emails = get_collaborators
+
+    input_manager.collaborators = sample_collaborators
+    user = test_interactor.update_user(input_manager)
+
+    assert validations.update_user == user
+    assert validations.table == 'AccountManager'
+    assert validations.collab_tables == ['Collaborator'] * 2
+    assert [c.id for c in validations.new_collabs] == 'id1 id2'.split()
+    assert user.collaborator_ids == 'id3 id1 id2'.split()
+    assert user.id == '22'
+
+
 def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token):
     validations = MockObject()
     validations.table = ''

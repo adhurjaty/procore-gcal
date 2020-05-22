@@ -6,4 +6,7 @@ class Model:
         if not self.table_name:
             raise Exception('No database table specified')
         
-        db_int.update(self.table_name, self)
+        if self.id:
+            db_int.update(self.table_name, self)
+        else:
+            db_int.insert(self.table_name, self)
