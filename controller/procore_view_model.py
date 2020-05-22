@@ -165,10 +165,11 @@ class ProcoreViewModel:
         projects = parallel_for(get_project, company_ids)
         return [p for ps in projects for p in ps]
 
-    def get_event(self, project_id: int = 0, resource_id: int = 0, resource_name: str = ''):
+    def get_event(self, resource_id: int = 0, resource_name: str = '') -> dict:
+
         try:
             endpoint = procore_resource_endpoint_dict[resource_name].format(
-                project_id=project_id, resource_id=resource_id
+                project_id=self.user.project_id, resource_id=resource_id
             )
             resp = self.oauth.get(endpoint)
             return resp.json()

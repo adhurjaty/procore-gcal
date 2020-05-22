@@ -14,7 +14,7 @@ class PresenterInterface(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_event(self, user: UserResponse, resource_name: str='', resource_id: int=-1):
+    def get_procore_event(self, user: UserResponse, resource_name: str='', resource_id: int=-1):
         raise NotImplementedError
 
     @abc.abstractmethod

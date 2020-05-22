@@ -6,7 +6,7 @@ import inflect
 from typing import List
 
 from .api_endpoints import *
-from interactor.account_manager_dto import AccountManagerDto
+from interactor.user_response import UserResponse
 from interactor.attachment import Attachment
 from interactor.person import Person
 from interactor.rfi import Rfi
@@ -50,10 +50,10 @@ class GCalEvent:
 
 class GCalViewModel:
     oauth: OAuth2Session = None
-    user: AccountManagerDto = None
+    user: UserResponse = None
     view_mode: ViewMode = ViewMode.PLAIN_TEXT
 
-    def __init__(self, user, view_mode=None):
+    def __init__(self, user: UserResponse, view_mode=None):
         self.oauth = OAuth2Session(token=user.gcal_data.access_token,
             update_token=self.update_token)
         self.user = user
@@ -80,7 +80,7 @@ class GCalViewModel:
         parallel_for(set_submittal_event, split_submittal())
 
     def set_event(self, event, title):
-        existing_event = self.find_existing_event(title)
+        existing_event = self._find_existing_event(title)
         if existing_event and event.deleted:
             self.delete_event(existing_event)
         if event.deleted:
@@ -142,24 +142,24 @@ class GCalViewModel:
     def update_token(self, token):
         self.user.set_gcal_token(token)
 
-    def find_existing_event(self, title: str) -> dict:
-        resp = self.oauth.get(self.events_endpoint(), q=title)
+    def _find_existing_event(self, title: str) -> dict:
+        resp = self.oauth.get(self._events_endpoint(), q=title)
         return resp and resp.json()
 
     def create_event(self, event: GCalEvent):
-        self.oauth.post(self.events_endpoint(), json=event.to_dict())
+        self.oauth.post(self._events_endpoint(), json=event.to_dict())
 
     def delete_event(self, gcal_event: GCalEvent):
-        self.oauth.delete(self.event_endpoint(gcal_event.get('id')))
+        self.oauth.delete(self._event_endpoint(gcal_event.get('id')))
         
     def update_event(self, existing_event: dict, event: GCalEvent):
-        self.oauth.patch(self.event_endpoint(existing_event.get('id')), 
+        self.oauth.patch(self._event_endpoint(existing_event.get('id')), 
             json=event.to_dict())
 
-    def events_endpoint(self) -> str:
+    def _events_endpoint(self) -> str:
         return GCAL_EVENTS.format(calendar_id=self.user.gcal_data.calendar_id)
 
-    def event_endpoint(self, event_id) -> str:
+    def _event_endpoint(self, event_id) -> str:
         return GCAL_EVENT.format(calendar_id=self.user.gcal_data.calendar_id,
             event_id=event_id)
 

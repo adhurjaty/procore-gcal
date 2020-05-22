@@ -84,7 +84,7 @@ class UseCaseInteracor:
     def get_event(self, user: UserDto, resource_name: str = '', 
         resource_id: int = 0) -> ProcoreEvent:
 
-        return self.presenter.get_event(user, resource_name=resource_name,
+        return self.presenter.get_procore_event(user, resource_name=resource_name,
             resource_id=resource_id)
 
     def update_gcal(self, users: List[AccountManagerDto], event: ProcoreEvent):
