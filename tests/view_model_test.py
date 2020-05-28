@@ -6,13 +6,19 @@ from pathlib import Path
 from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from controller.gcal_view_model import GCalViewModel
 from controller.procore_view_model import ProcoreViewModel
+from controller.web_view_model import WebViewModel
 import controller.server_connector as server_connector
 import controller.api_endpoints as endpoints
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.account_manager_response import AccountManagerResponse
+from interactor.user_response import UserResponse
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
+from interactor.named_item import NamedItem
 from models.account_manager import AccountManager
+from models.gcal_user_settings import GCalUserSettings
+from models.calendar_user import CalendarUser
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -450,9 +456,9 @@ def test_get_event_from_api(oauth_mock, procore_vm):
 
     oauth_mock.get = get
 
-    resp = procore_vm.get_event(project_id=42, resource_id=3, resource_name='RFIs')
+    resp = procore_vm.get_event(resource_id=3, resource_name='RFIs')
 
-    assert validations.endpoint == '/vapid/projects/42/rfis/3'
+    assert validations.endpoint == '/vapid/projects/12345/rfis/3'
     assert resp['key'] == 'value'
 
 
@@ -469,7 +475,65 @@ def test_get_event_invalid_type(oauth_mock, procore_vm):
     oauth_mock.get = get
 
     try:
-        resp = procore_vm.get_event(project_id=42, resource_id=3, resource_name='Missing')
+        resp = procore_vm.get_event(resource_id=3, resource_name='Missing')
         assert '' == 'Exception not raised'
     except Exception as e:
         assert str(e) == 'Unsupported resource type'
+
+
+def test_get_manager_vm():
+    parent = AccountManager()
+    parent.id = 54
+    parent.collaborator_ids = [2, 5, 23]
+    parent.email = 'test@example.com'
+    parent.full_name = 'Boaty McBoatface'
+    parent.gcal_data = GCalUserSettings()
+    parent.gcal_data.access_token = 'access token'
+    parent.gcal_data.refresh_token = 'refresh token'
+    parent.gcal_data.calendar_id = 'asdfg'
+    parent.procore_data.calendar_event_types = {
+        'foo': True,
+        'bar': False
+    }
+    parent.procore_data.email_settings = {
+        'baz': False,
+        'other': False
+    }
+    parent.temporary = False
+    parent.subscribed = True
+    parent.project_id = 77
+    
+    user = AccountManagerResponse(parent)
+    user.calendars = [NamedItem(id='asdfg', name='random'),
+        NamedItem(id='iuyo', name='something')]
+    user.projects = [NamedItem(id=88, name='p1'), NamedItem(id=77, name='p2')]
+    collab = CalendarUser()
+    collab.id = 23
+    collab.full_name = 'Kermit'
+    user.collaborators = [UserResponse(collab)]
+
+    vm = WebViewModel()
+    resp = vm.show_user(user)
+
+    assert resp == {
+        'id': 54,
+        'email': 'test@example.com',
+        'fullName': 'Boaty McBoatface',
+        'calendars': [{
+            'id': 'asdfg',
+            'name': 'random'
+        },
+        {
+            'id': 'iuyo',
+            'name': 'something'
+        }],
+        'selectedCalendar': 'asdfg',
+        'eventTypes': [{'name': 'foo', 'enabled': True}, {'name': 'bar', 'enabled': False}],
+        'collaborators': [{'id': 23, 'name': 'Kermit'}],
+        'emailSettings': [{'name': 'baz', 'enabled': False}, 
+            {'name': 'other', 'enabled': False}],
+        'temporary': False,
+        'isSubscribed': True,
+        'project_id': 77,
+        'projects': [{'id': 88, 'name': 'p1'}, {'id': 77, 'name': 'p2'}],
+    }

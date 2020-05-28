@@ -83,8 +83,8 @@ class UseCaseInteracor:
 
     def get_event(self, user: UserDto, resource_name: str = '', 
         resource_id: int = 0) -> ProcoreEvent:
-
-        return self.presenter.get_procore_event(user, resource_name=resource_name,
+        user_resp = UserResponse(user.parent)
+        return self.presenter.get_procore_event(user_resp, resource_name=resource_name,
             resource_id=resource_id)
 
     def update_gcal(self, users: List[AccountManagerDto], event: ProcoreEvent):
@@ -95,7 +95,7 @@ class UseCaseInteracor:
         parallel_for(update_cal, users)
 
     def get_procore_user_info(self, token: dict):
-        return self.presenter.get_user_info(token)
+        return self.presenter.get_procore_user_info(token)
 
     def delete_manager(self, user_id: str):
         self.db_int.delete_manager(user_id)

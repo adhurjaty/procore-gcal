@@ -7,21 +7,27 @@ from pathlib import Path
 from .mocks import MockObject
 from .test_util import load_json
 from controller.controller import Controller
+import controller.presenter as presenter
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.account_manager_response import AccountManagerResponse
 from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
+from interactor.user_response import UserResponse
 from models.account_manager import AccountManager
 from models.calendar_user import CalendarUser
+from models.gcal_user_settings import GCalUserSettings
+from models.procore_user_settings import ProcoreUserSettings
+from interactor.named_item import NamedItem
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def use_case_mock():
     mock = MockObject()
     return mock
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def test_controller(use_case_mock) -> Controller:
     return Controller(use_case_mock)
 
@@ -35,6 +41,18 @@ def sample_user() -> AccountManagerDto:
     manager.project_id = 12345
     manager.company_id = 26972
     return manager
+
+
+@pytest.fixture(scope='function')
+def vm_factory_mock():
+    mock = MockObject()
+    return mock
+
+
+@pytest.fixture(scope='function')
+def test_presenter(vm_factory_mock) -> presenter.Presenter:
+    pres = presenter.Presenter(vm_factory_mock)
+    return pres
 
 
 def test_get_user_from_token(test_controller, use_case_mock, sample_user):
@@ -239,3 +257,27 @@ def test_get_manager(test_controller, use_case_mock, sample_user):
 
     assert validations.user == sample_user
     assert result['result'] == 'success'
+
+
+def test_get_procore_event(test_presenter, vm_factory_mock, sample_user):
+    validations = MockObject()
+    validations.resource_name = ''
+    validations.resource_id = ''
+
+    def get_event(**kwargs):
+        validations.resource_name = kwargs.get('resource_name')
+        validations.resource_id = kwargs.get('resource_id')
+        return load_json('rfi.json')
+
+    vm_mock = MockObject()
+    vm_mock.get_event = get_event
+    vm_factory_mock.create_procore_vm = lambda u: vm_mock
+    
+    user = UserResponse(sample_user.parent)
+    event = test_presenter.get_procore_event(user, resource_name='foo',
+        resource_id=44)
+    
+    assert validations.resource_name == 'foo'
+    assert validations.resource_id == 44
+    assert event.number == 'C-1477'
+

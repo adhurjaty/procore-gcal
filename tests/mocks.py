@@ -33,6 +33,9 @@ class OauthResponseMock:
 class ControllerMock:
     manager = None
 
+    def __init__(self, *args, **kwargs):
+        pass
+
     def get_account_manager(self, login: str):
         if self.manager and self.manager.email == login:
             return self.manager
