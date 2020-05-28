@@ -280,4 +280,5 @@ def test_get_procore_event(test_presenter, vm_factory_mock, sample_user):
     assert validations.resource_name == 'foo'
     assert validations.resource_id == 44
     assert event.number == 'C-1477'
+    assert isinstance(event, Rfi)
 

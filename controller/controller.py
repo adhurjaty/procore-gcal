@@ -54,16 +54,6 @@ class Controller:
             resource_id=resource_id)
         self.use_case.update_gcal(users, event)
 
-        # if resource_name == 'RFIs':
-        #     event = Rfi()
-        #     event.update_from_dict(event_object)
-        # if resource_name == 'Submittals':
-        #     event = Submittal()
-        #     event.update_from_dict(event_object)
-
-        # if not event:
-        #     raise Exception('Unsupported resource')
-
 
     def init_user(self, token: dict) -> AccountManagerDto:
         user = self.use_case.get_procore_user_info(token)
