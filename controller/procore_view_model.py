@@ -63,7 +63,9 @@ class ProcoreViewModel:
         self.base_url = oauth_settings.get('PROCORE_API_BASE_URL')
 
         if user:
-            self.oauth = OAuth2Session(token=user.procore_data.access_token,
+            self.oauth = OAuth2Session(client_id=oauth_settings.get('PROCORE_CLIENT_ID'),
+                client_secret=oauth_settings.get('PROCORE_CLIENT_SECRET'),
+                token=user.procore_data.get_token(),
                 update_token=self._update_token, 
                 authorization_endpoint=oauth_settings.get('PROCORE_AUTHORIZE_URL'),
                 token_endpoint=oauth_settings.get('PROCORE_ACCESS_TOKEN_URL'))
@@ -75,8 +77,9 @@ class ProcoreViewModel:
         with open(os.path.join(secret_path, 'app.config'), 'r') as f:
             return json.load(f)
 
-    def _update_token(self, token):
-        self.user.set_procore_token(token)
+    def _update_token(self, token, **kwargs):
+        self.user.procore_data.set_token(token)
+        self.oauth.token = token
 
     def register_webhooks(self):
         hook = self._get_or_create_procore_webhook()
@@ -187,7 +190,7 @@ class ProcoreViewModel:
             )
             resp = self.oauth.get(self._full_api_url(endpoint))
             return resp.json()
-        except KeyError:
+        except KeyError as e:
             raise Exception('Unsupported resource type')
 
     def _full_api_url(self, endpoint: str) -> str:

@@ -22,8 +22,12 @@ class DBInterface:
             
         self.user.procore_data.access_token = secrets['procore_access_token']
         self.user.procore_data.refresh_token = secrets['procore_refresh_token']
+        self.user.procore_data.expires_at = secrets['procore_expires_at']
+        self.user.procore_data.token_type = 'Bearer'
         self.user.gcal_data.access_token = secrets['gcal_access_token']
         self.user.gcal_data.refresh_token = secrets['gcal_refresh_token']
+        self.user.gcal_data.expires_at = secrets['gcal_expires_at']
+        self.user.gcal_data.token_type = 'Bearer'
         self.user.gcal_data.calendar_id = secrets['calendar_id']
         
     def update(self, table_name: str, model: Model):
