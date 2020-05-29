@@ -79,10 +79,12 @@ class UseCaseInteracor:
         return [c.id for c in collabs]
 
     def get_users_in_project(self, project_id: int) -> List[AccountManagerDto]:
-        return self.db_int.get_users_from_project_id(project_id)
+        return [AccountManagerDto(a) 
+            for a in self.db_int.get_users_from_project_id(project_id)]
 
     def get_event(self, user: UserDto, resource_name: str = '', 
         resource_id: int = 0) -> ProcoreEvent:
+
         user_resp = UserResponse(user.parent)
         return self.presenter.get_procore_event(user_resp, resource_name=resource_name,
             resource_id=resource_id)

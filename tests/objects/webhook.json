@@ -1,0 +1,18 @@
+{
+    "user_id": 1360281,
+    "timestamp": "2017-03-23T23:02:36Z",
+    "resource_name": "RFIs",
+    "resource_id": 212727,
+    "project_id": 123,
+    "id": 978654325,
+    "event_type": "create",
+    "company_id": 891,
+    "api_version": "v2",
+    "metadata": {
+          "source_user_id": 12345,
+          "source_company_id": 891,
+          "source_project_id": 123,
+          "source_application_id": "242635f69bfc6fb9adax513875a0254a2a123f7bb176x1698d6x169a08f5646d",
+          "source_operation_id": "0181c891-8be7-4f99-8c4e-9f12347d6ecd"
+        }
+  }

@@ -11,6 +11,6 @@ if __name__ == '__main__':
     presenter = Presenter(vm_factory)
     db_int = DBInterface()
     interactor = UseCaseInteracor(presenter, db_int)
-    controller = Controller()
+    controller = Controller(interactor)
     app = create_app(controller)
     app.run(host='0.0.0.0')

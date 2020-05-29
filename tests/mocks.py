@@ -1,4 +1,10 @@
+from controller.vm_factory import VMFactory
+from controller.web_view_model import WebViewModel
+from controller.procore_view_model import ProcoreViewModel
+from controller.gcal_view_model import GCalViewModel
 from interactor.account_manager_dto import AccountManagerDto
+from interactor.account_manager_response import AccountManagerResponse
+from interactor.user_response import UserResponse
 from models.account_manager import AccountManager
 
 class MockObject:
@@ -55,3 +61,25 @@ class ControllerMock:
     
     def get_user_from_token(self, _):
         return self.manager
+
+
+class MockVMFactory(VMFactory):
+    oauth_mock: MockObject = None
+
+    def __init__(self, oauth_mock: MockObject):
+        self.oauth_mock = oauth_mock
+    
+    def create_procore_vm(self, user: AccountManagerResponse) -> ProcoreViewModel:
+        vm = super().create_procore_vm(user)
+        vm.oauth = self.oauth_mock
+        return vm
+
+    def create_web_vm(self) -> WebViewModel:
+        vm = super().create_web_vm()
+        vm.oauth = self.oauth_mock
+        return vm
+
+    def create_gcal_vm(self, user: UserResponse) -> GCalViewModel:
+        vm = super().create_gcal_vm(user)
+        vm.oauth = self.oauth_mock
+        return vm
