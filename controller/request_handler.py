@@ -147,9 +147,11 @@ def _parse_webhook(data: dict) -> dict:
 @auth.login_required
 def gcal_login():
     auth_token = g.user.procore_data.access_token
+    token_param = f'auth_token={auth_token}'
 
-    redirect_uri = url_for('gcal_authorize', _external=True, auth_token=auth_token)
-    return oauth.gcal.authorize_redirect(redirect_uri)
+    redirect_uri = url_for('gcal_authorize', _external=True)
+    return oauth.gcal.authorize_redirect(redirect_uri, state=auth_token, 
+        access_type='offline', prompt='consent')
 
 
 @app.route(GCAL_COLLABORATOR_LOGIN_ROUTE)
@@ -161,7 +163,7 @@ def gcal_collaborator_login(collaborator_id):
 @app.route(GCAL_AUTH_ROUTE)
 def gcal_authorize():
     gcal_token = oauth.gcal.authorize_access_token()
-    auth_token = request.args.get('auth_token')
+    auth_token = request.args.get('state')
 
     try:
         # if this is an account manager update

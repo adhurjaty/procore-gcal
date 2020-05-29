@@ -7,6 +7,7 @@ export interface UserItem extends NamedItem {
     email: string
 }
 
-export interface SelectableItem extends NamedItem {
+export interface SelectableItem {
+    name: string,
     enabled: boolean
 };

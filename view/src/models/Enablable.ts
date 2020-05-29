@@ -10,7 +10,6 @@ export default abstract class Enablable {
     constructor(obj: SelectableItem)
     constructor(obj?: SelectableItem) {
         if(obj) {
-            this.id = obj.id;
             this.name = obj.name;
             this.enabled = obj.enabled;
         }
@@ -20,7 +19,6 @@ export default abstract class Enablable {
 
     json(): SelectableItem {
         return {
-            id: this.id,
             name: this.name,
             enabled: this.enabled
         };

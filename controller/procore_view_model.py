@@ -1,4 +1,7 @@
 from authlib.integrations.requests_client import OAuth2Session
+import os
+import json
+from pathlib import Path
 from typing import List
 
 from .api_endpoints import *
@@ -8,6 +11,7 @@ from util.utils import parallel_for
 
 
 API_VERSION = 'v2'
+secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
 
 
 class ProcoreHook:
@@ -55,12 +59,21 @@ class ProcoreTrigger:
 class ProcoreViewModel:
 
     def __init__(self, user: AccountManagerResponse = None, token: dict = None):
+        oauth_settings = self._get_oauth_settings()
+        self.base_url = oauth_settings.get('PROCORE_API_BASE_URL')
+
         if user:
             self.oauth = OAuth2Session(token=user.procore_data.access_token,
-                update_token=self._update_token)
+                update_token=self._update_token, 
+                authorization_endpoint=oauth_settings.get('PROCORE_AUTHORIZE_URL'),
+                token_endpoint=oauth_settings.get('PROCORE_ACCESS_TOKEN_URL'))
             self.user = user
         elif token:
             self.oauth = OAuth2Session(token=token)
+
+    def _get_oauth_settings(self) -> dict:
+        with open(os.path.join(secret_path, 'app.config'), 'r') as f:
+            return json.load(f)
 
     def _update_token(self, token):
         self.user.set_procore_token(token)
@@ -75,14 +88,15 @@ class ProcoreViewModel:
 
     def _get_procore_webhook(self) -> ProcoreHook:
         project_id = self.user.project_id
-        resp = self.oauth.get(PROCORE_WEBHOOKS)
+        resp = self.oauth.get(self._full_api_url(PROCORE_WEBHOOKS))
         hooks = (resp and resp.json()) or []
         return next((ProcoreHook(**h) for h in resp.json() 
             if h['owned_by_project_id'] == project_id), None)
         
     def _create_procore_webhook(self) -> ProcoreHook:
         hook = ProcoreHook(project_id=self.user.project_id)
-        resp = self.oauth.post(PROCORE_WEBHOOKS, json=hook.to_create_dict())
+        resp = self.oauth.post(self._full_api_url(PROCORE_WEBHOOKS), 
+            json=hook.to_create_dict())
         created_hook = ProcoreHook(**resp)
         return created_hook
 
@@ -106,7 +120,7 @@ class ProcoreViewModel:
 
     def _get_procore_existing_triggers(self, hook: ProcoreHook) -> List[ProcoreTrigger]:
         uri = PROCORE_TRIGGERS.format(hook_id=hook.id)
-        resp = self.oauth.get(uri)
+        resp = self.oauth.get(self._full_api_url(uri))
         triggers = (resp and resp.json()) or []
         return [ProcoreTrigger(**trigger) for trigger in triggers]
 
@@ -115,7 +129,7 @@ class ProcoreViewModel:
         def create_trigger(method):
             trigger = ProcoreTrigger(hook, resource_name=name, event_type=method)
             uri = PROCORE_TRIGGERS.format(hook_id=trigger.hook_id)
-            self.oauth.post(uri, json=trigger.to_create_dict())
+            self.oauth.post(self._full_api_url(uri), json=trigger.to_create_dict())
 
         parallel_for(create_trigger, methods)
 
@@ -123,7 +137,7 @@ class ProcoreViewModel:
         def delete_trigger(trigger):
             uri = PROCORE_TRIGGER.format(hook_id=trigger.hook_id, 
                 trigger_id=trigger.id)
-            self.oauth.delete(uri)
+            self.oauth.delete(self._full_api_url(uri))
 
         parallel_for(delete_trigger, triggers)
 
@@ -135,13 +149,13 @@ class ProcoreViewModel:
         return user_resp
 
     def _get_user_from_api(self) -> dict:
-        user_resp = self.oauth.get(PROCORE_GET_USER)
+        user_resp = self.oauth.get(self._full_api_url(PROCORE_GET_USER))
         if user_resp.status_code != 200:
             raise Exception('Invalid access token')
         return user_resp.json()
 
     def _get_company_ids(self) -> List[int]:
-        company_resp = self.oauth.get(PROCORE_COMPANIES)
+        company_resp = self.oauth.get(self._full_api_url(PROCORE_COMPANIES))
         if company_resp.status_code != 200:
             raise Exception('Invalid access token')
         companies = [c for c in company_resp.json() if c.get('is_active')]
@@ -153,8 +167,8 @@ class ProcoreViewModel:
 
     def _get_projects(self, company_ids: List[int]) -> List[dict]:
         def get_project(company_id: int):
-            resp = self.oauth.get(PROCORE_PROJECTS, params={'company_id': company_id, 
-                'per_page': 100})
+            resp = self.oauth.get(self._full_api_url(PROCORE_PROJECTS), 
+                params={'company_id': company_id, 'per_page': 100})
             if resp.status_code == 401:
                 raise Exception('Invalid access token')
             project_list = resp.json()
@@ -171,8 +185,11 @@ class ProcoreViewModel:
             endpoint = procore_resource_endpoint_dict[resource_name].format(
                 project_id=self.user.project_id, resource_id=resource_id
             )
-            resp = self.oauth.get(endpoint)
+            resp = self.oauth.get(self._full_api_url(endpoint))
             return resp.json()
         except KeyError:
-            raise Exception('Unsupported resource type')   
+            raise Exception('Unsupported resource type')
+
+    def _full_api_url(self, endpoint: str) -> str:
+        return f'{self.base_url}{endpoint}'
         
