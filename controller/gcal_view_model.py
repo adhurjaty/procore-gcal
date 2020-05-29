@@ -103,8 +103,9 @@ class GCalViewModel:
         gcal_event.description = self.render_description(procore_event)
         return gcal_event
 
-    def format_date(self, date) -> str:
-        return arrow.get(date).format('YYYY-MM-DD')
+    def format_date(self, date) -> dict:
+        date_str = arrow.get(date).format('YYYY-MM-DD')
+        return {'date': date_str}
 
     def render_attachment(self, attachment: Attachment) -> str:
         return attachment.filename

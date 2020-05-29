@@ -278,8 +278,12 @@ def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_eve
     assert validations.event.get('summary') == 'RFI #C-1477 - Specifications [99 14.44B]'
     assert validations.event.get('location') == '1 space'
     assert validations.event.get('description') == body
-    assert validations.event.get('start') == '2017-01-18'
-    assert validations.event.get('end') == '2017-01-18'
+    assert validations.event.get('start') == {
+        'date': '2017-01-18'
+    }
+    assert validations.event.get('end') == {
+        'date': '2017-01-18'
+    }
 
 
 def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, 

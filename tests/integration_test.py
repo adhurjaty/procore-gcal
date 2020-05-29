@@ -103,8 +103,8 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
         'summary': 'RFI #C-1477 - Specifications [99 14.44B]', 
         'description': 'Assignees: Carl the Contractor <exampleuser@website.com>\nRFI Manager: Carl the Contractor <exampleuser@website.com>\nSchedule Impact: 14 days\nCost Impact: $12039.55\nCost Code: Earthwork\nQuestions: Are the items listed on Schedule C acceptable?\nDrawing Number: 107.3D', 
         'location': '1 space', 
-        'start': '2017-01-18', 
-        'end': '2017-01-18', 
+        'start': {'date': '2017-01-18'}, 
+        'end': {'date': '2017-01-18'}, 
         'attachments': False, 
         'attendees': [], 
         'sendUpdates': 'all'
