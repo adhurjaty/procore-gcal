@@ -2,7 +2,7 @@
     "api_version": "v2",
     "company_id": 26972,
     "event_type": "create",
-    "id": 17953046,
+    "id": 17953049,
     "metadata": {
       "source_application_id": null,
       "source_company_id": 26972,
@@ -11,8 +11,8 @@
       "source_user_id": 19443
     },
     "project_id": 18918,
-    "resource_id": 11762,
+    "resource_id": 11787,
     "resource_name": "RFIs",
-    "timestamp": "2020-05-29T16:13:49.549873Z",
+    "timestamp": "2020-05-29T20:13:49.549873Z",
     "user_id": 19443
   }

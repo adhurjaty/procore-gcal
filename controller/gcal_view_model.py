@@ -161,9 +161,10 @@ class GCalViewModel:
         self.oauth.token = token
 
     def _find_existing_event(self, title: str) -> dict:
-        query_url = f'{self._events_endpoint()}'#?{urlencode({"q": title})}'
+        query_url = f'{self._events_endpoint()}?{urlencode({"q": title})}'
         resp = self.oauth.get(query_url)
-        return resp and resp.json()
+        items = resp and resp.json().get('items')
+        return items and items[0]
 
     def create_event(self, event: GCalEvent):
         self.oauth.post(self._events_endpoint(), json=event.to_dict())
