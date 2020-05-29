@@ -129,9 +129,9 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
     
     webhook = load_json('webhook.json')
 
-    def oauth_get(endpoint, q=''):
-        if q:
-            return None
+    def oauth_get(endpoint):
+        if len(endpoint.split('?')) > 1:
+            return
         validation.procore_endpoint = endpoint
         resp = load_json('rfi.json')
         resp['deleted'] = False
@@ -148,7 +148,7 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
     test_client.post('/api/webhook_handler', json=webhook)
 
     assert validation.gcal_endpoint == '/calendars/anil_calendar_id/events'
-    assert validation.procore_endpoint == '/vapid/projects/12345/rfis/212727'
+    assert validation.procore_endpoint == '/vapid/projects/12345/rfis/11787'
     assert validation.json == {
         'summary': 'RFI #C-1477 - Specifications [99 14.44B]', 
         'description': 'Assignees: Carl the Contractor <exampleuser@website.com>\nRFI Manager: Carl the Contractor <exampleuser@website.com>\nSchedule Impact: 14 days\nCost Impact: $12039.55\nCost Code: Earthwork\nQuestions: Are the items listed on Schedule C acceptable?\nDrawing Number: 107.3D', 

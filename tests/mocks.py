@@ -16,7 +16,7 @@ class OauthMock:
     token = {}
     redirect_uri = ''
 
-    def authorize_redirect(self, uri: str):
+    def authorize_redirect(self, uri: str, **kwargs):
         self.redirect_uri = uri
 
     def authorize_access_token(self) -> dict:

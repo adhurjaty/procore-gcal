@@ -189,7 +189,7 @@ def test_gcal_login(test_client, user_controller_mock, gcal_oauth_mock):
     user_controller_mock.manager.procore_data.access_token = 'accesstoken'
     test_client.get(rh.GCAL_LOGIN_ROUTE, follow_redirects=False)
 
-    assert gcal_oauth_mock.redirect_uri == f'http://localhost{rh.GCAL_AUTH_ROUTE}?auth_token=accesstoken'
+    assert gcal_oauth_mock.redirect_uri == f'http://localhost{rh.GCAL_AUTH_ROUTE}'
 
 
 def test_update_gcal_token(test_client, gcal_oauth_mock, user_controller_mock):
@@ -210,7 +210,7 @@ def test_update_gcal_token(test_client, gcal_oauth_mock, user_controller_mock):
 
     user_controller_mock.update_user = on_update
 
-    test_client.get(rh.GCAL_AUTH_ROUTE, query_string={'auth_token': 'blah'})
+    test_client.get(rh.GCAL_AUTH_ROUTE, query_string={'state': 'blah'})
 
     assert verifications.user.gcal_data.access_token == 'sample access token'
     assert verifications.user.gcal_data.refresh_token == 'sample refresh token'

@@ -337,9 +337,10 @@ def test_get_users_in_project(test_interactor, db_mock):
 
     db_mock.get_users_from_project_id = lambda x: users
 
-    db_users = test_interactor.get_users_in_project('pid')
+    users_result = test_interactor.get_users_in_project('pid')
 
-    assert db_users == users
+    assert all(isinstance(u, AccountManagerDto) for u in users_result)
+    assert [u.parent for u in users_result] == users
 
 
 def test_update_gcal(test_interactor, presenter_mock, sample_user):

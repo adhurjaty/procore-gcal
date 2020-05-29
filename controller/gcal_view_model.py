@@ -1,5 +1,4 @@
 import arrow
-from authlib.integrations.requests_client import OAuth2Session
 from copy import deepcopy
 from enum import Enum
 import inflect
@@ -10,6 +9,7 @@ from typing import List
 from urllib.parse import urlencode
 
 from .api_endpoints import *
+from .oauth_session_wrapper import OauthSessionWrapper
 from interactor.user_response import UserResponse
 from interactor.attachment import Attachment
 from interactor.person import Person
@@ -53,27 +53,17 @@ class GCalEvent:
 
 
 class GCalViewModel:
-    oauth: OAuth2Session = None
+    oauth: OauthSessionWrapper = None
     user: UserResponse = None
     view_mode: ViewMode = ViewMode.PLAIN_TEXT
     base_url: str = ''
 
     def __init__(self, user: UserResponse, view_mode=None):
-        oauth_settings = self._get_oauth_settings()
-        self.base_url = oauth_settings.get('GCAL_API_BASE_URL')
-        
-        self.oauth = OAuth2Session(client_id=oauth_settings.get('GCAL_CLIENT_ID'),
-            client_secret=oauth_settings.get('GCAL_CLIENT_SECRET'),
+        self.oauth = OauthSessionWrapper('gcal',
             token=user.gcal_data.get_token(),
-            update_token=self.update_token,
-            authorization_endpoint=oauth_settings.get('GCAL_AUTHORIZE_URL'),
-            token_endpoint=oauth_settings.get('GCAL_ACCESS_TOKEN_URL'))
+            update_token=self.update_token)
         self.user = user
         self.view_mode = view_mode or self.view_mode
-
-    def _get_oauth_settings(self) -> dict:
-        with open(os.path.join(secret_path, 'app.config'), 'r') as f:
-            return json.load(f)
 
     def set_rfi_event(self, rfi: Rfi):
         title = f'RFI #{rfi.number} - {rfi.title}'
@@ -177,12 +167,8 @@ class GCalViewModel:
             json=event.to_dict())
 
     def _events_endpoint(self) -> str:
-        return self._full_url(GCAL_EVENTS.format(calendar_id=self.user.gcal_data.calendar_id))
+        return GCAL_EVENTS.format(calendar_id=self.user.gcal_data.calendar_id)
 
     def _event_endpoint(self, event_id) -> str:
-        return self._full_url(GCAL_EVENT.format(calendar_id=self.user.gcal_data.calendar_id,
-            event_id=event_id))
-
-    def _full_url(self, endpoint: str) -> str:
-        return f'{self.base_url}{endpoint}'
-
+        return GCAL_EVENT.format(calendar_id=self.user.gcal_data.calendar_id,
+            event_id=event_id)

@@ -257,8 +257,9 @@ def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_eve
     validations.event = None
 
     def oauth_get(endpoint, **query):
-        validations.q_endpoint = endpoint
-        validations.q = query.get('q')
+        parts = endpoint.split('?')
+        validations.q_endpoint = parts[0]
+        validations.q = parts[1].strip('q=')
         return None
 
     def oauth_post(endpoint, json=None):
@@ -273,7 +274,7 @@ def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_eve
     with open(os.path.join(objects_path, 'rfi_description.txt'), 'r') as f:
         body = f.read()
     assert validations.q_endpoint == '/calendars/42/events'
-    assert validations.q == 'RFI #C-1477 - Specifications [99 14.44B]'
+    assert validations.q == 'RFI+%23C-1477+-+Specifications+%5B99+14.44B%5D'
     assert validations.create_endpoint == '/calendars/42/events'
     assert validations.event.get('summary') == 'RFI #C-1477 - Specifications [99 14.44B]'
     assert validations.event.get('location') == '1 space'
@@ -295,9 +296,11 @@ def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock,
     validations.create_endpoint = ''
     validations.events = []
 
-    def oauth_get(endpoint, **query):
-        validations.q_endpoint = endpoint
-        validations.qs.append(query.get('q'))
+    def oauth_get(endpoint):
+        parts = endpoint.split('?')
+        validations.q_endpoint = parts[0]
+        q = parts[1].strip('q=')
+        validations.qs.append(q)
         return None
 
     def oauth_post(endpoint, json=None):
@@ -314,8 +317,8 @@ def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock,
     with open(os.path.join(objects_path, 'submittal_description_final.txt'), 'r') as f:
         body_final = f.read()
     assert validations.q_endpoint == '/calendars/42/events'
-    assert set(validations.qs) == {'Submittal #118 - Smiths - Teardown & Assembly Bldg On Site',
-        'Submittal #118 - Smiths - Teardown & Assembly Bldg Final'}
+    assert set(validations.qs) == {'Submittal+%23118+-+Smiths+-+Teardown+%26+Assembly+Bldg+On+Site',
+        'Submittal+%23118+-+Smiths+-+Teardown+%26+Assembly+Bldg+Final'}
     assert validations.create_endpoint == '/calendars/42/events'
     assert set(e.get('summary') for e in validations.events) == \
         {'Submittal #118 - Smiths - Teardown & Assembly Bldg On Site',
@@ -324,10 +327,10 @@ def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock,
     final_sub = next((e for e in validations.events if 'Final' in e.get('summary')), None)
     assert on_site_sub.get('description') == body_on_site 
     assert final_sub.get('description') == body_final
-    assert on_site_sub.get('start') == '2016-11-28'
-    assert on_site_sub.get('end') == '2016-11-28'
-    assert final_sub.get('start') == '2014-07-22'
-    assert final_sub.get('end') == '2014-07-22'
+    assert on_site_sub.get('start') == {'date': '2016-11-28'}
+    assert on_site_sub.get('end') == {'date': '2016-11-28'}
+    assert final_sub.get('start') == {'date': '2014-07-22'}
+    assert final_sub.get('end') == {'date': '2014-07-22'}
     for event in validations.events:
         assert event.get('location') == '1 space'
 
@@ -340,11 +343,12 @@ def test_delete_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
     validations.create_endpoint = ''
     validations.event = None
 
-    def oauth_get(endpoint, **query):
-        validations.q_endpoint = endpoint
-        validations.q = query.get('q')
+    def oauth_get(endpoint):
+        parts = endpoint.split('?')
+        validations.q_endpoint = parts[0]
+        validations.q = parts[1].strip('q=')
         return OauthResponseMock({
-            'id': 'unique_id'
+            'items': [{'id': 'unique_id'}]
         })
 
     def oauth_delete(endpoint):
@@ -363,7 +367,7 @@ def test_delete_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
     gcal_vm.set_rfi_event(rfi_event)
 
     assert validations.q_endpoint == '/calendars/42/events'
-    assert validations.q == 'RFI #C-1477 - Specifications [99 14.44B]'
+    assert validations.q == 'RFI+%23C-1477+-+Specifications+%5B99+14.44B%5D'
     assert validations.delete_endpoint == '/calendars/42/events/unique_id'
     assert validations.create_endpoint == ''
     assert validations.event == None
@@ -376,11 +380,12 @@ def test_update_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
     validations.create_endpoint = ''
     validations.event = None
 
-    def oauth_get(endpoint, **query):
-        validations.q_endpoint = endpoint
-        validations.q = query.get('q')
+    def oauth_get(endpoint):
+        parts = endpoint.split('?')
+        validations.q_endpoint = parts[0]
+        validations.q = parts[1].strip('q=')
         return OauthResponseMock({
-            'id': 'unique_id'
+            'items': [{'id': 'unique_id'}]
         })
 
     def oauth_patch(endpoint, json=None):
@@ -399,7 +404,7 @@ def test_update_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
     gcal_vm.set_rfi_event(rfi_event)
 
     assert validations.q_endpoint == '/calendars/42/events'
-    assert validations.q == 'RFI #C-1477 - Specifications [99 14.44B]'
+    assert validations.q == 'RFI+%23C-1477+-+Specifications+%5B99+14.44B%5D'
     assert validations.patch_endpoint == '/calendars/42/events/unique_id'
     assert validations.create_endpoint == ''
     assert validations.event != None
