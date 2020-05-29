@@ -5,13 +5,13 @@ entity User {
     * id : key
     ---
     * email : string
-    * displayName : string
+    * full_name : string
 }
 
 entity Oauth2Token {
     * id : key
     ---
-    * token : string
+    * access_token : string
     * refresh_token : string
     * token_type : string
     * expires_at : int
@@ -23,7 +23,8 @@ entity AccountManager {
     * user_id : foreign_key
     * procore_settings_id: foreign_key
     * gcal_settings_id: foreign_key
-    * is_trial : bool
+    * subscribed : bool
+    * temporary: bool
     * trial_start : datetime
     * payment_id : uuid
     * project_id : int
@@ -63,10 +64,9 @@ entity EmailSetting {
     * name : string
 }
 
-entity EventType {
+entity CalendarEventSetting {
     * id : key
     ---
-    * procore_id : string
     * name : string
 }
 
@@ -74,15 +74,15 @@ entity UserEmailSetting {
     * id : key
     ---
     * setting_id : foreign_key
-    * user_id : foreign_key
+    * procore_id : foreign_key
     * enabled : bool
 }
 
-entity UserEventType {
+entity UserCalendarEventSetting {
     * id : key
     ---
     * event_id : foreign_key
-    * user_id : foreign_key
+    * procore_id : foreign_key
     * enabled : bool
 }
 
