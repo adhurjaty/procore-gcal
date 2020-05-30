@@ -9,6 +9,7 @@ from interactor.procore_event import ProcoreEvent
 from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
+from interactor.named_item import NamedItem
 
 class Presenter(PresenterInterface):
     vm_factory: VMFactory = None
@@ -17,8 +18,10 @@ class Presenter(PresenterInterface):
         super().__init__()
         self.vm_factory = vm_factory
 
-    def get_user_info(self, token):
-        raise NotImplementedError
+    def get_user_info(self, token: dict):
+        procore_vm = self.vm_factory.create_procore_vm(token=token)
+
+        return procore_vm.get_user_info()
 
     def get_manager_vm(self, user: AccountManagerResponse) -> dict:
         vm = self.vm_factory.create_web_vm()
@@ -57,7 +60,10 @@ class Presenter(PresenterInterface):
         raise Exception('Unimplemented event type')
 
     def get_calendars(self, user: UserResponse):
-        raise NotImplementedError
+        vm = self.vm_factory.create_gcal_vm(user)
+        calendars = vm.get_calendars()
+        return [NamedItem(c['id'], c['name']) for c in calendars]
 
-    def get_projects(self, user: UserResponse):
-        raise NotImplementedError
+    def get_projects(self, user: AccountManagerResponse):
+        vm = self.vm_factory.create_procore_vm(user)
+        projects = vm._get_projects

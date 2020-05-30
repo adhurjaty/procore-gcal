@@ -59,16 +59,14 @@ class ProcoreTrigger:
 class ProcoreViewModel:
 
     def __init__(self, user: AccountManagerResponse = None, token: dict = None):
-        if user:
-            self.oauth = OauthSessionWrapper('procore',
-                token=user.procore_data.get_token(),
-                update_token=self._update_token)
-            self.user = user
-        elif token:
-            self.oauth = OauthSessionWrapper('procore', token=token)
+        token = token or user.procore_data.get_token()
+        self.oauth = OauthSessionWrapper('procore', token=token,
+            update_token=self._update_token)
+        self.user = user
 
     def _update_token(self, token, **kwargs):
-        self.user.procore_data.set_token(token)
+        if self.user:
+            self.user.procore_data.set_token(token)
         self.oauth.token = token
 
     def register_webhooks(self):

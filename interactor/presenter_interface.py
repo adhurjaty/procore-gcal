@@ -6,7 +6,7 @@ from .procore_event import ProcoreEvent
 
 class PresenterInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def get_user_info(self, token):
+    def get_user_info(self, token: dict):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -19,12 +19,4 @@ class PresenterInterface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def update_gcal(self, user: AccountManagerResponse, event: ProcoreEvent):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_calendars(self, user: UserResponse):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_projects(self, user: UserResponse):
         raise NotImplementedError

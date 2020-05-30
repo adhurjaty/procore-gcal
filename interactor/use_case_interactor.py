@@ -97,7 +97,7 @@ class UseCaseInteracor:
         parallel_for(update_cal, users)
 
     def get_procore_user_info(self, token: dict):
-        return self.presenter.get_procore_user_info(token)
+        return self.presenter.get_user_info(token)
 
     def delete_manager(self, user_id: str):
         self.db_int.delete_manager(user_id)

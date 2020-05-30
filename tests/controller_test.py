@@ -282,3 +282,10 @@ def test_get_procore_event(test_presenter, vm_factory_mock, sample_user):
     assert event.number == 'C-1477'
     assert isinstance(event, Rfi)
 
+
+def test_get_calendars(test_presenter, vm_factory_mock, sample_user):
+    
+    
+    user = AccountManagerResponse(sample_user.parent)
+
+

@@ -6,8 +6,10 @@ from interactor.user_response import UserResponse
 
 
 class VMFactory:
-    def create_procore_vm(self, user: AccountManagerResponse) -> ProcoreViewModel:
-        return ProcoreViewModel(user)
+    def create_procore_vm(self, user: AccountManagerResponse=None, token: dict=None) -> ProcoreViewModel:
+        if user:
+            return ProcoreViewModel(user=user)
+        return ProcoreViewModel(token=token)
 
     def create_web_vm(self) -> WebViewModel:
         return WebViewModel()
