@@ -31,8 +31,8 @@ class UseCaseInteracor:
     def get_manager_vm(self, user: AccountManagerDto):
         resp_user = AccountManagerResponse(user.parent)
         resp_user.collaborators =  self._get_collaborators(user.collaborators)
-        resp_user.calendars = self.db_int.get_calendars(resp_user)
-        resp_user.projects = self.db_int.get_projects(resp_user)
+        resp_user.calendars = self.presenter.get_calendars(resp_user)
+        resp_user.projects = self.presenter.get_projects(resp_user)
         return self.presenter.get_manager_vm(resp_user)
 
     def _get_collaborators(self, collaborators: List[Person]) -> List[UserResponse]:

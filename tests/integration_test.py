@@ -161,13 +161,13 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
     }
 
 
-def test_live_update_gcal(live_client, db_mock, live_user):
-    webhook = load_json('webhook.json')
+# def test_live_update_gcal(live_client, db_mock, live_user):
+#     webhook = load_json('webhook.json')
 
-    db_mock.get_users_from_project_id = lambda pid: [live_user]
+#     db_mock.get_users_from_project_id = lambda pid: [live_user]
 
-    live_client.post('/api/webhook_handler', json=webhook)
+#     live_client.post('/api/webhook_handler', json=webhook)
 
-    assert True == False
+#     assert True == False
 
 

@@ -55,3 +55,9 @@ class Presenter(PresenterInterface):
         #     pass
 
         raise Exception('Unimplemented event type')
+
+    def get_calendars(self, user: UserResponse):
+        raise NotImplementedError
+
+    def get_projects(self, user: UserResponse):
+        raise NotImplementedError

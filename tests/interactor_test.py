@@ -451,8 +451,8 @@ def test_get_manager_vm(test_interactor, presenter_mock, db_mock, input_manager,
         ]
 
     db_mock.get_collaborators_from_emails = get_collaborators
-    db_mock.get_calendars = get_calendars
-    db_mock.get_projects = get_projects
+    presenter_mock.get_calendars = get_calendars
+    presenter_mock.get_projects = get_projects
     presenter_mock.get_manager_vm = get
 
     resp = test_interactor.get_manager_vm(input_manager)
