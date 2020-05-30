@@ -6,6 +6,8 @@ entity User {
     ---
     * email : string
     * full_name : string
+    * gcal_settings_id: foreign_key
+    * temporary: bool
 }
 
 entity Oauth2Token {
@@ -24,7 +26,6 @@ entity AccountManager {
     * procore_settings_id: foreign_key
     * gcal_settings_id: foreign_key
     * subscribed : bool
-    * temporary: bool
     * trial_start : datetime
     * payment_id : uuid
     * project_id : int
@@ -35,7 +36,6 @@ entity Collaborator {
     ---
     * user_id : foreign_key
     * manager_id : foreign_key
-    * gcal_settings_id: foreign_key
 }
 
 entity ProcoreSettings {
@@ -48,7 +48,7 @@ entity CalendarSettings {
     * id : key
     ---
     * token_id : foreign_key
-    * google_calendar_id: string
+    * calendar_id: string
 }
 
 entity ApplicationSettings {

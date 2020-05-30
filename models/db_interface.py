@@ -25,11 +25,37 @@ class DBInterface:
     def update(self, table_name: str, model: Model):
         pass
 
+    def insert(self, table_name: str, model: Model):
+        pass
+
     def get_user_from_token(self, token: dict) -> AccountManager:
         cur = self.conn.cursor()
         
         manager_result = self._get_manager_info(token, cur)
-        manager = self._fill_base_manager(token, AccountManager(), manager_result)
+        return self._manager_from_result(manager_result, cur)
+
+    def _get_manager_info(self, token: dict, cur):
+        query = self._manager_base_query('WHERE ot.access_token = %(access_token)s')
+        cur.execute(query, {'access_token': token})
+        return cur.fetchone()
+
+    def _manager_base_query(self, where_clause: str):
+        return f'''SELECT am.*, u.email, u.full_name, ot.access_token, ot.refresh_token, 
+            ot.token_type, ot.expires_at, ps.id AS procore_id, cs.calendar_id,
+            cot.access_token AS gcal_access_token, cot.refresh_token AS gcal_refresh_token, 
+            cot.token_type AS gcal_token_type, cot.expires_at AS gcal_token_type,
+            u.temporary
+            FROM Oauth2Tokens ot
+            INNER JOIN ProcoreSettings ps ON ot.id = ps.token_id
+            INNER JOIN AccountManagers am ON am.procore_settings_id = ps.id
+            INNER JOIN Users u ON am.user_id = u.id
+            INNER JOIN CalendarSettings cs ON cs.id = u.gcal_settings_id
+            INNER JOIN Oauth2Tokens cot ON cs.token_id = cot.id
+            {where_clause}
+        '''
+
+    def _manager_from_result(self, manager_result, cur):
+        manager = self._fill_base_manager(AccountManager(), manager_result)
         
         manager.procore_data.calendar_event_types = self._get_calendar_event_settings(
             manager_result['procore_id'], cur)
@@ -39,19 +65,7 @@ class DBInterface:
 
         return manager
 
-    def _get_manager_info(self, token: dict, cur):
-        query = '''SELECT am.*, u.email, u.full_name, ot.access_token, ot.refresh_token, 
-                ot.token_type, ot.expires_at, ps.id AS procore_id 
-            FROM Oauth2Tokens ot
-            INNER JOIN ProcoreSettings ps ON ot.id = ps.token_id
-            INNER JOIN AccountManagers am ON am.procore_settings_id = ps.id
-            INNER JOIN Users u ON am.user_id = u.id
-            WHERE ot.access_token = %(access_token)s
-        '''
-        cur.execute(query, {'access_token': token})
-        return cur.fetchone()
-
-    def _fill_base_manager(self, token: dict, manager: AccountManager, manager_result) -> AccountManager:
+    def _fill_base_manager(self, manager: AccountManager, manager_result) -> AccountManager:
         manager.id = manager_result['id']
         manager.email = manager_result['email']
         manager.full_name = manager_result['full_name']
@@ -61,6 +75,9 @@ class DBInterface:
         manager.payment_id = manager_result['payment_id']
         manager.temporary = manager_result['temporary']
         manager.procore_data.set_token(**manager_result)
+        manager.gcal_data.calendar_id = manager_result['calendar_id']
+        manager.gcal_data.set_token(**{k.lstrip('gcal_'): v 
+            for k, v in manager_result if k.startswith('gcal_')})
 
         return manager
 
@@ -85,8 +102,45 @@ class DBInterface:
         return {s['name']: s['enabled'] for s in email_settings}
 
     def get_users_from_project_id(self, project_id: int) -> List[AccountManager]:
-        return [self.user]
+        cur = self.conn.cursor()
+
+        query = self._manager_base_query('WHERE am.project_id = %(project_id)d')
+        cur.execute(query, {'project_id': project_id})
+        manager_results = cur.fetchall()
+
+        return [self._manager_from_result(result) for result in manager_results]
+
 
     def get_user_collaborators(self, user) -> List[CalendarUser]:
+        cur = self.conn.cursor()
+        query = '''SELECT c.id, u.email, u.full_name, ot.access_token, ot.refresh_token,
+            ot.token_type, ot.expires_at, cs.calendar_id, u.temporary
+            FROM Collaborators c
+            INNER JOIN Users u ON u.id = c.user_id
+            INNER JOIN CalendarSettings cs ON u.gcal_settings_id = cs.id
+            INNER JOIN Oauth2Tokens ot ON ot.id = cs.token_id
+            WHERE c.manager_id = %(manager_id)s
+        '''
+        cur.execute(query, {'manager_id': user.id})
+        results = cur.fetchall()
+
+        return [self._fill_collaborator(result) for result in results]
+
+    def _fill_collaborator(self, result):
+        user = CalendarUser()
+        user.id = result['id']
+        user.email = result['email']
+        user.full_name = result['full_name']
+        user.temporary = result['temporary']
+        user.gcal_data.set_token(**result)
+        user.gcal_data.calendar_id = result['calendar_id']
+
+    def get_collaborators_from_emails(self, emails: List[str]) -> List[CalendarUser]:
         return []
+
+    def get_collaborator(self, id: str) -> CalendarUser:
+        pass
+
+    def delete_manager(self, id: str):
+        pass
 
