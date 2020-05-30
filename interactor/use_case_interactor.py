@@ -31,6 +31,7 @@ class UseCaseInteracor:
     def get_manager_vm(self, user: AccountManagerDto):
         resp_user = AccountManagerResponse(user.parent)
         resp_user.collaborators =  self._get_collaborators(user.collaborators)
+        resp_user = self.presenter.set_manager_selections(resp_user)
         resp_user.calendars = self.presenter.get_calendars(resp_user)
         resp_user.projects = self.presenter.get_projects(resp_user)
         return self.presenter.get_manager_vm(resp_user)
@@ -96,8 +97,11 @@ class UseCaseInteracor:
 
         parallel_for(update_cal, users)
 
-    def get_procore_user_info(self, token: dict):
-        return self.presenter.get_user_info(token)
+    def get_procore_user_info(self, token: dict) -> AccountManagerDto:
+        user_dict = self.presenter.get_user_info(token)
+        user = AccountManager()
+        user.email = user_dict.get('email')
+        user.full_name = user_dict.get('name')
 
     def delete_manager(self, user_id: str):
         self.db_int.delete_manager(user_id)

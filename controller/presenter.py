@@ -1,3 +1,5 @@
+from typing import List
+
 from .gcal_view_model import GCalViewModel
 from .procore_view_model import ProcoreViewModel
 from .web_view_model import WebViewModel
@@ -18,7 +20,7 @@ class Presenter(PresenterInterface):
         super().__init__()
         self.vm_factory = vm_factory
 
-    def get_user_info(self, token: dict):
+    def get_user_info(self, token: dict) -> dict:
         procore_vm = self.vm_factory.create_procore_vm(token=token)
 
         return procore_vm.get_user_info()
@@ -59,11 +61,18 @@ class Presenter(PresenterInterface):
 
         raise Exception('Unimplemented event type')
 
-    def get_calendars(self, user: UserResponse):
+    def set_manager_selections(self, user: AccountManagerResponse):
+        user.projects = self._get_projects(user)
+        user.calendars = self._get_calendars(user)
+        return user
+
+    def _get_projects(self, user: AccountManagerResponse) -> List[NamedItem]:
+        vm = self.vm_factory.create_procore_vm(user)
+        company_ids = vm.get_company_ids()
+        projects = vm.get_projects(company_ids)
+        return [NamedItem(p['id'], p['name']) for p in projects]
+
+    def _get_calendars(self, user: UserResponse) -> List[NamedItem]:
         vm = self.vm_factory.create_gcal_vm(user)
         calendars = vm.get_calendars()
         return [NamedItem(c['id'], c['name']) for c in calendars]
-
-    def get_projects(self, user: AccountManagerResponse):
-        vm = self.vm_factory.create_procore_vm(user)
-        projects = vm._get_projects

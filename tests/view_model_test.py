@@ -2,6 +2,7 @@ import pytest
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs
 
 from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 from controller.gcal_view_model import GCalViewModel
@@ -411,14 +412,25 @@ def test_update_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
 
 
 def test_get_user_info(oauth_mock, procore_vm):
-    
-    def get(endpoint, params={}):
+    def get(endpoint):
         if endpoint == endpoints.PROCORE_GET_USER:
             return OauthResponseMock({
                 "id": 42,
                 "login": "adhurjaty",
                 "name": "Anil Dhurjaty"
             })
+        
+
+    oauth_mock.get = get
+
+    user_info = procore_vm.get_user_info()
+
+    assert user_info.get('login') == 'adhurjaty'
+    assert user_info.get('name') == 'Anil Dhurjaty'
+
+
+def test_get_company_ids(oauth_mock, procore_vm):
+    def get(endpoint):
         if endpoint == endpoints.PROCORE_COMPANIES:
             return OauthResponseMock([
                 {
@@ -432,20 +444,27 @@ def test_get_user_info(oauth_mock, procore_vm):
                     "is_active": True
                 }
             ])
+
+    oauth_mock.get = get
+
+    company_ids = procore_vm.get_company_ids()
+
+    assert company_ids == [1, 2]
+
+def test_get_projects(oauth_mock, procore_vm):
+    def get(url):
+        endpoint, params = split_url(url)
         if endpoint == endpoints.PROCORE_PROJECTS:
             company_id = params.get('company_id')
-            if company_id == 1:
+            if company_id == '1':
                 return OauthResponseMock(load_json('projects1.json'))
-            if company_id == 2:
+            if company_id == '2':
                 return OauthResponseMock(load_json('projects2.json'))
 
     oauth_mock.get = get
 
-    user_info = procore_vm.get_user_info()
+    projects = procore_vm.get_projects([1, 2])
 
-    assert user_info.get('login') == 'adhurjaty'
-    assert user_info.get('name') == 'Anil Dhurjaty'
-    projects = user_info.get('projects')
     assert projects == [
         {'id': 12732, 'name': 'Other project'},
         {'id': 12731, 'name': 'This project'},
@@ -546,3 +565,8 @@ def test_get_manager_vm():
         'project_id': 77,
         'projects': [{'id': 88, 'name': 'p1'}, {'id': 77, 'name': 'p2'}],
     }
+
+
+def split_url(url):
+    parsed = urlparse(url)
+    return parsed.path, {k: v[0] for k, v in parse_qs(parsed.query).items()}

@@ -380,7 +380,7 @@ def test_get_procore_user_info(test_interactor, presenter_mock, sample_user):
         validations.token = token
         return sample_user
 
-    presenter_mock.get_procore_user_info = get_user
+    presenter_mock.get_user_info = get_user
 
     t = {
         'access_token': 'access',

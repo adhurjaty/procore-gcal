@@ -172,3 +172,12 @@ class GCalViewModel:
     def _event_endpoint(self, event_id) -> str:
         return GCAL_EVENT.format(calendar_id=self.user.gcal_data.calendar_id,
             event_id=event_id)
+
+    def get_calendars(self) -> List[dict]:
+        resp = self.oauth.get(GCAL_CALENDARS)
+        if not resp or not resp.json().get('items'):
+            raise Exception('Cannot find calendars from Google')
+        calendars = resp.json()['items']
+        for c in calendars:
+            c.update(name=c.get('summary'))
+        return calendars

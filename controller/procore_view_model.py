@@ -2,6 +2,7 @@ import os
 import json
 from pathlib import Path
 from typing import List
+from urllib.parse import urlencode
 
 from .api_endpoints import *
 from .server_connector import url_for_webhooks
@@ -132,20 +133,13 @@ class ProcoreViewModel:
 
         parallel_for(delete_trigger, triggers)
 
-    def get_user_info(self):
-        user_resp = self._get_user_from_api()
-        company_ids = self._get_company_ids()
-        projects = self._get_projects(company_ids)
-        user_resp.update(projects=projects)
-        return user_resp
-
-    def _get_user_from_api(self) -> dict:
+    def get_user_info(self) -> dict:
         user_resp = self.oauth.get(PROCORE_GET_USER)
         if user_resp.status_code != 200:
             raise Exception('Invalid access token')
         return user_resp.json()
 
-    def _get_company_ids(self) -> List[int]:
+    def get_company_ids(self) -> List[int]:
         company_resp = self.oauth.get(PROCORE_COMPANIES)
         if company_resp.status_code != 200:
             raise Exception('Invalid access token')
@@ -156,10 +150,10 @@ class ProcoreViewModel:
 
         return [c.get('id') for c in companies]
 
-    def _get_projects(self, company_ids: List[int]) -> List[dict]:
+    def get_projects(self, company_ids: List[int]) -> List[dict]:
         def get_project(company_id: int):
-            resp = self.oauth.get(PROCORE_PROJECTS, 
-                params={'company_id': company_id, 'per_page': 100})
+            endpoint = f'{PROCORE_PROJECTS}?{urlencode({"company_id": company_id, "per_page": 100})}'
+            resp = self.oauth.get(endpoint)
             if resp.status_code == 401:
                 raise Exception('Invalid access token')
             project_list = resp.json()

@@ -283,9 +283,60 @@ def test_get_procore_event(test_presenter, vm_factory_mock, sample_user):
     assert isinstance(event, Rfi)
 
 
-def test_get_calendars(test_presenter, vm_factory_mock, sample_user):
+def test_set_manager_selections(test_presenter, vm_factory_mock, sample_user):
+    validations = MockObject()
+    validations.company_ids = []
     
+    gcal_vm_mock = MockObject()
+    procore_vm_mock = MockObject()
+
+    vm_factory_mock.create_procore_vm = lambda u: procore_vm_mock
+    vm_factory_mock.create_gcal_vm = lambda u: gcal_vm_mock
     
     user = AccountManagerResponse(sample_user.parent)
 
+    def get_company_ids():
+        return [1, 2]
 
+    def get_projects(ids):
+        validations.company_ids = ids
+
+        return [
+            {'id': 12732, 'name': 'Other project'},
+            {'id': 12731, 'name': 'This project'},
+            {'id': 12738, 'name': 'Lakeside Mixed Use'}
+        ]
+
+    def get_calendars():
+        return [
+            {
+                'id': 'name@example.com',
+                'name': 'My Personal Calendar'
+            },
+            {
+                'id': 'other@example.com',
+                'name': 'My Other Personal Calendar'
+            }
+        ]
+
+    procore_vm_mock.get_company_ids = get_company_ids
+    procore_vm_mock.get_projects = get_projects
+    gcal_vm_mock.get_calendars = get_calendars
+
+    user = test_presenter.set_manager_selections(user)
+
+    assert [a.to_json() for a in user.projects] == [
+            {'id': 12732, 'name': 'Other project'},
+            {'id': 12731, 'name': 'This project'},
+            {'id': 12738, 'name': 'Lakeside Mixed Use'}
+        ]
+    assert [a.to_json() for a in user.calendars] == [
+            {
+                'id': 'name@example.com',
+                'name': 'My Personal Calendar'
+            },
+            {
+                'id': 'other@example.com',
+                'name': 'My Other Personal Calendar'
+            }
+        ]
