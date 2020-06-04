@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-import psycopg2
+from sqlalchemy import create_engine
 from typing import List
 
 from .account_manager import AccountManager
@@ -9,6 +9,11 @@ from .calendar_user import CalendarUser
 from .model import Model
 
 secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
+with open(os.path.join(secret_path, 'app.config'), 'r') as f:
+    config = json.load(f)
+config = {k.lstrip('DB_').lower(): v for k, v in config.items() if k.startswith('DB_')}
+engine = create_engine(f'postgresql://{config.get("username")}:{config.get("password")}' + \
+    f'@localhost:{config.get("port")}/{config.get("name")}')
 
 class DBInterface:
     conn = None
