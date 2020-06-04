@@ -1,10 +1,15 @@
-from .model import Model
+from sqlalchemy import *
 
-class Oauth2Token(Model):
-    access_token: str = ''
-    refresh_token: str = ''
-    token_type: str = ''
-    expires_at: int = 0
+from .model import Model
+from .base import Base, id_col
+
+class Oauth2Token(Base):
+    __tablename__ = "oauth2_tokens"
+    id = id_col()
+    access_token = Column(String)
+    refresh_token = Column(String)
+    token_type = Column(String)
+    expires_at = Column(Integer)
 
     def __init__(self, **kwargs):
         self.set_token(**kwargs)
