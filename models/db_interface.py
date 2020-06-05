@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from typing import List
 
 from .account_manager import AccountManager
@@ -20,8 +21,9 @@ class DBInterface:
     
     def __init__(self):
         settings = self._load_db_settings()
-        self.conn = psycopg2.connect(f'dbname={settings.get("DATABASE_NAME")} ' + \
-            f'user={settings.get("DATABASE_USER")}')
+        Session = sessionmaker(bind=engine)
+        self.session = Session()
+        
 
     def _load_db_settings(self) -> dict:
         with open(os.path.join(secret_path, 'app.config'), 'r') as f:
@@ -30,8 +32,17 @@ class DBInterface:
     def update(self, table_name: str, model: Model):
         pass
 
-    def insert(self, table_name: str, model: Model):
-        pass
+    def insert(self, model):
+        self.session.add(model)
+
+    def commit(self):
+        self.session.commit()
+
+    def delete(self, model):
+        self.session.delete(model)
+
+    def __del__(self):
+        self.session.close()
 
     def get_user_from_token(self, token: dict) -> AccountManager:
         cur = self.conn.cursor()

@@ -30,5 +30,3 @@ class ProcoreUserSettings(Base):
         self.email_settings = email_settings
         self.calendar_event_types = calendar_event_types
 
-    def __getattr__(self, name):
-        return getattr(self.token, name)
