@@ -12,7 +12,8 @@ class GCalUserSettings(Base):
     token_id = Column(UUID(as_uuid=True), ForeignKey('oauth2_token.id'))
     token = relationship("Oauth2Token", foreign_keys=[token_id])
 
-    def __init__(self, **token):
+    def __init__(self, calendar_id='', **token):
+        self.calendar_id = calendar_id
         self.token = Oauth2Token(**token)
 
     def __getattr__(self, name):

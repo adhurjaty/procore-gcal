@@ -15,4 +15,8 @@ class ProcoreSettings(Base):
     __mapper_args__ = {
         'polymorphic_on': type
     }
+
+    def __init__(self, name='', enabled=False):
+        self.name = name,
+        self.enabled = enabled
     

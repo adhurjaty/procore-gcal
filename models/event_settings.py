@@ -8,7 +8,7 @@ from .procore_settings import ProcoreSettings
 
 class EventSettings(ProcoreSettings):
     __tablename__ = 'event_settings'
-    id = Column(UUID(as_uuid=True), ForeignKey=('procore_settings.id'), primary_key=True)
+    id = Column(UUID(as_uuid=True), ForeignKey('procore_settings.id'), primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'event'

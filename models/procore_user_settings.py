@@ -22,7 +22,7 @@ class ProcoreUserSettings(Base):
     id = id_col()
     email_settings = relationship("EmailSettings", secondary=email_settings_association)
     calendar_event_types = relationship("EventSettings", secondary=event_settings_association)
-    token_id = Column(UUID(as_uuid=True), ForeignKey('oauth2_token.id'))
+    token_id = Column(UUID(as_uuid=True), ForeignKey('oauth2_tokens.id'))
     token = relationship("Oauth2Token", foreign_keys=[token_id])
 
     def __init__(self, email_settings=[], calendar_event_types=[], **token):
