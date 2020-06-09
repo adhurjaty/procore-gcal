@@ -9,7 +9,7 @@ from .procore_event import ProcoreEvent
 from .user_dto import UserDto
 from .person import Person
 from models.db_interface import DBInterface
-from models.calendar_user import CalendarUser
+from models.collaborator_user import CollaboratorUser
 from models.account_manager import AccountManager
 
 class UseCaseInteracor:
@@ -58,11 +58,11 @@ class UseCaseInteracor:
 
         return [c.id for c in db_collabs]
 
-    def _create_collaborators(self, emails: Set[str]) -> List[CalendarUser]:
+    def _create_collaborators(self, emails: Set[str]) -> List[CollaboratorUser]:
         return parallel_for(self._create_collaborator, emails)
 
-    def _create_collaborator(self, email: str) -> CalendarUser:
-        new_collab = CalendarUser()
+    def _create_collaborator(self, email: str) -> CollaboratorUser:
+        new_collab = CollaboratorUser()
         new_collab.email = email
         new_collab.temporary = True
         new_collab.save(self.db_int)
@@ -72,7 +72,7 @@ class UseCaseInteracor:
     def _remove_old_collaborators(self, user_id: str, collaborator_ids: List[str]):
         existing_user = self.db_int.get_manager(user_id)
         ids_to_remove = set(existing_user.collaborator_ids).difference(collaborator_ids)
-        parallel_for(lambda id: self.db_int.delete(CalendarUser().table_name, id),
+        parallel_for(lambda id: self.db_int.delete(CollaboratorUser().table_name, id),
             ids_to_remove)
 
     def _get_collaborator_ids(self, emails: List[str]):

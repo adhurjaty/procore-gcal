@@ -10,7 +10,7 @@ import controller.api_endpoints as endpoints
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.user_dto import UserDto
 from models.account_manager import AccountManager
-from models.calendar_user import CalendarUser
+from models.collaborator_user import CollaboratorUser
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -71,7 +71,7 @@ def user_controller_mock(controller_mock) -> ControllerMock:
 
 @pytest.fixture(scope='module')
 def collab_controller_mock(controller_mock) -> ControllerMock:
-    collab = UserDto(CalendarUser())
+    collab = UserDto(CollaboratorUser())
     collab.id = 70
     collab.email = 'sean@example.com'
     collab.full_name = 'Sean Black'

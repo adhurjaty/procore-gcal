@@ -5,7 +5,7 @@ from .person import Person
 from models.procore_user_settings import ProcoreUserSettings
 from models.gcal_user_settings import GCalUserSettings
 from models.account_manager import AccountManager
-from models.calendar_user import CalendarUser
+from models.collaborator_user import CollaboratorUser
 
 
 class AccountManagerDto(UserDto):
@@ -18,7 +18,7 @@ class AccountManagerDto(UserDto):
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)
 
-    def add_collaborators(self, collaborators: List[CalendarUser]):
+    def add_collaborators(self, collaborators: List[CollaboratorUser]):
         self.collaborators = [Person(full_name=c.full_name, email=c.email) 
             for c in collaborators]
 

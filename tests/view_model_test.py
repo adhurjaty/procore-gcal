@@ -19,7 +19,7 @@ from interactor.change_order import ChangeOrder
 from interactor.named_item import NamedItem
 from models.account_manager import AccountManager
 from models.gcal_user_settings import GCalUserSettings
-from models.calendar_user import CalendarUser
+from models.collaborator_user import CollaboratorUser
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -535,7 +535,7 @@ def test_get_manager_vm():
     user.calendars = [NamedItem(id='asdfg', name='random'),
         NamedItem(id='iuyo', name='something')]
     user.projects = [NamedItem(id=88, name='p1'), NamedItem(id=77, name='p2')]
-    collab = CalendarUser()
+    collab = CollaboratorUser()
     collab.id = 23
     collab.full_name = 'Kermit'
     user.collaborators = [UserResponse(collab)]

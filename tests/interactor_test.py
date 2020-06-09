@@ -18,7 +18,7 @@ from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
 from interactor.named_item import NamedItem
 from models.account_manager import AccountManager
-from models.calendar_user import CalendarUser
+from models.collaborator_user import CollaboratorUser
 from models.oauth2_token import Oauth2Token
 
 
@@ -69,11 +69,11 @@ def sample_user():
 
 @pytest.fixture(scope='function')
 def sample_collaborators():
-    collab0 = CalendarUser()
+    collab0 = CollaboratorUser()
     collab0.id = 'id1'
     collab0.email = 'aaron@procore.com'
     collab0.full_name = 'Aaron'
-    collab1 = CalendarUser()
+    collab1 = CollaboratorUser()
     collab1.id = 'id2'
     collab1.email = 'aimee@procore.com'
     collab1.full_name = 'Aimee'
@@ -227,7 +227,7 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
         return db_user
 
     def get_collaborators(emails):
-        collab = CalendarUser()
+        collab = CollaboratorUser()
         collab.id = 'id3'
         collab.email = 'anil@procore.com'
         return [collab]
@@ -281,7 +281,7 @@ def test_update_manager_remove_collaborators(test_interactor, db_mock, sample_us
     def get_collaborators(emails):
         return []
     
-    new_collab = CalendarUser()
+    new_collab = CollaboratorUser()
     new_collab.full_name = 'Anil Dhurjaty'
     new_collab.email = 'anil@procore.com'
 
@@ -310,7 +310,7 @@ def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token
     validations.table = ''
     validations.update_user = None
     
-    input_collab = UserDto(CalendarUser())
+    input_collab = UserDto(CollaboratorUser())
     input_collab.full_name='Aaron'
     input_collab.email='aaron@procore.com'
     input_collab.id = '11'

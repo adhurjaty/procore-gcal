@@ -1,7 +1,7 @@
-from models.calendar_user import CalendarUser
+from models.collaborator_user import CollaboratorUser
 
 class UserResponse(object):
-    parent: CalendarUser = None
+    parent: CollaboratorUser = None
 
     def __init__(self, parent):
         self.parent = parent

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List
 
 from .account_manager import AccountManager
-from .calendar_user import CalendarUser
+from .collaborator_user import CollaboratorUser
 from .model import Model
 
 secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
@@ -39,6 +39,6 @@ class StubDBInterface:
     def get_users_from_project_id(self, project_id: int) -> List[AccountManager]:
         return [self.user]
 
-    def get_user_collaborators(self, user) -> List[CalendarUser]:
+    def get_user_collaborators(self, user) -> List[CollaboratorUser]:
         return []
 

@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from typing import List
 
 from .account_manager import AccountManager
-from .calendar_user import CalendarUser
+from .collaborator_user import CollaboratorUser
 from .model import Model
 
 secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
@@ -127,7 +127,7 @@ class DBInterface:
         return [self._manager_from_result(result) for result in manager_results]
 
 
-    def get_user_collaborators(self, user) -> List[CalendarUser]:
+    def get_user_collaborators(self, user) -> List[CollaboratorUser]:
         cur = self.conn.cursor()
         query = '''SELECT c.id, u.email, u.full_name, ot.access_token, ot.refresh_token,
             ot.token_type, ot.expires_at, cs.calendar_id, u.temporary
@@ -143,7 +143,7 @@ class DBInterface:
         return [self._fill_collaborator(result) for result in results]
 
     def _fill_collaborator(self, result):
-        user = CalendarUser()
+        user = CollaboratorUser()
         user.id = result['id']
         user.email = result['email']
         user.full_name = result['full_name']
@@ -151,10 +151,10 @@ class DBInterface:
         user.gcal_data.set_token(**result)
         user.gcal_data.calendar_id = result['calendar_id']
 
-    def get_collaborators_from_emails(self, emails: List[str]) -> List[CalendarUser]:
+    def get_collaborators_from_emails(self, emails: List[str]) -> List[CollaboratorUser]:
         return []
 
-    def get_collaborator(self, id: str) -> CalendarUser:
+    def get_collaborator(self, id: str) -> CollaboratorUser:
         pass
 
     def delete_manager(self, id: str):

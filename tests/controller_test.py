@@ -14,7 +14,7 @@ from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
 from interactor.user_response import UserResponse
 from models.account_manager import AccountManager
-from models.calendar_user import CalendarUser
+from models.collaborator_user import CollaboratorUser
 from models.gcal_user_settings import GCalUserSettings
 from models.procore_user_settings import ProcoreUserSettings
 from interactor.named_item import NamedItem
@@ -232,7 +232,7 @@ def test_delete_manager(test_controller, use_case_mock):
 
 
 def test_get_collaborator(test_controller, use_case_mock):
-    collab_user = UserDto(CalendarUser())
+    collab_user = UserDto(CollaboratorUser())
     collab_user.full_name = 'Anil Dhurjaty'
     collab_user.email = 'anil@example.com'
     use_case_mock.get_collaborator = lambda x: collab_user
