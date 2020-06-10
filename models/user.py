@@ -26,6 +26,6 @@ class User(Base):
         self.full_name = full_name
         self.temporary = temporary
         self.gcal_data = gcal_data or GCalUserSettings()
-        self.gcal_settings_id = gcal_data.id
+        self.gcal_settings_id = self.gcal_data.id
 
     

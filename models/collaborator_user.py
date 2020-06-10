@@ -12,9 +12,6 @@ class CollaboratorUser(User):
     manager = relationship("AccountManager", backref='collaborators', 
         foreign_keys=[manager_id])
 
-    # manager = relationship("AccountManager", back_populates='collaborators', 
-    #     foreign_keys=[manager_id])
-
     __mapper_args__ = {
         'polymorphic_identity': 'collaborator'
     }

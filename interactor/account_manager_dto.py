@@ -2,6 +2,7 @@ from typing import List
 
 from .user_dto import UserDto
 from .person import Person
+from .procore_settings_dto import ProcoreSettingsDto
 from models.procore_user_settings import ProcoreUserSettings
 from models.gcal_user_settings import GCalUserSettings
 from models.account_manager import AccountManager
@@ -22,5 +23,7 @@ class AccountManagerDto(UserDto):
         self.collaborators = [Person(full_name=c.full_name, email=c.email) 
             for c in collaborators]
 
-    
+    @property
+    def procore_data(self):
+        return ProcoreSettingsDto(self.parent.procore_data)
 

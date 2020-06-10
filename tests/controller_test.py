@@ -13,10 +13,7 @@ from interactor.account_manager_response import AccountManagerResponse
 from interactor.user_dto import UserDto
 from interactor.rfi import Rfi
 from interactor.user_response import UserResponse
-from models.account_manager import AccountManager
-from models.collaborator_user import CollaboratorUser
-from models.gcal_user_settings import GCalUserSettings
-from models.procore_user_settings import ProcoreUserSettings
+from models import *
 from interactor.named_item import NamedItem
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')

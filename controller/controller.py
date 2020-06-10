@@ -34,9 +34,9 @@ class Controller:
         user.email = email or user.email
         user.full_name = fullName or user.full_name
         user.gcal_data.calendar_id = selectedCalendar or user.gcal_data.calendar_id
-        user.procore_data.calendar_event_types = {
-            t.get('name'): t.get('enabled') for t in eventTypes
-        } or user.procore_data.calendar_event_types
+        user.procore_data.calendar_event_types = [
+            {'name': t.get('name'), 'enabled': t.get('enabled')} for t in eventTypes
+         ] or user.procore_data.calendar_event_types
         user.collaborators = [Person(**c) for c in collaborators] if collaborators else user.collaborators
         user.procore_data.email_settings = [s for s in emailSettings] or user.procore_data.email_settings
         user.subscribed = bool(isSubscribed) or user.subscribed

@@ -7,7 +7,6 @@ from models.account_manager import AccountManager
 from models.collaborator_user import CollaboratorUser
 
 if __name__ == '__main__':
-    db_int = DBInterface()
 
     events = [
         EventSettings(name='RFIs'),
@@ -40,6 +39,8 @@ if __name__ == '__main__':
         CollaboratorUser(manager=user, gcal_data=gs[1], full_name='Collab Two', 
             email='orator@example.com')
     ]
+    
+    db_int = DBInterface()
 
     for event in events:
         db_int.insert(event)
