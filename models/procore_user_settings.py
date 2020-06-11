@@ -26,7 +26,10 @@ class ProcoreUserSettings(Base):
     token = relationship("Oauth2Token", foreign_keys=[token_id])
 
     def __init__(self, email_settings=[], calendar_event_types=[], **token):
-        self.token = Oauth2Token(**token)
+        self.set_token(token)
         self.email_settings = email_settings
         self.calendar_event_types = calendar_event_types
+
+    def set_token(self, token: dict):
+        self.token = Oauth2Token(**token)
 

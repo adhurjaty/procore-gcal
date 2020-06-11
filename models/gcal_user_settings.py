@@ -14,4 +14,7 @@ class GCalUserSettings(Base):
 
     def __init__(self, calendar_id='', **token):
         self.calendar_id = calendar_id
+        self.set_token(token)
+
+    def set_token(self, token: dict):
         self.token = Oauth2Token(**token)

@@ -146,7 +146,7 @@ def _parse_webhook(data: dict) -> dict:
 @app.route(GCAL_LOGIN_ROUTE)
 @auth.login_required
 def gcal_login():
-    auth_token = g.user.procore_data.access_token
+    auth_token = g.user.procore_data.token.access_token
     token_param = f'auth_token={auth_token}'
 
     redirect_uri = url_for('gcal_authorize', _external=True)
@@ -182,7 +182,7 @@ def _update_user_gcal_token(auth_token, gcal_token):
     user = controller.get_user_from_token(auth_token)
     if not user:
         raise Exception('Invalid authorization token')
-    user.set_gcal_token(gcal_token)
+    user.gcal_data.set_token(gcal_token)
     controller.update_user(user)
     return user
 
@@ -193,7 +193,7 @@ def _update_collaborator_gcal_token(token):
         raise Exception('Malformed redirect URL')
 
     collaborator = controller.get_collaborator(collaborator_id)
-    collaborator.set_gcal_token(token)
+    collaborator.gcal_data.set_token(token)
     controller.update_user(collaborator)
     return collaborator
 

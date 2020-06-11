@@ -212,8 +212,8 @@ def test_update_gcal_token(test_client, gcal_oauth_mock, user_controller_mock):
 
     test_client.get(rh.GCAL_AUTH_ROUTE, query_string={'state': 'blah'})
 
-    assert verifications.user.gcal_data.access_token == 'sample access token'
-    assert verifications.user.gcal_data.refresh_token == 'sample refresh token'
+    assert verifications.user.gcal_data.token.access_token == 'sample access token'
+    assert verifications.user.gcal_data.token.refresh_token == 'sample refresh token'
     assert verifications.user == user_controller_mock.manager
 
 
@@ -237,8 +237,8 @@ def test_update_collab_gcal_token(test_client, gcal_oauth_mock, collab_controlle
 
     test_client.get(rh.GCAL_AUTH_ROUTE, query_string={'collaborator_id': '70'})
 
-    assert verifications.user.gcal_data.access_token == 'sample access token'
-    assert verifications.user.gcal_data.refresh_token == 'sample refresh token'
+    assert verifications.user.gcal_data.token.access_token == 'sample access token'
+    assert verifications.user.gcal_data.token.refresh_token == 'sample refresh token'
     assert verifications.user == collab_controller_mock.get_collaborator(70)
 
 
