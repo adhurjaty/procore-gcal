@@ -11,7 +11,6 @@ from models.collaborator_user import CollaboratorUser
 
 class AccountManagerDto(UserDto):
     parent: AccountManager = None
-    collaborators: List[Person] = []
 
     def __init__(self, parent: AccountManager):
         super().__init__(parent)
@@ -19,11 +18,26 @@ class AccountManagerDto(UserDto):
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)
 
-    def add_collaborators(self, collaborators: List[CollaboratorUser]):
-        self.collaborators = [Person(full_name=c.full_name, email=c.email) 
-            for c in collaborators]
-
     @property
     def procore_data(self):
         return ProcoreSettingsDto(self.parent.procore_data)
+
+    @property
+    def collaborators(self):
+        return [Person(full_name=c.full_name, email=c.email) 
+            for c in self.parent.collaborators]
+
+    def set_collaborators(self, value: List[Person]):
+        self.parent.collaborators = \
+            [CollaboratorUser(manager=self.parent, full_name=v.full_name, email=v.email)
+                for v in value]
+
+    def add_collaborators(self, collabs: List[Person]):
+        for c in collabs:
+            self.add_collaborator(c)
+
+    def add_collaborator(self, collab: Person):
+        self.parent.collaborators.append(
+            CollaboratorUser(manager=self.parent, full_name=collab.full_name, 
+            email=collab.email))
 

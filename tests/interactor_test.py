@@ -93,10 +93,10 @@ def input_manager(sample_token):
     manager.email='adhurjaty@example.com'
     manager.id = '22'
 
-    manager.collaborators = [Person(full_name='Aaron', email='aaron@procore.com'),
-        Person(full_name='Aimee', email='aimee@procore.com')]
-    manager.procore_data = sample_token
-    manager.gcal_data = sample_token
+    manager.set_collaborators([Person(full_name='Aaron', email='aaron@procore.com'),
+        Person(full_name='Aimee', email='aimee@procore.com')])
+    manager.procore_data.token = sample_token
+    manager.gcal_data.token = sample_token
     manager.subscribed = True
     manager.payment_id = 'payment ID'
     manager.temporary = False
@@ -161,14 +161,11 @@ def test_create_change_order():
 
 def test_get_user_from_token(test_interactor, db_mock, sample_user, sample_collaborators):
     db_mock.get_user_from_token = lambda t: sample_user
-    db_mock.get_user_collaborators = lambda u: sample_collaborators
 
     user = test_interactor.get_user_from_token('access token')
 
     assert user.full_name == 'Anil Dhurjaty'
     assert user.id == 55
-    assert user.collaborators[0].email == 'aaron@procore.com'
-    assert user.collaborators[1].full_name == 'Aimee'
 
 
 def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborators, 
@@ -177,29 +174,28 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
     validations = MockObject()
     validations.table = ''
     validations.update_user = None
+    validations.collabs = []
+    ids = 'id1 id2'.split()
 
-    db_user = deepcopy(sample_user)
-    
-    def update(table, model):
-        validations.table = table
+    def insert(model):
+        model.id = ids[len(validations.collabs)]
+        validations.collabs.append(model)
+
+    def update(model):
         validations.update_user = model
 
-    def get_collaborators(emails):
-        return [c for c in sample_collaborators if c.email in emails]
+    def get_collaborators(manager):
+        return []
 
-    def get_user(user_id):
-        return db_user
-    
     db_mock.update = update
-    db_mock.get_collaborators_from_emails = get_collaborators
-    db_mock.get_manager = get_user
+    db_mock.insert = insert
+    db_mock.get_manager_collaborators = get_collaborators
 
     user = test_interactor.update_user(input_manager)
 
     assert validations.update_user == user
-    assert validations.table == 'AccountManager'
-    assert user.collaborator_ids == 'id1 id2'.split()
-    assert user.procore_data.access_token == 'access'
+    assert [c.id for c in user.collaborators] == 'id1 id2'.split()
+    assert user.procore_data.token.access_token == 'access'
     assert user.id == '22'
 
 
@@ -207,19 +203,15 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
     sample_collaborators, input_manager):
     
     validations = MockObject()
-    validations.table = ''
     validations.update_user = None
-    validations.collab_tables = []
     validations.new_collabs = []
     
     db_user = deepcopy(sample_user)
 
-    def update(table, model):
-        validations.table = table
+    def update(model):
         validations.update_user = model
 
-    def insert(table, model):
-        validations.collab_tables.append(table)
+    def insert(model):
         model.id = next((c.id for c in sample_collaborators if c.email == model.email))
         validations.new_collabs.append(model)
 
@@ -234,17 +226,16 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
     
     db_mock.update = update
     db_mock.insert = insert
-    db_mock.get_collaborators_from_emails = get_collaborators
-    db_mock.get_manager = get_user
+    db_mock.get_manager_collaborators = get_collaborators
 
-    input_manager.collaborators = sample_collaborators
+    input_manager.parent.collaborators = get_collaborators('asdf')
+    input_manager.add_collaborators(sample_collaborators)
+
     user = test_interactor.update_user(input_manager)
 
     assert validations.update_user == user
-    assert validations.table == 'AccountManager'
-    assert validations.collab_tables == ['Collaborator'] * 2
     assert set(c.id for c in validations.new_collabs) == set('id1 id2'.split())
-    assert set(user.collaborator_ids) == set('id3 id1 id2'.split())
+    assert set(c.id for c in user.collaborators) == set('id3 id1 id2'.split())
     assert user.id == '22'
 
 
@@ -252,62 +243,51 @@ def test_update_manager_remove_collaborators(test_interactor, db_mock, sample_us
     sample_collaborators, input_manager):
     
     validations = MockObject()
-    validations.table = ''
     validations.update_user = None
-    validations.collab_tables = []
     validations.new_collabs = []
-    validations.delete_tables = []
     validations.deletes = []
     
     db_user = deepcopy(sample_user)
 
-    def update(table, model):
-        validations.table = table
+    def update(model):
         validations.update_user = model
 
-    def insert(table, model):
-        validations.collab_tables.append(table)
+    def insert(model):
         model.id = 'id3'
         validations.new_collabs.append(model)
 
-    def delete(table, id):
-        validations.delete_tables.append(table)
-        validations.deletes.append(id)
+    def delete(model):
+        validations.deletes.append(model)
 
     def get_user(user_id):
-        db_user.collaborator_ids = [c.id for c in sample_collaborators]
+        db_user.collaborators = sample_collaborators
         return db_user
     
     def get_collaborators(emails):
-        return []
+        return sample_collaborators
     
-    new_collab = CollaboratorUser()
+    new_collab = Person()
     new_collab.full_name = 'Anil Dhurjaty'
     new_collab.email = 'anil@procore.com'
 
     db_mock.update = update
     db_mock.insert = insert
     db_mock.delete = delete
-    db_mock.get_manager = get_user
 
-    db_mock.get_collaborators_from_emails = get_collaborators
+    db_mock.get_manager_collaborators = get_collaborators
 
-    input_manager.collaborators = [new_collab]
+    input_manager.set_collaborators([new_collab])
     user = test_interactor.update_user(input_manager)
 
     assert validations.update_user == user
-    assert validations.table == 'AccountManager'
-    assert validations.collab_tables == ['Collaborator']
-    assert validations.delete_tables == ['Collaborator'] * 2
-    assert set(validations.deletes) == set('id1 id2'.split())
+    assert set(c.id for c in validations.deletes) == set('id1 id2'.split())
     assert [c.id for c in validations.new_collabs] == ['id3']
-    assert user.collaborator_ids == ['id3']
+    assert [c.id for c in user.collaborators] == ['id3']
     assert user.id == '22'
 
 
 def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token):
     validations = MockObject()
-    validations.table = ''
     validations.update_user = None
     
     input_collab = UserDto(CollaboratorUser())
@@ -317,8 +297,7 @@ def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token
     input_collab.gcal_data = sample_token
     input_collab.temporary = False
 
-    def update(table, model):
-        validations.table = table
+    def update(model):
         validations.update_user = model
 
     db_mock.update = update
@@ -329,7 +308,6 @@ def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token
     assert user.id == '11'
     assert user.gcal_data.access_token == 'access'
     assert not user.temporary
-    assert validations.table == 'Collaborator'
 
 
 def test_get_users_in_project(test_interactor, db_mock):
@@ -378,7 +356,10 @@ def test_get_procore_user_info(test_interactor, presenter_mock, sample_user):
 
     def get_user(token):
         validations.token = token
-        return sample_user
+        return {
+            'email': 'anil@example.com',
+            'name': 'anil'
+        }
 
     presenter_mock.get_user_info = get_user
 
@@ -390,7 +371,8 @@ def test_get_procore_user_info(test_interactor, presenter_mock, sample_user):
     user = test_interactor.get_procore_user_info(t)
 
     assert t == validations.token
-    assert user == sample_user
+    assert user.email == 'anil@example.com'
+    assert user.full_name == 'anil'
 
 
 def test_delete_manager(test_interactor, db_mock):
@@ -434,25 +416,23 @@ def test_get_manager_vm(test_interactor, presenter_mock, db_mock, input_manager,
         validations.user = user
         return {'result': 'success'}
 
-    def get_calendars(user):
-        return [
+    def set_selections(user: AccountManagerResponse):
+        user.projects = [
+            NamedItem('id3', 'this project'),
+            NamedItem('id4', 'that project'),
+        ]
+        user.calendars = [
             NamedItem(0, 'this calendar'),
             NamedItem(1, 'that calendar'),
         ]
+        return user
 
     def get_collaborators(emails):
         validations.emails = emails
         return sample_collaborators
 
-    def get_projects(user):
-        return [
-            NamedItem('id3', 'this project'),
-            NamedItem('id4', 'that project'),
-        ]
-
     db_mock.get_collaborators_from_emails = get_collaborators
-    presenter_mock.get_calendars = get_calendars
-    presenter_mock.get_projects = get_projects
+    presenter_mock.set_manager_selections = set_selections
     presenter_mock.get_manager_vm = get
 
     resp = test_interactor.get_manager_vm(input_manager)

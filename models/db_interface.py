@@ -29,7 +29,7 @@ class DBInterface:
         with open(os.path.join(secret_path, 'app.config'), 'r') as f:
             return json.load(f)
         
-    def update(self, table_name: str, model: Model):
+    def update(self, model: Model):
         pass
 
     def insert(self, model):

@@ -127,10 +127,16 @@ def test_update_user_with_data(test_controller, use_case_mock, sample_user):
     assert validations.user.email == 'user@example.com'
     assert validations.user.full_name == 'This User'
     assert validations.user.gcal_data.calendar_id == 'calID'
-    assert validations.user.procore_data.calendar_event_types == {
-        'Submittals': True,
-        'RFIs': False
-    }
+    assert validations.user.procore_data.calendar_event_types == [
+        {
+            'name': 'Submittals',
+            'enabled': True
+        },
+        {
+            'name': 'RFIs',
+            'enabled': False
+        }
+    ]
     assert validations.user.collaborators[0].full_name == 'Aaron'
     assert validations.user.collaborators[0].email == 'aaron@procore.com'
     assert validations.user.collaborators[1].full_name == 'Aimee'

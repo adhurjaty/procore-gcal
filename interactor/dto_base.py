@@ -11,7 +11,7 @@ class DtoBase:
            raise AttributeError(f'{self.parent.__class__} has no attribute {name}')
     
     def __setattr__(self, name, value):
-        if not hasattr(self, name) and self.parent and hasattr(self.parent, name):
+        if self.parent and hasattr(self.parent, name):
             setattr(self.parent, name, value)
         else:
             super().__setattr__(name, value)

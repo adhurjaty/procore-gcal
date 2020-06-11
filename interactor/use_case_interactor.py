@@ -22,9 +22,7 @@ class UseCaseInteracor:
 
     def get_user_from_token(self, token: str) -> AccountManagerDto:
         user = self.db_int.get_user_from_token(token)
-        collaborators = self.db_int.get_user_collaborators(user)
         user_dto = AccountManagerDto(user)
-        user_dto.add_collaborators(collaborators)
 
         return user_dto
 
@@ -32,8 +30,6 @@ class UseCaseInteracor:
         resp_user = AccountManagerResponse(user.parent)
         resp_user.collaborators =  self._get_collaborators(user.collaborators)
         resp_user = self.presenter.set_manager_selections(resp_user)
-        resp_user.calendars = self.presenter.get_calendars(resp_user)
-        resp_user.projects = self.presenter.get_projects(resp_user)
         return self.presenter.get_manager_vm(resp_user)
 
     def _get_collaborators(self, collaborators: List[Person]) -> List[UserResponse]:
@@ -43,41 +39,23 @@ class UseCaseInteracor:
     def update_user(self, user: UserDto) -> UserDto:
         model_user = user.parent
         if isinstance(user, AccountManagerDto):
-            model_user.collaborator_ids = self._get_or_create_collaborators(user.collaborators)
-            self._remove_old_collaborators(user.id, model_user.collaborator_ids)
+            self._create_or_remove_collaborators(model_user)
 
-        model_user.save(self.db_int)
+        self.db_int.update(model_user)
         return model_user
 
-    def _get_or_create_collaborators(self, collaborators: List[Person]) -> List[str]:
-        emails = [c.email for c in collaborators]
-        db_collabs = self.db_int.get_collaborators_from_emails(emails)
-        existing_emails = set(c.email for c in db_collabs)
-        not_existing_emails = set(emails).difference(existing_emails)
-        db_collabs += self._create_collaborators(not_existing_emails)
+    def _create_or_remove_collaborators(self, manager: AccountManager):
+        self._remove_collaborators(manager)
+        self._create_collaborators([c for c in manager.collaborators if not c.id])
+        
+    def _remove_collaborators(self, manager: AccountManager):
+        all_collabs = self.db_int.get_manager_collaborators(manager.id)
+        keep_collab_ids = [c.id for c in manager.collaborators]
+        collabs_to_remove = [c for c in all_collabs if c.id and c.id not in keep_collab_ids]
+        parallel_for(lambda c: self.db_int.delete(c), collabs_to_remove)
 
-        return [c.id for c in db_collabs]
-
-    def _create_collaborators(self, emails: Set[str]) -> List[CollaboratorUser]:
-        return parallel_for(self._create_collaborator, emails)
-
-    def _create_collaborator(self, email: str) -> CollaboratorUser:
-        new_collab = CollaboratorUser()
-        new_collab.email = email
-        new_collab.temporary = True
-        new_collab.save(self.db_int)
-        # TODO: send email notification
-        return new_collab
-
-    def _remove_old_collaborators(self, user_id: str, collaborator_ids: List[str]):
-        existing_user = self.db_int.get_manager(user_id)
-        ids_to_remove = set(existing_user.collaborator_ids).difference(collaborator_ids)
-        parallel_for(lambda id: self.db_int.delete(CollaboratorUser().table_name, id),
-            ids_to_remove)
-
-    def _get_collaborator_ids(self, emails: List[str]):
-        collabs = self.db_int.get_collaborators_from_emails(emails)
-        return [c.id for c in collabs]
+    def _create_collaborators(self, new_collabs: List[CollaboratorUser]):
+        parallel_for(lambda c: self.db_int.insert(c), new_collabs)
 
     def get_users_in_project(self, project_id: int) -> List[AccountManagerDto]:
         return [AccountManagerDto(a) 
@@ -102,6 +80,7 @@ class UseCaseInteracor:
         user = AccountManager()
         user.email = user_dict.get('email')
         user.full_name = user_dict.get('name')
+        return user
 
     def delete_manager(self, user_id: str):
         self.db_int.delete_manager(user_id)
