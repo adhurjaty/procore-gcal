@@ -14,11 +14,9 @@ class WebViewModel:
             'fullName': user.full_name,
             'calendars': [c.to_json() for c in user.calendars],
             'selectedCalendar': selected_calendar,
-            'eventTypes': [{'name': key, 'enabled': value} 
-                for key, value in user.procore_data.calendar_event_types.items()],
+            'eventTypes': user.procore_data.calendar_event_types,
             'collaborators': [{'id': c.id, 'name': c.full_name} for c in user.collaborators],
-            'emailSettings': [{'name': key, 'enabled': value}
-                for key, value in user.procore_data.email_settings.items()],
+            'emailSettings': user.procore_data.email_settings,
             'temporary': user.temporary,
             'isSubscribed': user.subscribed,
             'project_id': user.project_id,

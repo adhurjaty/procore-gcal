@@ -60,7 +60,7 @@ class GCalViewModel:
 
     def __init__(self, user: UserResponse, view_mode=None):
         self.oauth = OauthSessionWrapper('gcal',
-            token=user.gcal_data.get_token(),
+            token=user.gcal_data.token.get_token(),
             update_token=self.update_token)
         self.user = user
         self.view_mode = view_mode or self.view_mode

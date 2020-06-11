@@ -113,11 +113,20 @@ def test_create_new_webhooks(oauth_mock, sample_user, procore_vm):
     oauth_mock.get = get
     oauth_mock.post = post
 
-    sample_user.procore_data.calendar_event_types = {
-        'RFIs': True,
-        'Submittals': True,
-        'Events': False
-    }
+    sample_user.procore_data.calendar_event_types = [
+        {
+            'name': 'RFIs',
+            'enabled': True
+        },
+        {
+            'name': 'Submittals',
+            'enabled': True
+        },
+        {
+            'name': 'Events',
+            'enabled': False
+        }
+    ]
 
     procore_vm.register_webhooks()
 
@@ -173,10 +182,16 @@ def test_add_to_existing_webhooks(oauth_mock, sample_user, procore_vm):
     oauth_mock.get = get
     oauth_mock.post = post
 
-    sample_user.procore_data.calendar_event_types = {
-        'RFIs': True,
-        'Project Users': True
-    }
+    sample_user.procore_data.calendar_event_types = [
+        {
+            'name': 'RFIs',
+            'enabled': True
+        },
+        {
+            'name': 'Project Users',
+            'enabled': True
+        }
+    ]
 
     procore_vm.register_webhooks()
 
@@ -233,10 +248,16 @@ def test_add_and_delete_webhooks(oauth_mock, sample_user, procore_vm):
     oauth_mock.post = post
     oauth_mock.delete = delete
 
-    sample_user.procore_data.calendar_event_types = {
-        'RFIs': True,
-        'Project Users': False
-    }
+    sample_user.procore_data.calendar_event_types = [
+        {
+            'name': 'RFIs',
+            'enabled': True
+        },
+        {
+            'name': 'Project Users',
+            'enabled': False
+        }
+    ]
 
     procore_vm.register_webhooks()
 
@@ -519,14 +540,26 @@ def test_get_manager_vm():
     parent.gcal_data.access_token = 'access token'
     parent.gcal_data.refresh_token = 'refresh token'
     parent.gcal_data.calendar_id = 'asdfg'
-    parent.procore_data.calendar_event_types = {
-        'foo': True,
-        'bar': False
-    }
-    parent.procore_data.email_settings = {
-        'baz': False,
-        'other': False
-    }
+    parent.procore_data.calendar_event_types = [
+        {
+            'name': 'foo',
+            'enabled': True
+        },
+        {
+            'name': 'bar',
+            'enabled': False
+        }
+    ]
+    parent.procore_data.email_settings = [
+        {
+            'name': 'baz',
+            'enabled': False
+        },
+        {
+            'name': 'other',
+            'enabled': False
+        }
+    ]
     parent.temporary = False
     parent.subscribed = True
     parent.project_id = 77

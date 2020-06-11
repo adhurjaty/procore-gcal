@@ -60,7 +60,7 @@ class ProcoreTrigger:
 class ProcoreViewModel:
 
     def __init__(self, user: AccountManagerResponse = None, token: dict = None):
-        token = token or user.procore_data.get_token()
+        token = token or user.procore_data.token.get_token()
         self.oauth = OauthSessionWrapper('procore', token=token,
             update_token=self._update_token)
         self.user = user
@@ -92,12 +92,12 @@ class ProcoreViewModel:
         created_hook = ProcoreHook(**resp)
         return created_hook
 
-    def _procore_assign_triggers(self, hook: ProcoreHook, trigger_dict: dict):
+    def _procore_assign_triggers(self, hook: ProcoreHook, trigger_dicts: List[dict]):
         project_id = self.user.project_id
 
         existing_triggers = self._get_procore_existing_triggers(hook)
-        def create_or_delete_triggers(item):
-            name, is_enabled = item
+        def create_or_delete_triggers(item: dict):
+            name, is_enabled = (item.get('name'), item.get('enabled'))
             trigger_it = (t for t in existing_triggers 
                 if name == t.resource_name)
             trigger = next(trigger_it, None)
@@ -108,7 +108,7 @@ class ProcoreViewModel:
                 triggers_to_delete = [trigger] + list(trigger_it)
                 self._delete_procore_triggers(triggers_to_delete)
 
-        parallel_for(create_or_delete_triggers, trigger_dict.items())
+        parallel_for(create_or_delete_triggers, trigger_dicts)
 
     def _get_procore_existing_triggers(self, hook: ProcoreHook) -> List[ProcoreTrigger]:
         uri = PROCORE_TRIGGERS.format(hook_id=hook.id)
