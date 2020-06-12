@@ -1,8 +1,8 @@
-import Calendar from "./caldendar";
+import NamedItem from "./namedItem";
 import EventType from "./eventType";
 import EmailSetting from "./emailSetting";
 import Collaborator from "./collaborator";
-import { SelectableItem, NamedItem, UserItem } from "./interfaces";
+import { SelectableItem, UserItem } from "./interfaces";
 
 interface CollaboratorResponse {
     name: string
@@ -18,14 +18,18 @@ interface UserResponse {
     collaborators: UserItem[],
     emailSettings: SelectableItem[],
     isSubscribed: boolean;
+    projectId: number | null;
+    projects: NamedItem[]
 };
 
 export default class User {
     id: number = -1;
     email: string = "";
     fullName: string = "";
-    selectedCalendar: Calendar | undefined = undefined;
-    calendars: Calendar[] = [];
+    selectedCalendar: NamedItem | undefined = undefined;
+    calendars: NamedItem[] = [];
+    projectId: number | null = null;
+    projects: NamedItem[] = [];
     eventTypes: EventType[] = [];
     collaborators: Collaborator[] = [];
     emailSettings: EmailSetting[] = [];
@@ -42,6 +46,8 @@ export default class User {
         user.collaborators = response.collaborators.map(x => new Collaborator(x));
         user.emailSettings = response.emailSettings.map(x => new EmailSetting(x));
         user.isSubscribed = response.isSubscribed;
+        user.projectId = response.projectId;
+        user.projects = response.projects;
 
         return user;
     }
@@ -51,7 +57,7 @@ export default class User {
             id: this.id,
             email: this.email,
             fullName: this.fullName,
-            selectedCalendar: (this.selectedCalendar as Calendar).id,
+            selectedCalendar: (this.selectedCalendar as NamedItem).id,
             eventTypes: this.eventTypes.map(x => x.json()),
             collaborators: this.collaborators.map(x => x.json()),
             emailSettings: this.emailSettings.map(x => x.json()),

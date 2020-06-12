@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
 import { getUserSettings, StatusMessage, getToken } from '../backend_interface/api_interface';
-import Calendar from '../models/caldendar';
+import NamedItem from '../models/namedItem';
 import GCalButton from './GCalButton';
 import EventType from '../models/eventType';
 import User from '../models/user';
@@ -91,12 +91,14 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
             <SettingsForm onSubmit={e => e.preventDefault()}>
                 <EmailSection user={user} />
                 <NameSection user={user} error={fullNameError} />
+                <ProjectsSection user={user} />
                 <CalendarSection user={user} error={calendarError} />
                 <EventTypesSection user={user} />
                 <CollaboratorSection user={user} error={collaboratorError} />
                 <EmailSettingsSection user={user} />
                 {!initSubscribed && 
-                    <SubscriptionSection user={user} error={subscribeError} />}
+                    <SubscriptionSection user={user} error={subscribeError} />
+                }
 
                 {children}
 
@@ -133,6 +135,27 @@ function NameSection({user, error}: {user: User, error: string}): JSX.Element {
     );
 }
 
+function ProjectsSection({user}: {user: User}): JSX.Element {
+    const initProject = user.projects.find(x => x.id == user.projectId) 
+        ?? user.projects.find(x => true);
+    const [selectedProject, setSelectedProject] = useState(initProject)
+    return (
+        <InputSection>
+            <InputLabel>Procore Projects:</InputLabel>
+            {!!selectedProject 
+                ? renderNamedDropdown(user.projects, selectedProject, setSelectedProject)
+                : emptyProjectsMessage()
+            }
+        </InputSection>
+    )
+}
+
+function emptyProjectsMessage(): JSX.Element {
+    return (
+        <div>You are not part of any Procore projects</div>
+    )
+}
+
 function CalendarSection({user, error}: {user: User, error: string}): JSX.Element {
     const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
     useEffect(() => {
@@ -143,19 +166,19 @@ function CalendarSection({user, error}: {user: User, error: string}): JSX.Elemen
         <InputSection>
             <InputLabel>Google Calendar:</InputLabel>
             {user.calendars && selectedCalendar
-                ? renderCalendars(user.calendars, selectedCalendar, setSelectedCalendar)
+                ? renderNamedDropdown(user.calendars, selectedCalendar, setSelectedCalendar)
                 : renderGCalButton()}
             <FieldError>{error}</FieldError>
         </InputSection>
     );
 }
 
-function renderCalendars(calendars: Calendar[], selectedCalendar: Calendar, 
-    setSelectedCalendar: (c: Calendar) => void) 
+function renderNamedDropdown(calendars: NamedItem[], selectedCalendar: NamedItem, 
+    setSelectedCalendar: (c: NamedItem) => void) 
 {
     const onSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newCal = calendars.find(c => c.id === parseInt(e.target.value));
-        setSelectedCalendar(newCal as Calendar);
+        setSelectedCalendar(newCal as NamedItem);
     }
 
     return (
