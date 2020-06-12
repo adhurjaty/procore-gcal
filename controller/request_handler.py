@@ -60,11 +60,17 @@ def create_app(cont: Controller) -> Flask:
 
 @auth.verify_token
 def verify_token(token):
+    token = extract_token(token)
     user = controller.get_user_from_token(token)
     if not user:
         return None
     g.user = user
     return user
+
+
+def extract_token(token_str: str):
+    idx = token_str.find('=')
+    return token_str[idx+1:]
 
 
 @app.route(INDEX_ROUTE)

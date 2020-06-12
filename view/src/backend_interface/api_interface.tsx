@@ -27,62 +27,69 @@ function withTokenHeader(req: Request): Request {
     return req;
 }
 
-async function sendRequest(req: Request): Promise<StatusMessage> {
+async function sendRequest(req: Request): Promise<any> {
     const response = await fetch(withTokenHeader(req));
-    const data = await response.json();
+    return await response.json();
+}
+
+async function sendStatusRequest(req: Request): Promise<StatusMessage> {
+    const data = await sendRequest(req)
     return {
         status: data.status,
         message: data.message
     };
 }
 
-export function getUserSettings(userId: string): User {
-    let response = {
-        id: 4,
-        email: "adhurjaty@gmail.com",
-        fullName: "Anil Dhurjaty",
-        calendars: [
-            {
-                name: "Personal Calendar",
-                id: 0
-            },
-            {
-                name: "Other Calendar",
-                id: 1
-            }
-        ],
-        selectedCalendar: 0,
-        eventTypes: [
-            {
-                name: "RFIs",
-                enabled: true,
-            },
-            {
-                name: "Submittals",
-                enabled: true,
-            },
-            {
-                name: "Change Orders",
-                enabled: false,
-            }
-        ],
-        collaborators: [],
-        emailSettings: [
-            {
-                name: "Google Calendar Events",
-                enabled: true
-            },
-            {
-                name: "Add/Remove Caldendar",
-                enabled: false
-            },
-            {
-                name: "User Updates",
-                enabled: false
-            },
-        ],
-        isSubscribed: false
-    }
+export async function getUserSettings(userId: string): Promise<User> {
+    const response = await sendRequest(new Request(API_USER(userId), {
+        method: 'GET'
+    }));
+    // let response = {
+    //     id: 4,
+    //     email: "adhurjaty@gmail.com",
+    //     fullName: "Anil Dhurjaty",
+    //     calendars: [
+    //         {
+    //             name: "Personal Calendar",
+    //             id: 0
+    //         },
+    //         {
+    //             name: "Other Calendar",
+    //             id: 1
+    //         }
+    //     ],
+    //     selectedCalendar: 0,
+    //     eventTypes: [
+    //         {
+    //             name: "RFIs",
+    //             enabled: true,
+    //         },
+    //         {
+    //             name: "Submittals",
+    //             enabled: true,
+    //         },
+    //         {
+    //             name: "Change Orders",
+    //             enabled: false,
+    //         }
+    //     ],
+    //     collaborators: [],
+    //     emailSettings: [
+    //         {
+    //             name: "Google Calendar Events",
+    //             enabled: true
+    //         },
+    //         {
+    //             name: "Add/Remove Caldendar",
+    //             enabled: false
+    //         },
+    //         {
+    //             name: "User Updates",
+    //             enabled: false
+    //         },
+    //     ],
+    //     isSubscribed: false
+    // }
 
     return User.fromJSON(response);
 }
@@ -141,21 +148,21 @@ export async function getCollaborator(id: string): Promise<Collaborator> {
 }
 
 export async function createNewUser(user: User) : Promise<StatusMessage> {
-    return sendRequest(new Request(API_NEW_USER, {
+    return sendStatusRequest(new Request(API_NEW_USER, {
         method: 'POST',
         body: JSON.stringify(user.toJson())
     }));
 }
 
 export async function updateUser(user: User) : Promise<StatusMessage> {
-    return sendRequest(new Request(API_USER('' + user.id), {
+    return sendStatusRequest(new Request(API_USER('' + user.id), {
         method: 'PATCH',
         body: JSON.stringify(user.toJson()),
     }));
 }
 
 export async function deleteUser(user: User) : Promise<StatusMessage> {
-    return sendRequest(new Request(API_USER('' + user.id), {
+    return sendStatusRequest(new Request(API_USER('' + user.id), {
         method: 'DELETE'
     }));
 }
@@ -163,7 +170,7 @@ export async function deleteUser(user: User) : Promise<StatusMessage> {
 export async function createCollaborator(collaborator: Collaborator): 
     Promise<StatusMessage>
 {
-    return sendRequest(new Request(API_NEW_COLLABORATOR('' + collaborator.id), {
+    return sendStatusRequest(new Request(API_NEW_COLLABORATOR('' + collaborator.id), {
         method: 'POST',
         body: JSON.stringify(collaborator.json())
     }));

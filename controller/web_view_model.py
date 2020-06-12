@@ -12,14 +12,15 @@ class WebViewModel:
             'id': user.id,
             'email': user.email,
             'fullName': user.full_name,
-            'calendars': [c.to_json() for c in user.calendars],
+            'calendars': user.calendars and [c.to_json() for c in user.calendars] or [],
+            'isGcalLoggedIn': user.calendars is not None,
             'selectedCalendar': selected_calendar,
             'eventTypes': user.procore_data.calendar_event_types,
             'collaborators': [{'id': c.id, 'name': c.full_name} for c in user.collaborators],
             'emailSettings': user.procore_data.email_settings,
             'temporary': user.temporary,
             'isSubscribed': user.subscribed,
-            'project_id': user.project_id,
+            'projectId': user.project_id,
             'projects': [{'id': p.id, 'name': p.name} for p in user.projects]
         }
 

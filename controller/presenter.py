@@ -73,6 +73,8 @@ class Presenter(PresenterInterface):
         return [NamedItem(p['id'], p['name']) for p in projects]
 
     def _get_calendars(self, user: UserResponse) -> List[NamedItem]:
+        if not user.gcal_data.token.access_token:
+            return None
         vm = self.vm_factory.create_gcal_vm(user)
         calendars = vm.get_calendars()
         return [NamedItem(c['id'], c['name']) for c in calendars]
