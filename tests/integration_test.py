@@ -161,6 +161,12 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
     }
 
 
+# def test_sign_up_user(test_client, mock_oauth, db_mock):
+
+#     db_mock.get_user_from_token = lambda _: None
+
+
+
 # def test_live_update_gcal(live_client, db_mock, live_user):
 #     webhook = load_json('webhook.json')
 

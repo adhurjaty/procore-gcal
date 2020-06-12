@@ -23,7 +23,7 @@ class AccountManager(User):
     }
 
     def __init__(self, procore_data=None, subscribed=False, trial_start=None, 
-        payment_id='', project_id='', collaborators=[], **kwargs):
+        payment_id='', project_id=None, collaborators=[], **kwargs):
         
         super().__init__(**kwargs)
         self.procore_data = procore_data or ProcoreUserSettings()

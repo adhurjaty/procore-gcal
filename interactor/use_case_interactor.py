@@ -11,6 +11,7 @@ from .person import Person
 from models.db_interface import DBInterface
 from models.collaborator_user import CollaboratorUser
 from models.account_manager import AccountManager
+from models.oauth2_token import Oauth2Token
 
 class UseCaseInteracor:
     presenter: PresenterInterface = None
@@ -22,6 +23,8 @@ class UseCaseInteracor:
 
     def get_user_from_token(self, token: str) -> AccountManagerDto:
         user = self.db_int.get_user_from_token(token)
+        if not user:
+            return None
         user_dto = AccountManagerDto(user)
 
         return user_dto
@@ -36,6 +39,11 @@ class UseCaseInteracor:
         emails = [c.email for c in collaborators]
         return [UserResponse(c) for c in self.db_int.get_collaborators_from_emails(emails)]
     
+    def create_user(self, user: AccountManagerDto):
+        model_user = user.parent
+        self.db_int.insert(model_user)
+        return model_user
+
     def update_user(self, user: UserDto) -> UserDto:
         model_user = user.parent
         if isinstance(user, AccountManagerDto):
@@ -77,10 +85,12 @@ class UseCaseInteracor:
 
     def get_procore_user_info(self, token: dict) -> AccountManagerDto:
         user_dict = self.presenter.get_user_info(token)
-        user = AccountManager()
-        user.email = user_dict.get('email')
-        user.full_name = user_dict.get('name')
-        return user
+        user = AccountManager(
+            email=user_dict.get('login'),
+            full_name=user_dict.get('name')
+        )
+        user.procore_data.set_token(token)
+        return AccountManagerDto(user)
 
     def delete_manager(self, user_id: str):
         self.db_int.delete_manager(user_id)

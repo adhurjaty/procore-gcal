@@ -7,6 +7,8 @@ from typing import List
 
 from .account_manager import AccountManager
 from .collaborator_user import CollaboratorUser
+from .oauth2_token import Oauth2Token
+from .procore_user_settings import ProcoreUserSettings
 from .model import Model
 
 secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
@@ -33,22 +35,47 @@ class DBInterface:
         pass
 
     def insert(self, model):
-        self.session.add(model)
+        if isinstance(model, AccountManager):
+            self._insert_manager(model)
+        else:
+            self.session.add(model)
+        self.session.commit()
+    
+    def _insert_manager(self, manager: AccountManager):
+        self._insert_or_update(manager.procore_data.token)
+        self._insert_or_update(manager.procore_data)
+        if manager.gcal_data.token.access_token:
+            self._insert_or_update(manager.gcal_data.token)
+            self._insert_or_update(manager.gcal_data)
+        self.session.add(manager)
+
+    def _insert_or_update(self, model):
+        if model.id:
+            self.update(model)
+        else:
+            self.insert(model)
 
     def commit(self):
         self.session.commit()
 
     def delete(self, model):
         self.session.delete(model)
+        self.session.commit()
 
     def __del__(self):
         self.session.close()
 
-    def get_user_from_token(self, token: dict) -> AccountManager:
-        cur = self.conn.cursor()
-        
-        manager_result = self._get_manager_info(token, cur)
-        return self._manager_from_result(manager_result, cur)
+    def get_user_from_token(self, access_token: str) -> AccountManager:
+        matching_token: Oauth2Token = self.session.query(Oauth2Token)\
+            .filter(Oauth2Token.access_token == access_token).first()
+        if not matching_token:
+            return None
+
+        data: ProcoreUserSettings = self.session.query(ProcoreUserSettings)\
+            .filter(ProcoreUserSettings.token_id == matching_token.id).first()
+        manager_result: AccountManager = self.session.query(AccountManager)\
+            .filter(AccountManager.procore_settings_id == data.id).first()
+        return manager_result
 
     def _get_manager_info(self, token: dict, cur):
         query = self._manager_base_query('WHERE ot.access_token = %(access_token)s')

@@ -60,7 +60,7 @@ class Controller:
         user = self.use_case.get_procore_user_info(token)
         user.temporary = True
 
-        user = self.use_case.create_user(user)
+        self.use_case.create_user(user)
 
         return user
 
