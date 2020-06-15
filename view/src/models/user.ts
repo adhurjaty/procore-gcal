@@ -9,7 +9,7 @@ interface CollaboratorResponse {
 };
 
 interface UserResponse {
-    id?: number,
+    id?: string,
     email: string,
     fullName: string,
     calendars: NamedItem[],
@@ -23,7 +23,7 @@ interface UserResponse {
 };
 
 export default class User {
-    id: number = -1;
+    id: string = "";
     email: string = "";
     fullName: string = "";
     selectedCalendar: NamedItem | undefined = undefined;
@@ -37,7 +37,7 @@ export default class User {
     
     static fromJSON(response: UserResponse): User {
         let user = new User();
-        user.id = response.id ?? -1;
+        user.id = response.id ?? "";
         user.email = response.email;
         user.fullName = response.fullName;
         user.calendars = response.calendars;

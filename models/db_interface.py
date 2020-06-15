@@ -18,15 +18,23 @@ with open(os.path.join(secret_path, 'app.config'), 'r') as f:
 config = {k.lstrip('DB_').lower(): v for k, v in config.items() if k.startswith('DB_')}
 engine = create_engine(f'postgresql://{config.get("username")}:{config.get("password")}' + \
     f'@localhost:{config.get("port")}/{config.get("name")}')
+Session = sessionmaker(bind=engine)
+
+
+def refresh_session(fn):
+    def wrapper(self, *args, **kwargs):
+        self.session = Session()
+        return fn(self, *args, **kwargs)
+    return wrapper
+
 
 class DBInterface:
     conn = None
     
     def __init__(self):
         settings = self._load_db_settings()
-        Session = sessionmaker(bind=engine)
         self.session = Session()
-        
+
     def _load_db_settings(self) -> dict:
         with open(os.path.join(secret_path, 'app.config'), 'r') as f:
             return json.load(f)
@@ -34,6 +42,7 @@ class DBInterface:
     def update(self, model: Model):
         self.session.commit()
 
+    @refresh_session
     def insert(self, model):
         if isinstance(model, AccountManager):
             self._insert_manager(model)
@@ -58,6 +67,7 @@ class DBInterface:
     def commit(self):
         self.session.commit()
 
+    @refresh_session
     def delete(self, model):
         self.session.delete(model)
         self.session.commit()
@@ -65,6 +75,7 @@ class DBInterface:
     def __del__(self):
         self.session.close()
 
+    @refresh_session
     def get_user_from_token(self, access_token: str) -> AccountManager:
         matching_token: Oauth2Token = self.session.query(Oauth2Token)\
             .filter(Oauth2Token.access_token == access_token).first()

@@ -56,7 +56,7 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
     const initSubscribed = user.isSubscribed;
 
     const validate = () => {
-        if(!/[\w\-_ ]+/.test(user.fullName)) {
+        if(!/[\w\-_ ]+/.test(user.fullName.trim())) {
             setFullNameError("Must enter a full name");
             return false;
         }

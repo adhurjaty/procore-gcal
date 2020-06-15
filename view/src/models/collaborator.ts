@@ -1,7 +1,7 @@
 import { UserItem } from "./interfaces";
 
 export default class Collaborator {
-    id: number = -1;
+    id: string = "";
     email: string = "";
     name: string = "";
     isPending: boolean = true;

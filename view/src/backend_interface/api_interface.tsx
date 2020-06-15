@@ -138,7 +138,7 @@ export function getEmailSettings(): EmailSetting[] {
 
 export async function getCollaborator(id: string): Promise<Collaborator> {
     let collab = {
-        id: parseInt(id),
+        id: id,
         name: 'Carl Contractor',
         email: 'ccontractor@example.com'
     };
@@ -155,14 +155,15 @@ export async function createNewUser(user: User) : Promise<StatusMessage> {
 }
 
 export async function updateUser(user: User) : Promise<StatusMessage> {
-    return sendStatusRequest(new Request(API_USER('' + user.id), {
+    return sendStatusRequest(new Request(API_USER(user.id), {
         method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(user.toJson()),
     }));
 }
 
 export async function deleteUser(user: User) : Promise<StatusMessage> {
-    return sendStatusRequest(new Request(API_USER('' + user.id), {
+    return sendStatusRequest(new Request(API_USER(user.id), {
         method: 'DELETE'
     }));
 }

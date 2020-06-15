@@ -25,6 +25,8 @@ class Controller:
     def update_user(self, user: UserDto, user_data=None):
         if user_data:
             self._update_user_fields(user, **user_data)
+
+        user.temporary = False
         self.use_case.update_user(user)
 
     def _update_user_fields(self, user: AccountManagerDto, email='', fullName='', 
@@ -34,12 +36,12 @@ class Controller:
         user.email = email or user.email
         user.full_name = fullName or user.full_name
         user.gcal_data.calendar_id = selectedCalendar or user.gcal_data.calendar_id
-        user.procore_data.calendar_event_types = [
-            {'name': t.get('name'), 'enabled': t.get('enabled')} for t in eventTypes
-         ] or user.procore_data.calendar_event_types
+        if eventTypes:
+            user.set_event_settings(eventTypes)
+        if emailSettings:
+            user.set_email_settings(emailSettings)
         user.set_collaborators([Person(**c) for c in collaborators] 
             if collaborators else user.collaborators)
-        user.procore_data.email_settings = [s for s in emailSettings] or user.procore_data.email_settings
         user.subscribed = bool(isSubscribed) or user.subscribed
 
     def get_users_in_project(self, project_id: int):

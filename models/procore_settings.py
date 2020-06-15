@@ -17,6 +17,12 @@ class ProcoreSettings(Base):
     }
 
     def __init__(self, name='', enabled=False):
-        self.name = name,
+        self.name = name
         self.enabled = enabled
+
+    def to_json(self):
+        return {
+            'name': self.name,
+            'enabled': self.enabled
+        }
     

@@ -12,6 +12,7 @@ from models.db_interface import DBInterface
 from models.collaborator_user import CollaboratorUser
 from models.account_manager import AccountManager
 from models.oauth2_token import Oauth2Token
+from models.application_settings import get_email_settings, get_event_settings
 
 class UseCaseInteracor:
     presenter: PresenterInterface = None
@@ -41,14 +42,30 @@ class UseCaseInteracor:
     
     def create_user(self, user: AccountManagerDto):
         model_user = user.parent
+        self._add_settings(model_user)
         self.db_int.insert(model_user)
         return model_user
+
+    def _add_settings(self, user: AccountManager):
+        def new_and_existing(existing_settings, new_settings):
+            for s in new_settings:
+                existing = next((e for e in existing_settings if e.name == s.name), None)
+                if existing:
+                    yield existing
+                else:
+                    yield s
+
+        user.procore_data.email_settings = list(new_and_existing(
+            user.procore_data.email_settings, get_email_settings()))
+        user.procore_data.calendar_event_types = list(new_and_existing(
+            user.procore_data.calendar_event_types, get_event_settings()))
 
     def update_user(self, user: UserDto) -> UserDto:
         model_user = user.parent
         if isinstance(user, AccountManagerDto):
             self._create_or_remove_collaborators(model_user)
 
+        self._add_settings(model_user)
         self.db_int.update(model_user)
         return model_user
 
