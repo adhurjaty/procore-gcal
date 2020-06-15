@@ -4,6 +4,7 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from typing import List
+from uuid import UUID
 
 from .account_manager import AccountManager
 from .collaborator_user import CollaboratorUser
@@ -26,13 +27,12 @@ class DBInterface:
         Session = sessionmaker(bind=engine)
         self.session = Session()
         
-
     def _load_db_settings(self) -> dict:
         with open(os.path.join(secret_path, 'app.config'), 'r') as f:
             return json.load(f)
         
     def update(self, model: Model):
-        pass
+        self.session.commit()
 
     def insert(self, model):
         if isinstance(model, AccountManager):
@@ -77,53 +77,10 @@ class DBInterface:
             .filter(AccountManager.procore_settings_id == data.id).first()
         return manager_result
 
-    def _get_manager_info(self, token: dict, cur):
-        query = self._manager_base_query('WHERE ot.access_token = %(access_token)s')
-        cur.execute(query, {'access_token': token})
-        return cur.fetchone()
-
-    def _manager_base_query(self, where_clause: str):
-        return f'''SELECT am.*, u.email, u.full_name, ot.access_token, ot.refresh_token, 
-            ot.token_type, ot.expires_at, ps.id AS procore_id, cs.calendar_id,
-            cot.access_token AS gcal_access_token, cot.refresh_token AS gcal_refresh_token, 
-            cot.token_type AS gcal_token_type, cot.expires_at AS gcal_token_type,
-            u.temporary
-            FROM Oauth2Tokens ot
-            INNER JOIN ProcoreSettings ps ON ot.id = ps.token_id
-            INNER JOIN AccountManagers am ON am.procore_settings_id = ps.id
-            INNER JOIN Users u ON am.user_id = u.id
-            INNER JOIN CalendarSettings cs ON cs.id = u.gcal_settings_id
-            INNER JOIN Oauth2Tokens cot ON cs.token_id = cot.id
-            {where_clause}
-        '''
-
-    def _manager_from_result(self, manager_result, cur):
-        manager = self._fill_base_manager(AccountManager(), manager_result)
-        
-        manager.procore_data.calendar_event_types = self._get_calendar_event_settings(
-            manager_result['procore_id'], cur)
-
-        manager.procore_data.email_settings = self._get_email_settings(
-            manager_result['procore_id'], cur)
-
-        return manager
-
-    def _fill_base_manager(self, manager: AccountManager, manager_result) -> AccountManager:
-        manager.id = manager_result['id']
-        manager.email = manager_result['email']
-        manager.full_name = manager_result['full_name']
-        manager.project_id = manager_result['project_id']
-        manager.subscribed = manager_result['subscribed']
-        manager.trial_start = manager_result['trial_start']
-        manager.payment_id = manager_result['payment_id']
-        manager.temporary = manager_result['temporary']
-        manager.procore_data.set_token(**manager_result)
-        manager.gcal_data.calendar_id = manager_result['calendar_id']
-        manager.gcal_data.set_token(**{k.lstrip('gcal_'): v 
-            for k, v in manager_result if k.startswith('gcal_')})
-
-        return manager
-
+    def get_manager_collaborators(self, manager_id: UUID):
+        return self.session.query(CollaboratorUser)\
+            .filter(CollaboratorUser.manager_id == manager_id).all()
+    
     def _get_calendar_event_settings(self, procore_id: str, cur) -> dict:
         query = '''SELECT ces.name, uces.enabled FROM CalendarEventSettings ces
             INNER JOIN UserCalendarEventSettings uces ON ces.id = uces.event_id

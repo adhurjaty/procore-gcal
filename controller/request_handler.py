@@ -61,9 +61,13 @@ def create_app(cont: Controller) -> Flask:
 @auth.verify_token
 def verify_token(token):
     token = extract_token(token)
+    if not token:
+        return None
+
     user = controller.get_user_from_token(token)
     if not user:
         return None
+
     g.user = user
     return user
 
@@ -150,10 +154,8 @@ def _parse_webhook(data: dict) -> dict:
 
 
 @app.route(GCAL_LOGIN_ROUTE)
-@auth.login_required
 def gcal_login():
-    auth_token = g.user.procore_data.token.access_token
-    token_param = f'auth_token={auth_token}'
+    auth_token = extract_token(request.args.get('auth_token'))
 
     redirect_uri = url_for('gcal_authorize', _external=True)
     return oauth.gcal.authorize_redirect(redirect_uri, state=auth_token, 

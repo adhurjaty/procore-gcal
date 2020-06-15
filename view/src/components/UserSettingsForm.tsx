@@ -17,7 +17,7 @@ const Container = styled.div`
     flex-direction: column;
 `
 
-const CalendarSelector = styled.select`
+const ItemSelector = styled.select`
     min-width: 200px;
 `;
 
@@ -139,6 +139,13 @@ function ProjectsSection({user}: {user: User}): JSX.Element {
     const initProject = user.projects.find(x => x.id == user.projectId) 
         ?? user.projects.find(x => true);
     const [selectedProject, setSelectedProject] = useState(initProject)
+
+    useEffect(() => {
+        if(selectedProject) {
+            user.projectId = selectedProject.id;
+        }
+    }, [selectedProject])
+
     return (
         <InputSection>
             <InputLabel>Procore Projects:</InputLabel>
@@ -173,17 +180,17 @@ function CalendarSection({user, error}: {user: User, error: string}): JSX.Elemen
     );
 }
 
-function renderNamedDropdown(calendars: NamedItem[], selectedCalendar: NamedItem, 
-    setSelectedCalendar: (c: NamedItem) => void) 
+function renderNamedDropdown(items: NamedItem[], selectedItem: NamedItem, 
+    setSelectedItem: (c: NamedItem) => void) 
 {
     const onSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newCal = calendars.find(c => c.id === parseInt(e.target.value));
-        setSelectedCalendar(newCal as NamedItem);
+        const newCal = items.find(c => c.id === parseInt(e.target.value));
+        setSelectedItem(newCal as NamedItem);
     }
 
     return (
-        <CalendarSelector onChange={onSelect} value={selectedCalendar.id}>
-            {calendars.map((c, i) => {
+        <ItemSelector onChange={onSelect} value={selectedItem.id}>
+            {items.map((c, i) => {
                 return (
                     <option key={`${c.id}-${i}`}
                         value={c.id}>
@@ -191,7 +198,7 @@ function renderNamedDropdown(calendars: NamedItem[], selectedCalendar: NamedItem
                     </option>
                 )
             })}
-        </CalendarSelector>
+        </ItemSelector>
     );
 }
 
