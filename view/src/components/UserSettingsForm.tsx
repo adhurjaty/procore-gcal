@@ -11,6 +11,7 @@ import Collaborator from '../models/collaborator';
 import { PayPalButton } from "react-paypal-button-v2";
 import { API_USER, GCAL_USER_LOGIN_URL } from '../AppSettings';
 import { Heading, SettingsForm, InputSection, InputLabel, FieldError } from './GlobalStyles';
+import Flash from './Flash';
 
 const Container = styled.div`
     display: flex;

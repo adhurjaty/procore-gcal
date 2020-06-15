@@ -5,11 +5,12 @@ import {
     Route,
     Link
   } from "react-router-dom";
-import { LOGIN_ROUTE, USER_SETTINGS_ROUTE, COLLABORATOR_ROUTE, NEW_USER_ROUTE } from './Routes';
+import { LOGIN_ROUTE, USER_SETTINGS_ROUTE, COLLABORATOR_ROUTE, NEW_USER_ROUTE, TESTBED_ROUTE } from './Routes';
 import Login from './pages/Login';
 import EditUser from './pages/EditUser';
 import CollaboratorRegister from './pages/CollaboratorRegister';
 import NewUser from './pages/NewUser';
+import TestBed from './pages/TestBed';
 
 function AppRouter(): JSX.Element {
     return (
@@ -26,6 +27,9 @@ function AppRouter(): JSX.Element {
                 </Route>
                 <Route path={COLLABORATOR_ROUTE}>
                     <CollaboratorRegister />
+                </Route>
+                <Route path={TESTBED_ROUTE}>
+                    <TestBed />
                 </Route>
             </Switch>
         </Router>
