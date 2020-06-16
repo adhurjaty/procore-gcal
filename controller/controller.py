@@ -60,9 +60,7 @@ class Controller:
 
     def init_user(self, token: dict) -> AccountManagerDto:
         user = self.use_case.get_procore_user_info(token)
-        user.temporary = True
-
-        self.use_case.create_user(user)
+        self.use_case.get_or_create_user(user)
 
         return user
 

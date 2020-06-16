@@ -5,6 +5,7 @@ import { getUserSettings, updateUser, deleteUser } from '../backend_interface/ap
 import UserSettingsForm from '../components/UserSettingsForm';
 import User from '../models/user';
 import { USER_SETTINGS_ROUTE } from '../Routes';
+import Cookies from 'js-cookie'
 
 const DeleteUserButton = styled.button`
     background-color: red
@@ -29,6 +30,10 @@ function EditUser(): JSX.Element {
                 window.history.pushState('user page', 'user page', url);
             }
         })
+        .catch((error) => {
+            Cookies.remove('auth_token');
+            window.location.href = '/';
+        });
     }, [])
 
     return (

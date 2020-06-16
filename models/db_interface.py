@@ -10,6 +10,7 @@ from .account_manager import AccountManager
 from .collaborator_user import CollaboratorUser
 from .oauth2_token import Oauth2Token
 from .procore_user_settings import ProcoreUserSettings
+from .user import User
 from .model import Model
 
 secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
@@ -34,25 +35,22 @@ class DBInterface:
         session.commit()
 
     def insert(self, model):
-        if isinstance(model, AccountManager):
-            self._insert_manager(model)
-        else:
-            session.add(model)
+        session.add(model)
         session.commit()
     
-    def _insert_manager(self, manager: AccountManager):
-        self._insert_or_update(manager.procore_data.token)
-        self._insert_or_update(manager.procore_data)
-        if manager.gcal_data.token.access_token:
-            self._insert_or_update(manager.gcal_data.token)
-            self._insert_or_update(manager.gcal_data)
-        session.add(manager)
+    # def _insert_manager(self, manager: AccountManager):
+    #     self._insert_or_update(manager.procore_data.token)
+    #     self._insert_or_update(manager.procore_data)
+    #     if manager.gcal_data.token.access_token:
+    #         self._insert_or_update(manager.gcal_data.token)
+    #         self._insert_or_update(manager.gcal_data)
+    #     session.add(manager)
 
-    def _insert_or_update(self, model):
-        if model.id:
-            self.update(model)
-        else:
-            self.insert(model)
+    # def _insert_or_update(self, model):
+    #     if model.id:
+    #         self.update(model)
+    #     else:
+    #         self.insert(model)
 
     def delete(self, model):
         session.delete(model)
@@ -69,6 +67,14 @@ class DBInterface:
         manager_result: AccountManager = session.query(AccountManager)\
             .filter(AccountManager.procore_settings_id == data.id).first()
         return manager_result
+
+    def get_user_from_email(self, email: str) -> AccountManager:
+        user = session.query(User)\
+            .filter(User.email == email).first()
+        if not user:
+            return None
+        return session.query(AccountManager)\
+            .filter(AccountManager.id == user.id).first()
 
     def get_manager_collaborators(self, manager_id: UUID):
         return session.query(CollaboratorUser)\

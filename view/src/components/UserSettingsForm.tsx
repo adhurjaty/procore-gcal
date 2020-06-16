@@ -57,6 +57,9 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
     const initSubscribed = user.isSubscribed;
 
     const validate = () => {
+        setFullNameError('');
+        setCalendarError('');
+
         if(!/[\w\-_ ]+/.test(user.fullName.trim())) {
             setFullNameError("Must enter a full name");
             return false;
@@ -72,6 +75,9 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
     };
     
     const handleSubmit = (evt: React.MouseEvent) => {
+        setRequestErrorMessage('');
+        setSuccessMessage('');
+
         if(!validate()) {
             return;
         }
@@ -82,7 +88,11 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
                     setRequestErrorMessage(result.message);
                 } else {
                     setSuccessMessage(result.message);
+                    window.scrollTo(0, 0);
                 }
+            })
+            .catch((error) => {
+                setRequestErrorMessage(error);
             });
     }
     

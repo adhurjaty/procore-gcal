@@ -26,8 +26,8 @@ export default function Flash({visibility, isSuccess, message}:
     {visibility: boolean, isSuccess: boolean, message: string}) : JSX.Element
 {
     const content = (
-        isSuccess ? <SuccessContainer>message</SuccessContainer>
-            : <ErrorContainer>message</ErrorContainer>
+        isSuccess ? <SuccessContainer>{message}</SuccessContainer>
+            : <ErrorContainer>{message}</ErrorContainer>
     );
     return (
         visibility ? content : <div></div>

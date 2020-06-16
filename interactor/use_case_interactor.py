@@ -40,9 +40,14 @@ class UseCaseInteracor:
         emails = [c.email for c in collaborators]
         return [UserResponse(c) for c in self.db_int.get_collaborators_from_emails(emails)]
     
-    def create_user(self, user: AccountManagerDto):
+    def get_or_create_user(self, user: AccountManagerDto) -> AccountManagerDto:
+        user.parent = self.db_int.get_user_from_email(user.email) or self._create_user(user)
+        return user
+        
+    def _create_user(self, user: AccountManagerDto):
         model_user = user.parent
         self._add_settings(model_user)
+        model_user.temporary = True
         self.db_int.insert(model_user)
         return model_user
 

@@ -19,7 +19,7 @@ class AccountManagerDto(UserDto):
         super().__init__(parent)
 
     def set_procore_token(self, token: dict):
-        self.procore_data.token = token
+        self.procore_data.set_token(token)
 
     @property
     def procore_data(self):

@@ -88,27 +88,21 @@ def extract_token(token_str: str):
     return token_str[idx+1:]
 
 
-@app.route(INDEX_ROUTE)
-def hello_world():
-    return 'Hello world!'
-
-
 @app.route(LOGIN_ROUTE)
 def login():
     redirect_uri = url_for('authorize', _external=True)
     return oauth.procore.authorize_redirect(redirect_uri)
 
+
 @app.route(PROCORE_AUTH_ROUTE)
 def authorize():
     token = oauth.procore.authorize_access_token()
-    user = controller.get_user_from_token(token.get('access_token'))
 
     try: 
-        if user:
+        user = controller.init_user(token)
+        if not user.temporary:
             user.set_procore_token(token)
             controller.update_user(user)
-        else:
-            user = controller.init_user(token)
 
         return _redirect_to_manager_page(user, token.get('access_token'))
     except Exception as e:
@@ -253,14 +247,14 @@ def delete_user(user_id):
 
 def _show_success():
     return {
-        'result': 'success',
+        'status': 'success',
         'message': 'success'
     }
 
 
 def _show_error(error_text, code=400):
     return {
-        'result': 'error',
+        'status': 'error',
         'message': error_text
     }, code
 
