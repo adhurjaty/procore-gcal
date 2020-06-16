@@ -6,15 +6,19 @@ from models.account_manager import AccountManager
 from models.collaborator_user import CollaboratorUser
 
 class AccountManagerResponse(UserResponse):
-    collaborators: List[UserResponse] = []
     calendars: List[NamedItem] = []
     projects: List[NamedItem] = []
 
-    def __init__(self, parent):
+    def __init__(self, parent: AccountManager):
         super().__init__(parent)
 
-    def set_collaborators(self, collaborators: List[CollaboratorUser]):
-        self.collaborators = [UserResponse(c) for c in collaborators]
+    @property
+    def collaborators(self):
+        return [UserResponse(c) for c in self.parent.collaborators]
+
+    @collaborators.setter
+    def collaborators(self, collabs: List[UserResponse]):
+        self.parent.collaborators = [r.parent for r in collabs]
 
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)

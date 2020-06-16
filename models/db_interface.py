@@ -18,37 +18,27 @@ with open(os.path.join(secret_path, 'app.config'), 'r') as f:
 config = {k.lstrip('DB_').lower(): v for k, v in config.items() if k.startswith('DB_')}
 engine = create_engine(f'postgresql://{config.get("username")}:{config.get("password")}' + \
     f'@localhost:{config.get("port")}/{config.get("name")}')
-Session = sessionmaker(bind=engine)
 
-
-def refresh_session(fn):
-    def wrapper(self, *args, **kwargs):
-        self.session = Session()
-        return fn(self, *args, **kwargs)
-    return wrapper
-
+createSession = sessionmaker(bind=engine)
+session = None
 
 class DBInterface:
-    conn = None
-    
     def __init__(self):
         settings = self._load_db_settings()
-        self.session = Session()
 
     def _load_db_settings(self) -> dict:
         with open(os.path.join(secret_path, 'app.config'), 'r') as f:
             return json.load(f)
         
     def update(self, model: Model):
-        self.session.commit()
+        session.commit()
 
-    @refresh_session
     def insert(self, model):
         if isinstance(model, AccountManager):
             self._insert_manager(model)
         else:
-            self.session.add(model)
-        self.session.commit()
+            session.add(model)
+        session.commit()
     
     def _insert_manager(self, manager: AccountManager):
         self._insert_or_update(manager.procore_data.token)
@@ -56,7 +46,7 @@ class DBInterface:
         if manager.gcal_data.token.access_token:
             self._insert_or_update(manager.gcal_data.token)
             self._insert_or_update(manager.gcal_data)
-        self.session.add(manager)
+        session.add(manager)
 
     def _insert_or_update(self, model):
         if model.id:
@@ -64,62 +54,49 @@ class DBInterface:
         else:
             self.insert(model)
 
-    def commit(self):
-        self.session.commit()
-
-    @refresh_session
     def delete(self, model):
-        self.session.delete(model)
-        self.session.commit()
+        session.delete(model)
+        session.commit()
 
-    def __del__(self):
-        self.session.close()
-
-    @refresh_session
     def get_user_from_token(self, access_token: str) -> AccountManager:
-        matching_token: Oauth2Token = self.session.query(Oauth2Token)\
+        matching_token: Oauth2Token = session.query(Oauth2Token)\
             .filter(Oauth2Token.access_token == access_token).first()
         if not matching_token:
             return None
 
-        data: ProcoreUserSettings = self.session.query(ProcoreUserSettings)\
+        data: ProcoreUserSettings = session.query(ProcoreUserSettings)\
             .filter(ProcoreUserSettings.token_id == matching_token.id).first()
-        manager_result: AccountManager = self.session.query(AccountManager)\
+        manager_result: AccountManager = session.query(AccountManager)\
             .filter(AccountManager.procore_settings_id == data.id).first()
         return manager_result
 
     def get_manager_collaborators(self, manager_id: UUID):
-        return self.session.query(CollaboratorUser)\
+        return session.query(CollaboratorUser)\
             .filter(CollaboratorUser.manager_id == manager_id).all()
     
-    def _get_calendar_event_settings(self, procore_id: str, cur) -> dict:
-        query = '''SELECT ces.name, uces.enabled FROM CalendarEventSettings ces
-            INNER JOIN UserCalendarEventSettings uces ON ces.id = uces.event_id
-            WHERE uces.procore_id = %(procore_id)s
-        '''
-        cur.execute(query, {'procore_id': procore_id})
-        calendar_settings = cur.fetchall()
+    # def _get_calendar_event_settings(self, procore_id: str, cur) -> dict:
+    #     query = '''SELECT ces.name, uces.enabled FROM CalendarEventSettings ces
+    #         INNER JOIN UserCalendarEventSettings uces ON ces.id = uces.event_id
+    #         WHERE uces.procore_id = %(procore_id)s
+    #     '''
+    #     cur.execute(query, {'procore_id': procore_id})
+    #     calendar_settings = cur.fetchall()
 
-        return {s['name']: s['enabled'] for s in calendar_settings}
+    #     return {s['name']: s['enabled'] for s in calendar_settings}
 
-    def _get_email_settings(self, procore_id: str, cur) -> dict:
-        query = '''SELECT es.name, ues.enabled FROM EmailSettings es
-            INNER JOIN UserEmailSettings ues ON es.id = ues.setting_id
-            WHERE ues.procore_id = %(procore_id)s
-        '''
-        cur.execute(query, {'procore_id': procore_id})
-        email_settings = cur.fetchall()
+    # def _get_email_settings(self, procore_id: str, cur) -> dict:
+    #     query = '''SELECT es.name, ues.enabled FROM EmailSettings es
+    #         INNER JOIN UserEmailSettings ues ON es.id = ues.setting_id
+    #         WHERE ues.procore_id = %(procore_id)s
+    #     '''
+    #     cur.execute(query, {'procore_id': procore_id})
+    #     email_settings = cur.fetchall()
 
-        return {s['name']: s['enabled'] for s in email_settings}
+    #     return {s['name']: s['enabled'] for s in email_settings}
 
     def get_users_from_project_id(self, project_id: int) -> List[AccountManager]:
-        cur = self.conn.cursor()
-
-        query = self._manager_base_query('WHERE am.project_id = %(project_id)d')
-        cur.execute(query, {'project_id': project_id})
-        manager_results = cur.fetchall()
-
-        return [self._manager_from_result(result) for result in manager_results]
+        return session.query(AccountManager)\
+            .filter(AccountManager.project_id == project_id).all()
 
 
     def get_user_collaborators(self, user) -> List[CollaboratorUser]:

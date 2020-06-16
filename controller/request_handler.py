@@ -9,6 +9,7 @@ from .api_endpoints import *
 from .controller import Controller
 import controller.server_connector as connector
 from util.utils import parallel_for, build_url
+import models.db_interface as db_int
 
 
 API_VERSION = 'v2'
@@ -57,6 +58,16 @@ def create_app(cont: Controller) -> Flask:
 
     return app
 
+@app.before_request
+def start_db_session():
+    # HACK: don't love the fact that I'm reaching into the DB interface
+    db_int.session = db_int.createSession()
+    g.session = db_int.session
+
+@app.after_request
+def close_db_session(resp):
+    g.session.close()
+    return resp
 
 @auth.verify_token
 def verify_token(token):
