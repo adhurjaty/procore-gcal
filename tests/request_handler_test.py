@@ -78,13 +78,6 @@ def collab_controller_mock(controller_mock) -> ControllerMock:
     controller_mock.get_collaborator = lambda x: collab
     
     return controller_mock
-    
-
-def test_hello_world(test_client):
-    response = test_client.get(rh.INDEX_ROUTE)
-    
-    assert response.status_code == 200
-    assert response.data == b'Hello world!'
 
 
 def test_login(test_client, procore_oauth_mock):
@@ -103,8 +96,12 @@ def test_authorize_login(test_client, procore_oauth_mock, controller_mock):
     }
     procore_oauth_mock.set_token(sample_token)
 
-    manager = sample_account_mananger()
-    controller_mock.set_manager(manager)
+    def get_user(token):
+        user = sample_account_mananger()
+        user.temporary = True
+        return user
+
+    controller_mock.init_user = get_user
 
     resp = test_client.get(rh.PROCORE_AUTH_ROUTE, follow_redirects=False)
 
@@ -186,8 +183,7 @@ def test_submittal_webhook(test_client, controller_mock):
 
 
 def test_gcal_login(test_client, user_controller_mock, gcal_oauth_mock):
-    user_controller_mock.manager.procore_data.access_token = 'accesstoken'
-    test_client.get(rh.GCAL_LOGIN_ROUTE, follow_redirects=False)
+    test_client.get(f'{rh.GCAL_LOGIN_ROUTE}?auth_token=accesstoken', follow_redirects=False)
 
     assert gcal_oauth_mock.redirect_uri == f'http://localhost{rh.GCAL_AUTH_ROUTE}'
 
@@ -282,7 +278,8 @@ def test_update_user(test_client, user_controller_mock):
 
     user_controller_mock.update_user = test_update 
 
-    test_client.patch('/api/users/69', json=test_data)
+    test_client.patch('/api/users/69', json=test_data, 
+        headers={'Authorization': 'Bearer token'})
 
     assert verifications.user == user_controller_mock.manager
     assert verifications.data == test_data
@@ -297,7 +294,7 @@ def test_delete_user(test_client, user_controller_mock):
 
     user_controller_mock.delete_user = test_delete 
 
-    test_client.delete('/api/users/69')
+    test_client.delete('/api/users/69', headers={'Authorization': 'Bearer token'})
 
     assert verifications.user_id == '69'
 
@@ -333,7 +330,8 @@ def test_get_account_manager(test_client, user_controller_mock):
         
     user_controller_mock.get_manager = get_manager
 
-    resp = test_client.get('/api/users/44')
+    resp = test_client.get('/api/users/44', 
+        headers={'Authorization': 'Bearer token'})
 
     assert resp.status_code == 200
     assert resp.json['test'] == 'succeed'

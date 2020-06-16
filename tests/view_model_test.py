@@ -588,6 +588,7 @@ def test_get_manager_vm():
             'id': 'iuyo',
             'name': 'something'
         }],
+        'isGcalLoggedIn': True,
         'selectedCalendar': 'asdfg',
         'eventTypes': [{'name': 'foo', 'enabled': True}, {'name': 'bar', 'enabled': False}],
         'collaborators': [{'id': 23, 'name': 'Kermit'}],
@@ -595,7 +596,7 @@ def test_get_manager_vm():
             {'name': 'other', 'enabled': False}],
         'temporary': False,
         'isSubscribed': True,
-        'project_id': 77,
+        'projectId': 77,
         'projects': [{'id': 88, 'name': 'p1'}, {'id': 77, 'name': 'p2'}],
     }
 

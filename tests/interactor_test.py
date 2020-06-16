@@ -357,7 +357,7 @@ def test_get_procore_user_info(test_interactor, presenter_mock, sample_user):
     def get_user(token):
         validations.token = token
         return {
-            'email': 'anil@example.com',
+            'login': 'anil@example.com',
             'name': 'anil'
         }
 

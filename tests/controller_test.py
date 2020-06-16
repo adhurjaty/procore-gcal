@@ -206,12 +206,12 @@ def test_init_user(test_controller, use_case_mock, sample_user):
     def get_user_info(t):
         return sample_user
 
-    def create_user(user):
+    def get_or_create_user(user):
         validations.user = user
         return user
 
     use_case_mock.get_procore_user_info = get_user_info
-    use_case_mock.create_user = create_user
+    use_case_mock.get_or_create_user = get_or_create_user
 
     user = test_controller.init_user(token)
     
@@ -297,6 +297,7 @@ def test_set_manager_selections(test_presenter, vm_factory_mock, sample_user):
     vm_factory_mock.create_gcal_vm = lambda u: gcal_vm_mock
     
     user = AccountManagerResponse(sample_user.parent)
+    user.gcal_data.token.access_token = 'token'
 
     def get_company_ids():
         return [1, 2]

@@ -91,8 +91,8 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
                     window.scrollTo(0, 0);
                 }
             })
-            .catch((error) => {
-                setRequestErrorMessage(error);
+            .catch((error: Error) => {
+                setRequestErrorMessage("Not authorized - please refresh the page");
             });
     }
     

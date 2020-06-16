@@ -2,6 +2,7 @@ from typing import List
 
 from .user_response import UserResponse
 from .named_item import NamedItem
+from .procore_settings_dto import ProcoreSettingsDto
 from models.account_manager import AccountManager
 from models.collaborator_user import CollaboratorUser
 
@@ -19,6 +20,10 @@ class AccountManagerResponse(UserResponse):
     @collaborators.setter
     def collaborators(self, collabs: List[UserResponse]):
         self.parent.collaborators = [r.parent for r in collabs]
+
+    @property
+    def procore_data(self):
+        return ProcoreSettingsDto(self.parent.procore_data)
 
     def set_procore_token(self, token: dict):
         self.procore_data.set_token(**token)
