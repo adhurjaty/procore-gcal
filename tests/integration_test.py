@@ -109,15 +109,15 @@ def live_user(sample_user):
     sample_user.project_id = 18918
     with open(os.path.join(test_path.parent, 'secrets', 'temp.json'), 'r') as f:
         secrets = json.load(f)
-    sample_user.procore_data.access_token = secrets['procore_access_token']
-    sample_user.procore_data.refresh_token = secrets['procore_refresh_token']
-    sample_user.procore_data.expires_at = secrets['procore_expires_at']
-    sample_user.procore_data.token_type = 'Bearer'
-    sample_user.gcal_data.access_token = secrets['gcal_access_token']
-    sample_user.gcal_data.refresh_token = secrets['gcal_refresh_token']
+    sample_user.procore_data.token.access_token = secrets['procore_access_token']
+    sample_user.procore_data.token.refresh_token = secrets['procore_refresh_token']
+    sample_user.procore_data.token.expires_at = secrets['procore_expires_at']
+    sample_user.procore_data.token.token_type = 'Bearer'
+    sample_user.gcal_data.token.access_token = secrets['gcal_access_token']
+    sample_user.gcal_data.token.refresh_token = secrets['gcal_refresh_token']
     sample_user.gcal_data.calendar_id = secrets['calendar_id']
-    sample_user.gcal_data.expires_at = secrets['gcal_expires_at']
-    sample_user.gcal_data.token_type = 'Bearer'
+    sample_user.gcal_data.token.expires_at = secrets['gcal_expires_at']
+    sample_user.gcal_data.token.token_type = 'Bearer'
     return sample_user
 
 
@@ -172,8 +172,9 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
 
 #     db_mock.get_users_from_project_id = lambda pid: [live_user]
 
-#     live_client.post('/api/webhook_handler', json=webhook)
+#     resp = live_client.post('/api/webhook_handler', json=webhook)
 
+#     assert resp.status_code == 200
 #     assert True == False
 
 
