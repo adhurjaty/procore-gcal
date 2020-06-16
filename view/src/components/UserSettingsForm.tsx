@@ -89,6 +89,9 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
     return (
         <Container>
             <Heading>User Settings</Heading>
+            <Flash visibility={!!successMessage} 
+                   isSuccess={true} 
+                   message={successMessage} />
             <SettingsForm onSubmit={e => e.preventDefault()}>
                 <EmailSection user={user} />
                 <NameSection user={user} error={fullNameError} />
@@ -103,6 +106,9 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
 
                 {children}
 
+                <Flash visibility={!!requestErrorMessage} 
+                       isSuccess={false} 
+                       message={requestErrorMessage} />
                 <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
             </SettingsForm>
         </Container>

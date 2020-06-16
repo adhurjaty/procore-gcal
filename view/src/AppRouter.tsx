@@ -11,6 +11,7 @@ import EditUser from './pages/EditUser';
 import CollaboratorRegister from './pages/CollaboratorRegister';
 import NewUser from './pages/NewUser';
 import TestBed from './pages/TestBed';
+import NotFound from './pages/NotFound';
 
 function AppRouter(): JSX.Element {
     return (
@@ -30,6 +31,9 @@ function AppRouter(): JSX.Element {
                 </Route>
                 <Route path={TESTBED_ROUTE}>
                     <TestBed />
+                </Route>
+                <Route>
+                    <NotFound />
                 </Route>
             </Switch>
         </Router>

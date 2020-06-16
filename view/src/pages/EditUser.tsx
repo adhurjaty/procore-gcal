@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { getUserSettings, updateUser, deleteUser } from '../backend_interface/api_interface';
 import UserSettingsForm from '../components/UserSettingsForm';
 import User from '../models/user';
+import { USER_SETTINGS_ROUTE } from '../Routes';
 
 const DeleteUserButton = styled.button`
     background-color: red
@@ -23,6 +24,10 @@ function EditUser(): JSX.Element {
                 isLoading: false,
                 user: user
             });
+            const url = USER_SETTINGS_ROUTE.replace(':userId', user.id);
+            if(userId != user.id) {
+                window.history.pushState('user page', 'user page', url);
+            }
         })
     }, [])
 

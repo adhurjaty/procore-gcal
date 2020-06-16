@@ -25,14 +25,11 @@ const ErrorContainer = styled(FlashContainer)`
 export default function Flash({visibility, isSuccess, message}: 
     {visibility: boolean, isSuccess: boolean, message: string}) : JSX.Element
 {
+    const content = (
+        isSuccess ? <SuccessContainer>message</SuccessContainer>
+            : <ErrorContainer>message</ErrorContainer>
+    );
     return (
-        <div>
-            <SuccessContainer>
-                {message}
-            </SuccessContainer>
-            <ErrorContainer>
-                {message}
-            </ErrorContainer>
-        </div>
+        visibility ? content : <div></div>
     )
 }

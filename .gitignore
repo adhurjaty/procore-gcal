@@ -7,3 +7,4 @@ controller/__pycache__/
 temp_db/
 node_modules/
 *.lock
+view/yarn-error.log
