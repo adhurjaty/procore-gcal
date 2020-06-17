@@ -4,9 +4,10 @@ COPY . .
 RUN yarn run build
 
 FROM node:12
-RUN yarn global add serve
 WORKDIR /usr/src/app
-COPY --from=builder /usr/src/app/build .
+COPY --from=builder /usr/src/app/build ./build
+COPY --from=builder /usr/src/app/app.js .
+RUN yarn add express
 EXPOSE 3000
-ENTRYPOINT [ "serve" ]
-CMD ["-p", "3000", "."]
+ENTRYPOINT [ "node" ]
+CMD ["app.js"]

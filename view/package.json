@@ -13,6 +13,7 @@
     "@types/react-dom": "^16.9.0",
     "@types/react-router-dom": "^5.1.5",
     "@types/styled-components": "^5.1.0",
+    "express": "^4.17.1",
     "js-cookie": "^2.2.1",
     "picnic": "^6.5.2",
     "react": "^16.13.1",
@@ -45,5 +46,6 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5000",
+  "homepage": ""
 }
