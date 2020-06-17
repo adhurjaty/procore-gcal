@@ -18,7 +18,7 @@ with open(os.path.join(secret_path, 'app.config'), 'r') as f:
     config = json.load(f)
 config = {k.lstrip('DB_').lower(): v for k, v in config.items() if k.startswith('DB_')}
 engine = create_engine(f'postgresql://{config.get("username")}:{config.get("password")}' + \
-    f'@localhost:{config.get("port")}/{config.get("name")}')
+    f'@{config.get("host")}:{config.get("port")}/{config.get("name")}')
 
 createSession = sessionmaker(bind=engine)
 session = None

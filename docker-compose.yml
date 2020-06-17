@@ -1,12 +1,23 @@
 version: '3.8'
 
 services:
+  ui:
+    build: ./view
+    ports:
+        - 3000:3000
+    depends_on: 
+        - api
   api:
     build: .
     ports:
         - 5000:5000
+    depends_on: 
+        - postgres
   postgres:
     image: postgres
+    volumes:
+        - /var/lib/postgresql/data
+        - ./alembic/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
         - POSTGRES_DB=postgres
         - POSTGRES_USER=postgres
