@@ -100,7 +100,7 @@ def authorize():
 
     try: 
         user = controller.init_user(token)
-        if not user.temporary:
+        if user.procore_data.token.access_token != token.get('access_token'):
             user.set_procore_token(token)
             controller.update_user(user)
 
@@ -229,6 +229,7 @@ def get_user(user_id):
 @auth.login_required
 def update_user(user_id):
     try:
+        g.user.temporary = False
         controller.update_user(g.user, request.json)
         return _show_success()
     except Exception as e:

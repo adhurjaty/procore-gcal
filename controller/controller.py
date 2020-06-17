@@ -26,7 +26,6 @@ class Controller:
         if user_data:
             self._update_user_fields(user, **user_data)
 
-        user.temporary = False
         self.use_case.update_user(user)
 
     def _update_user_fields(self, user: AccountManagerDto, email='', fullName='', 
