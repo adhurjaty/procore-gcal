@@ -44,53 +44,6 @@ export async function getUserSettings(userId: string): Promise<User> {
     const response = await sendRequest(new Request(API_USER(userId), {
         method: 'GET'
     }));
-    // let response = {
-    //     id: 4,
-    //     email: "adhurjaty@gmail.com",
-    //     fullName: "Anil Dhurjaty",
-    //     calendars: [
-    //         {
-    //             name: "Personal Calendar",
-    //             id: 0
-    //         },
-    //         {
-    //             name: "Other Calendar",
-    //             id: 1
-    //         }
-    //     ],
-    //     selectedCalendar: 0,
-    //     eventTypes: [
-    //         {
-    //             name: "RFIs",
-    //             enabled: true,
-    //         },
-    //         {
-    //             name: "Submittals",
-    //             enabled: true,
-    //         },
-    //         {
-    //             name: "Change Orders",
-    //             enabled: false,
-    //         }
-    //     ],
-    //     collaborators: [],
-    //     emailSettings: [
-    //         {
-    //             name: "Google Calendar Events",
-    //             enabled: true
-    //         },
-    //         {
-    //             name: "Add/Remove Caldendar",
-    //             enabled: false
-    //         },
-    //         {
-    //             name: "User Updates",
-    //             enabled: false
-    //         },
-    //     ],
-    //     isSubscribed: false
-    // }
-
     return User.fromJSON(response);
 }
 
