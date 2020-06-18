@@ -1,3 +1,5 @@
+from gevent.pywsgi import WSGIServer
+
 from controller.request_handler import create_app
 from controller.controller import Controller
 from controller.presenter import Presenter
@@ -13,4 +15,6 @@ if __name__ == '__main__':
     interactor = UseCaseInteracor(presenter, db_int)
     controller = Controller(interactor)
     app = create_app(controller)
-    app.run(host='0.0.0.0')
+    server = WSGIServer(('', 5000), app)
+    server.serve_forever()
+    # app.run(host='0.0.0.0')
