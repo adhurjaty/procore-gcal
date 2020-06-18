@@ -94,6 +94,7 @@ def extract_token(token_str: str):
 @app.route(LOGIN_ROUTE)
 def login():
     redirect_uri = url_for('authorize', _external=True)
+    redirect_uri = redirect_uri.replace(PROCORE_AUTH_ROUTE, f'/api{PROCORE_AUTH_ROUTE}')
     return oauth.procore.authorize_redirect(redirect_uri)
 
 
@@ -173,6 +174,7 @@ def gcal_login():
 @app.route(GCAL_COLLABORATOR_LOGIN_ROUTE)
 def gcal_collaborator_login(collaborator_id):
     redirect_uri = url_for('gcal_authorize', _external=True, collaborator=collaborator_id)
+    redirect_uri = redirect_uri.replace(GCAL_AUTH_ROUTE, f'/api{GCAL_AUTH_ROUTE}')
     return oauth.gcal.authorize_redirect(redirect_uri)
 
 
