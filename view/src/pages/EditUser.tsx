@@ -30,11 +30,10 @@ function EditUser(): JSX.Element {
                 window.history.pushState('user page', 'user page', url);
             }
         })
-        // .catch((error) => {
-        //     Cookies.remove('auth_token');
-        //     console.log(error);
-        //     // window.location.href = '/';
-        // });
+        .catch((error) => {
+            Cookies.remove('auth_token');
+            window.location.href = '/';
+        });
     }, [])
 
     return (

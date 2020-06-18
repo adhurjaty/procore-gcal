@@ -14,15 +14,15 @@ import models.db_interface as db_int
 
 API_VERSION = 'v2'
 
-INDEX_ROUTE = '/api'
-LOGIN_ROUTE = '/login'
-REGISTER_ROUTE = '/api/register'
-PROCORE_AUTH_ROUTE = '/authorize'
-WEBHOOK_HANDLER_ROUTE = '/api/webhook_handler'
-GCAL_LOGIN_ROUTE = '/gcal_login'
-GCAL_COLLABORATOR_LOGIN_ROUTE = '/gcal_login_collab/<collaborator_id>'
-GCAL_AUTH_ROUTE = '/gcal_authorize'
-USER_ROUTE = '/api/users/<user_id>'
+INDEX_ROUTE = ''
+LOGIN_ROUTE = f'{INDEX_ROUTE}/login'
+REGISTER_ROUTE = f'{INDEX_ROUTE}/register'
+PROCORE_AUTH_ROUTE = f'{INDEX_ROUTE}/authorize'
+WEBHOOK_HANDLER_ROUTE = f'{INDEX_ROUTE}/webhook_handler'
+GCAL_LOGIN_ROUTE = f'{INDEX_ROUTE}/gcal_login'
+GCAL_COLLABORATOR_LOGIN_ROUTE = f'{INDEX_ROUTE}/gcal_login_collab/<collaborator_id>'
+GCAL_AUTH_ROUTE = f'{INDEX_ROUTE}/gcal_authorize'
+USER_ROUTE = f'{INDEX_ROUTE}/users/<user_id>'
 
 
 app = Flask(__name__)
@@ -34,7 +34,10 @@ oauth: OAuth = None
 def create_app(cont: Controller) -> Flask:
     global app, auth, controller, oauth
 
-    CORS(app, origins=[r'https?:\/\/[^\/]+\.procore\.com.*', r'https?:\/\/localhost[^\.]*$'])
+    CORS(app, origins=[
+        r'https?:\/\/[^\/]+\.procore\.com.*', 
+        r'https?:\/\/localhost[^\.]*$',
+        r'https?:\/\/ui[^\.]*$'])
 
     config_file = 'secrets/app.config'
     with open(config_file, 'r') as f:
