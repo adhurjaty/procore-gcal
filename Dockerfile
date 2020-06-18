@@ -12,5 +12,3 @@ RUN rm secrets/app.config && \
     mv secrets/app.config.prod secrets/app.config && \
     rm alembic.ini && \
     mv alembic.ini.prod alembic.ini
-ENTRYPOINT [ "python" ]
-CMD [ "main.py" ]
