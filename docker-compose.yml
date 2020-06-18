@@ -11,7 +11,7 @@ services:
         - 5000:5000
     depends_on: 
         - postgres
-    command: bash -c "./wait-for-it.sh db:5432 && alembic upgrade head && python main.py"
+    command: bash -c "./wait-for-it.sh postgres:5432 && alembic upgrade head && python main.py"
   postgres:
     image: postgres
     volumes:
