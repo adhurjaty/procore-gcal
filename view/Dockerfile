@@ -1,7 +1,7 @@
 FROM node:12 AS builder
 WORKDIR /usr/src/app
 COPY . .
-RUN yarn run build
+RUN yarn add react-scripts && yarn run build
 
 FROM node:12
 WORKDIR /usr/src/app
