@@ -3,7 +3,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 
 const proxy = require('http-proxy').createProxyServer({
-    host: 'http://localhost:5000'
+    host: 'http://api:5000'
 });
 
 const app = express();
@@ -14,9 +14,9 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 app.use('/api', function(req, res, next) {
     proxy.web(req, res, {
-        target: 'http://localhost:5000'
+        target: 'http://api:5000'
     }, next);
-})
+});
 
 app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
