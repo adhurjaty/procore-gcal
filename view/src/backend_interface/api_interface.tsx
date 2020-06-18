@@ -28,6 +28,8 @@ function withTokenHeader(req: Request): Request {
 }
 
 async function sendRequest(req: Request): Promise<any> {
+    console.log(req.url);
+    console.log(API_USER('blah'));
     const response = await fetch(withTokenHeader(req));
     return await response.json();
 }

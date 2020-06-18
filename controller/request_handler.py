@@ -34,7 +34,7 @@ oauth: OAuth = None
 def create_app(cont: Controller) -> Flask:
     global app, auth, controller, oauth
 
-    CORS(app, origins=[r'https?:\/\/[^\/]+\.procore\.com.*'])
+    CORS(app, origins=[r'https?:\/\/[^\/]+\.procore\.com.*', r'https?:\/\/localhost[^\.]*$'])
 
     config_file = 'secrets/app.config'
     with open(config_file, 'r') as f:
