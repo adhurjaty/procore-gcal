@@ -1,3 +1,4 @@
+import arrow
 import json
 
 from interactor.account_manager_dto import AccountManagerDto
@@ -42,6 +43,8 @@ class Controller:
         user.set_collaborators([Person(**c) for c in collaborators] 
             if collaborators else user.collaborators)
         user.subscribed = bool(isSubscribed) or user.subscribed
+        if not user.subscribed and user.trial_start is None:
+            user.trial_start = arrow.utcnow().datetime
 
     def get_users_in_project(self, project_id: int):
         return self.use_case.get_users_in_project(project_id)

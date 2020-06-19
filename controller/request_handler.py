@@ -31,6 +31,12 @@ controller: Controller = None
 
 oauth: OAuth = None
 
+config_file = 'secrets/app.config'
+with open(config_file, 'r') as f:
+    config_contents = f.read()
+config = json.loads(config_contents)
+
+
 def create_app(cont: Controller) -> Flask:
     global app, auth, controller, oauth
 
@@ -39,10 +45,6 @@ def create_app(cont: Controller) -> Flask:
         r'https?:\/\/localhost[^\.]*$',
         r'https?:\/\/ui[^\.]*$'])
 
-    config_file = 'secrets/app.config'
-    with open(config_file, 'r') as f:
-        config_contents = f.read()
-    config = json.loads(config_contents)
     app.config.update(**config)
 
     app.secret_key = app.config['APP_SECRET']
@@ -94,7 +96,8 @@ def extract_token(token_str: str):
 @app.route(LOGIN_ROUTE)
 def login():
     redirect_uri = url_for('authorize', _external=True)
-    redirect_uri = redirect_uri.replace(PROCORE_AUTH_ROUTE, f'/api{PROCORE_AUTH_ROUTE}')
+    if config.get('ENV') != 'development':
+        redirect_uri = redirect_uri.replace(PROCORE_AUTH_ROUTE, f'/api{PROCORE_AUTH_ROUTE}')
     return oauth.procore.authorize_redirect(redirect_uri)
 
 
@@ -167,6 +170,8 @@ def gcal_login():
     auth_token = extract_token(request.args.get('auth_token'))
 
     redirect_uri = url_for('gcal_authorize', _external=True)
+    if config.get('ENV') != 'development':
+        redirect_uri = redirect_uri.replace(GCAL_AUTH_ROUTE, f'/api{GCAL_AUTH_ROUTE}')
     return oauth.gcal.authorize_redirect(redirect_uri, state=auth_token, 
         access_type='offline', prompt='consent')
 
@@ -174,7 +179,8 @@ def gcal_login():
 @app.route(GCAL_COLLABORATOR_LOGIN_ROUTE)
 def gcal_collaborator_login(collaborator_id):
     redirect_uri = url_for('gcal_authorize', _external=True, collaborator=collaborator_id)
-    redirect_uri = redirect_uri.replace(GCAL_AUTH_ROUTE, f'/api{GCAL_AUTH_ROUTE}')
+    if config.get('ENV') != 'development':
+        redirect_uri = redirect_uri.replace(GCAL_AUTH_ROUTE, f'/api{GCAL_AUTH_ROUTE}')
     return oauth.gcal.authorize_redirect(redirect_uri)
 
 
