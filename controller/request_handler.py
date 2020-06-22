@@ -3,6 +3,7 @@ from flask import Flask, url_for, request, g, redirect, make_response
 from flask_httpauth import HTTPTokenAuth
 from flask_cors import CORS
 import json
+import re
 from typing import List
 
 from .api_endpoints import *
@@ -95,10 +96,16 @@ def extract_token(token_str: str):
 
 @app.route(LOGIN_ROUTE)
 def login():
-    redirect_uri = url_for('authorize', _external=True)
-    if config.get('ENV') != 'development':
-        redirect_uri = redirect_uri.replace(PROCORE_AUTH_ROUTE, f'/api{PROCORE_AUTH_ROUTE}')
+    redirect_uri = _create_redirect_uri(url_for('authorize', _external=True), PROCORE_AUTH_ROUTE)
     return oauth.procore.authorize_redirect(redirect_uri)
+
+
+def _create_redirect_uri(base_uri, replace):
+    redirect_uri = base_uri
+    if config.get('ENV') != 'development':
+        redirect_uri = redirect_uri.replace(replace, f'/api{replace}')
+        redirect_uri = re.sub(r'https?://', 'https://', redirect_uri)
+    return redirect_uri
 
 
 @app.route(PROCORE_AUTH_ROUTE)
@@ -169,18 +176,17 @@ def _parse_webhook(data: dict) -> dict:
 def gcal_login():
     auth_token = extract_token(request.args.get('auth_token'))
 
-    redirect_uri = url_for('gcal_authorize', _external=True)
-    if config.get('ENV') != 'development':
-        redirect_uri = redirect_uri.replace(GCAL_AUTH_ROUTE, f'/api{GCAL_AUTH_ROUTE}')
+    redirect_uri = _create_redirect_uri(url_for('gcal_authorize', _external=True), 
+        GCAL_AUTH_ROUTE)
     return oauth.gcal.authorize_redirect(redirect_uri, state=auth_token, 
         access_type='offline', prompt='consent')
 
 
 @app.route(GCAL_COLLABORATOR_LOGIN_ROUTE)
 def gcal_collaborator_login(collaborator_id):
-    redirect_uri = url_for('gcal_authorize', _external=True, collaborator=collaborator_id)
-    if config.get('ENV') != 'development':
-        redirect_uri = redirect_uri.replace(GCAL_AUTH_ROUTE, f'/api{GCAL_AUTH_ROUTE}')
+    redirect_uri = _create_redirect_uri(
+        url_for('gcal_authorize', _external=True, collaborator=collaborator_id),
+        GCAL_AUTH_ROUTE)
     return oauth.gcal.authorize_redirect(redirect_uri)
 
 
