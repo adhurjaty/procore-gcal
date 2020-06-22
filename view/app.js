@@ -12,9 +12,14 @@ const proxy = require('http-proxy').createProxyServer({
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
-var privateKey = fs.readFileSync('secrets/node-selfsigned.key', 'utf-8');
-var cert = fs.readFileSync('secrets/node-selfsigned.crt', 'utf-8');
-var creds = {key: privateKey, cert: cert};
+var privateKey = fs.readFileSync('/etc/letsencrypt/live/procorecalendarintegrator.com/privkey.pem', 'utf-8');
+var cert = fs.readFileSync('/etc/letsencrypt/live/procorecalendarintegrator.com/cert.pem', 'utf-8');
+var ca = fs.readFileSync('/etc/letsencrypt/live/procorecalendarintegrator.com/chain.pem', 'utf-8');
+var creds = {
+    key: privateKey, 
+    cert: cert,
+    ca: ca
+};
 
 app.use(express.static(path.join(__dirname, 'build')));
 
