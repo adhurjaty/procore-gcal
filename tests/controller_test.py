@@ -15,6 +15,7 @@ from interactor.rfi import Rfi
 from interactor.user_response import UserResponse
 from models import *
 from interactor.named_item import NamedItem
+from util.utils import get_signed_token
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
 
@@ -84,6 +85,10 @@ def test_update_user_with_data(test_controller, use_case_mock, sample_user):
 
     use_case_mock.update_user = update
 
+    access_token = 'token'
+    sample_user.procore_data.token.access_token = access_token
+    csrf_token = get_signed_token(access_token)
+
     data = {
         'email': 'user@example.com',
         'fullName': 'This User',
@@ -118,9 +123,11 @@ def test_update_user_with_data(test_controller, use_case_mock, sample_user):
                 'enabled': True
             }
         ],
-        'subscribed': False
+        'subscribed': False,
+        'csrfToken': csrf_token
     }
 
+    
     test_controller.update_user(sample_user, user_data=data)
 
     assert validations.user == sample_user
@@ -142,6 +149,64 @@ def test_update_user_with_data(test_controller, use_case_mock, sample_user):
     assert validations.user.collaborators[1].full_name == 'Aimee'
     assert validations.user.collaborators[1].email == 'aimee@procore.com'
     assert validations.user.subscribed == False
+
+
+def test_update_user_csrf_error(test_controller, use_case_mock, sample_user):
+    validations = MockObject()
+    validations.user = None
+
+    def update(user):
+        validations.user = user
+
+    use_case_mock.update_user = update
+
+    access_token = 'token'
+    sample_user.procore_data.token.access_token = access_token
+    csrf_token = get_signed_token('fake value')
+
+    data = {
+        'email': 'user@example.com',
+        'fullName': 'This User',
+        'selectedCalendar': 'calID',
+        'eventTypes': [
+            {
+                'name': 'Submittals',
+                'enabled': True
+            },
+            {
+                'name': 'RFIs',
+                'enabled': False
+            }
+        ],
+        'collaborators': [
+            { 
+                'name': 'Aaron',
+                'login': 'aaron@procore.com'
+            },
+            {
+                'name': 'Aimee',
+                'login': 'aimee@procore.com'
+            }
+        ],
+        'emailSettings': [
+            {
+                'name': 'Calendar Events',
+                'enabled': True
+            },
+            {
+                'name': 'Added Collaborator',
+                'enabled': True
+            }
+        ],
+        'subscribed': False,
+        'csrfToken': csrf_token
+    }
+ 
+    try:
+        test_controller.update_user(sample_user, user_data=data)
+        assert False
+    except Exception as e:
+        assert str(e) == 'Invalid CSRF Token'
 
 
 def test_get_users_in_project(test_controller, use_case_mock, sample_user):

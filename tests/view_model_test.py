@@ -598,6 +598,7 @@ def test_get_manager_vm():
         'isSubscribed': True,
         'projectId': 77,
         'projects': [{'id': 88, 'name': 'p1'}, {'id': 77, 'name': 'p2'}],
+        'csrfToken':'hj65Uh3paa0/VfCAWG+v0KyeFI2XYdEkNM0zdSM8TpuzT07jQzS0701xVxhupvcky7ups+2KE0vaHtS1Og1QlBNCuhPRbQzIeWPq+uyYY53XdGXosPZCLqFv92Re/NA/V99j6mjGBgtBUhWFCxYRwzVXHgGmGbWY3oRlcDyzqmI='
     }
 
 

@@ -278,7 +278,7 @@ def test_update_user(test_client, user_controller_mock):
 
     user_controller_mock.update_user = test_update 
 
-    test_client.patch('/api/users/69', json=test_data, 
+    test_client.patch('/users/69', json=test_data, 
         headers={'Authorization': 'Bearer token'})
 
     assert verifications.user == user_controller_mock.manager
@@ -294,7 +294,7 @@ def test_delete_user(test_client, user_controller_mock):
 
     user_controller_mock.delete_user = test_delete 
 
-    test_client.delete('/api/users/69', headers={'Authorization': 'Bearer token'})
+    test_client.delete('/users/69', headers={'Authorization': 'Bearer token'})
 
     assert verifications.user_id == '69'
 
@@ -315,7 +315,7 @@ def test_update_user_not_logged_in(test_client, controller_mock):
 
     user_controller_mock.update_user = test_update 
 
-    resp = test_client.patch('/api/users/69', json=test_data)
+    resp = test_client.patch('/users/69', json=test_data)
 
     assert resp.status_code == 401
 
@@ -330,7 +330,7 @@ def test_get_account_manager(test_client, user_controller_mock):
         
     user_controller_mock.get_manager = get_manager
 
-    resp = test_client.get('/api/users/44', 
+    resp = test_client.get('/users/44', 
         headers={'Authorization': 'Bearer token'})
 
     assert resp.status_code == 200

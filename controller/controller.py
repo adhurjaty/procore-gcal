@@ -33,7 +33,7 @@ class Controller:
 
     def _verify_csrf(self, user, csrf_token):
         oauth_token = user.procore_data.token.access_token
-        if not verify_token(oauth_token, csrf_token):
+        if not verify_token(oauth_token, csrf_token or ''):
             raise Exception('Invalid CSRF Token')
 
     def _update_user_fields(self, user: AccountManagerDto, email='', fullName='', 

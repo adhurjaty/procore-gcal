@@ -145,7 +145,7 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
     mock_oauth.get = oauth_get
     mock_oauth.post = create_gcal_event
 
-    test_client.post('/api/webhook_handler', json=webhook)
+    test_client.post('/webhook_handler', json=webhook)
 
     assert validation.gcal_endpoint == '/calendars/anil_calendar_id/events'
     assert validation.procore_endpoint == '/vapid/projects/12345/rfis/11787'
