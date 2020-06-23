@@ -5,6 +5,8 @@ services:
     build: ./view
     ports:
         - 443:3000
+    volumes:
+        - /etc/letsencrypt/:/etc/letsencrypt/
   api:
     build: .
     ports:
