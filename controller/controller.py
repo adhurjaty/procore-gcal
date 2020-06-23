@@ -31,7 +31,7 @@ class Controller:
 
     def _update_user_fields(self, user: AccountManagerDto, email='', fullName='', 
         selectedCalendar='', eventTypes=[], collaborators=None, emailSettings=[], 
-        isSubscribed='', **kwargs):
+        isSubscribed='', projectId=None, **kwargs):
 
         user.email = email or user.email
         user.full_name = fullName or user.full_name
@@ -45,7 +45,8 @@ class Controller:
         user.subscribed = bool(isSubscribed) or user.subscribed
         if not user.subscribed and user.trial_start is None:
             user.trial_start = arrow.utcnow().datetime
-
+        user.project_id = projectId
+        
     def get_users_in_project(self, project_id: int):
         return self.use_case.get_users_in_project(project_id)
 

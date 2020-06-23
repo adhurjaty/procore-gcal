@@ -58,6 +58,7 @@ export default class User {
             email: this.email,
             fullName: this.fullName,
             selectedCalendar: (this.selectedCalendar as NamedItem).id,
+            projectId: this.projectId,
             eventTypes: this.eventTypes.map(x => x.json()),
             collaborators: this.collaborators.map(x => x.json()),
             emailSettings: this.emailSettings.map(x => x.json()),
