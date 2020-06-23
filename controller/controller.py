@@ -8,6 +8,7 @@ from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
 from interactor.person import Person
+from util.utils import verify_token
 
 procore_token_file = 'temp_db/procore_token.json'
 
@@ -25,9 +26,15 @@ class Controller:
 
     def update_user(self, user: UserDto, user_data=None):
         if user_data:
+            self._verify_csrf(user, user_data.get('csrfToken'))
             self._update_user_fields(user, **user_data)
 
         self.use_case.update_user(user)
+
+    def _verify_csrf(self, user, csrf_token):
+        oauth_token = user.procore_data.token.access_token
+        if not verify_token(oauth_token, csrf_token):
+            raise Exception('Invalid CSRF Token')
 
     def _update_user_fields(self, user: AccountManagerDto, email='', fullName='', 
         selectedCalendar='', eventTypes=[], collaborators=None, emailSettings=[], 

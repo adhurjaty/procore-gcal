@@ -1,5 +1,6 @@
 from typing import List
 
+from util.utils import get_signed_token
 from interactor.account_manager_response import AccountManagerResponse
 
 
@@ -21,7 +22,8 @@ class WebViewModel:
             'temporary': user.temporary,
             'isSubscribed': user.subscribed,
             'projectId': user.project_id,
-            'projects': [{'id': p.id, 'name': p.name} for p in user.projects]
+            'projects': [{'id': p.id, 'name': p.name} for p in user.projects],
+            'csrfToken': get_signed_token(user.procore_data.token.access_token)
         }
 
 

@@ -19,7 +19,8 @@ interface UserResponse {
     emailSettings: SelectableItem[],
     isSubscribed: boolean;
     projectId: number | null;
-    projects: NamedItem[]
+    projects: NamedItem[];
+    csrfToken: string;
 };
 
 export default class User {
@@ -34,6 +35,7 @@ export default class User {
     collaborators: Collaborator[] = [];
     emailSettings: EmailSetting[] = [];
     isSubscribed: boolean = false;
+    csrfToken: string = "";
     
     static fromJSON(response: UserResponse): User {
         let user = new User();
@@ -48,6 +50,7 @@ export default class User {
         user.isSubscribed = response.isSubscribed;
         user.projectId = response.projectId;
         user.projects = response.projects;
+        user.csrfToken = response.csrfToken;
 
         return user;
     }
@@ -62,7 +65,8 @@ export default class User {
             eventTypes: this.eventTypes.map(x => x.json()),
             collaborators: this.collaborators.map(x => x.json()),
             emailSettings: this.emailSettings.map(x => x.json()),
-            isSubscribed: this.isSubscribed
+            isSubscribed: this.isSubscribed,
+            csrfToken: this.csrfToken
         }
     }
 }

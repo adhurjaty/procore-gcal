@@ -1,3 +1,4 @@
+from base64 import b64encode, b64decode
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -39,14 +40,14 @@ def build_url(base_url: str, path: str, args_dict: dict) -> str:
     return urlunparse(url_parts)
 
 
-def get_signed_token(oauth_token: str):
+def get_signed_token(oauth_token: str) -> str:
     digest = SHA256.new()
     digest.update(oauth_token.encode('utf-8'))
 
     private_key = get_private_key()
     
     signer = PKCS1_v1_5.new(private_key)
-    return signer.sign(digest)
+    return b64encode(signer.sign(digest)).decode('utf-8')
 
 
 def get_private_key():
@@ -54,12 +55,12 @@ def get_private_key():
         return RSA.importKey(f.read())
 
 
-def verify_token(oauth_token: str, sig) -> bool:
+def verify_token(oauth_token: str, sig: str) -> bool:
     digest = SHA256.new()
     digest.update(oauth_token.encode('utf-8'))
 
     private_key = get_private_key()
 
     verifier = PKCS1_v1_5.new(private_key.publickey())
-    return verifier.verify(digest, sig)
+    return verifier.verify(digest, b64decode(sig))
 
