@@ -1,7 +1,15 @@
+from Crypto.Hash import SHA256
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.PublicKey import RSA
 from multiprocessing import Process
+import os
+from pathlib import Path
 from threading import Lock
 from urllib.parse import urlparse, urlencode, urlunparse
 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+PRIVATE_KEY_FILE = os.path.join(script_dir, '..', 'secrets', 'csrf_token_key.pem')
 
 def parallel_for(fn, arg_list):
     lock = Lock()
@@ -29,4 +37,29 @@ def build_url(base_url: str, path: str, args_dict: dict) -> str:
     url_parts[2] = path
     url_parts[4] = urlencode(args_dict)
     return urlunparse(url_parts)
+
+
+def get_signed_token(oauth_token: str):
+    digest = SHA256.new()
+    digest.update(oauth_token.encode('utf-8'))
+
+    private_key = get_private_key()
+    
+    signer = PKCS1_v1_5.new(private_key)
+    return signer.sign(digest)
+
+
+def get_private_key():
+    with open(PRIVATE_KEY_FILE, 'r') as f:
+        return RSA.importKey(f.read())
+
+
+def verify_token(oauth_token: str, sig) -> bool:
+    digest = SHA256.new()
+    digest.update(oauth_token.encode('utf-8'))
+
+    private_key = get_private_key()
+
+    verifier = PKCS1_v1_5.new(private_key.publickey())
+    return verifier.verify(digest, sig)
 
