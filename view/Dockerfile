@@ -8,6 +8,6 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/build ./build
 COPY --from=builder /usr/src/app/app.js .
 RUN yarn add express http-proxy
-EXPOSE 3000
+EXPOSE 443
 ENTRYPOINT [ "node" ]
 CMD ["app.js"]

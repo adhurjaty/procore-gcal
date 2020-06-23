@@ -34,6 +34,6 @@ app.get('/*', (req, res) => {
 });
 
 var httpsServer = https.createServer(creds, app)
-httpsServer.listen(3000);
-console.log('Running on PORT 3000');
+httpsServer.listen(443);
+console.log('Running on PORT 443');
 // app.listen(process.env.PORT || 3000, () => console.log(`Running on PORT ${process.env.PORT || 3000}`));
