@@ -1,4 +1,4 @@
 export default class NamedItem {
-    id: number = 0;
+    id: string | number = "";
     name: string = "";
 }

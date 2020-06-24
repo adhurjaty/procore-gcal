@@ -159,7 +159,7 @@ function ProjectsSection({user}: {user: User}): JSX.Element {
 
     useEffect(() => {
         if(selectedProject) {
-            user.projectId = selectedProject.id;
+            user.projectId = selectedProject.id as number;
         }
     }, [selectedProject])
 
@@ -201,7 +201,7 @@ function renderNamedDropdown(items: NamedItem[], selectedItem: NamedItem,
     setSelectedItem: (c: NamedItem) => void) 
 {
     const onSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newCal = items.find(c => c.id === parseInt(e.target.value));
+        const newCal = items.find(c => c.id == e.target.value);
         setSelectedItem(newCal as NamedItem);
     }
 
