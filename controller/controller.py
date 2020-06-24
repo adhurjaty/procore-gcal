@@ -67,6 +67,10 @@ class Controller:
             resource_id=resource_id)
         self.use_case.update_gcal(users, event)
 
+        # if the token(s) have been refreshed, save it
+        for user in users:
+            self.update_user(user)
+
 
     def init_user(self, token: dict) -> AccountManagerDto:
         user = self.use_case.get_procore_user_info(token)
