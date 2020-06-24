@@ -12,7 +12,6 @@ export const InputSection = styled.div`
     flex-basis: 45%;
     margin-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
     min-width: 250px;
 `
 

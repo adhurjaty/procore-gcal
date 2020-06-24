@@ -43,14 +43,27 @@ const InlineButton = styled.button`
 `
 
 const SubmitButtonContainer = styled.div`
+    display: flex;
     flex-direction: row;
     justify-content: center;
+    margin-top: 30px;
 `
 
 const SectionsContainer = styled.div`
     display: flex;
     flex-flow: row wrap;
+    justify-content: space-between;
     align-items: flex-start;
+    margin-left: 20px;
+    margin-right: 20px;
+`
+
+const ChildrenContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-left: 20px;
+    margin-right: 20px;
 `
 
 // TODO: add storing form values into local storage
@@ -128,9 +141,9 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
                     }
                 </SectionsContainer>
 
-                <SectionsContainer>
+                <ChildrenContainer>
                     {children}
-                </SectionsContainer>
+                </ChildrenContainer>
 
                 <Flash visibility={!!requestErrorMessage} 
                        isSuccess={false} 
