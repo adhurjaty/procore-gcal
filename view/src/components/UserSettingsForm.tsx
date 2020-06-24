@@ -10,12 +10,18 @@ import Enablable from '../models/Enablable';
 import Collaborator from '../models/collaborator';
 import { PayPalButton } from "react-paypal-button-v2";
 import { API_USER, GCAL_USER_LOGIN_URL } from '../AppSettings';
-import { Heading, SettingsForm, InputSection, InputLabel, FieldError } from './GlobalStyles';
+import { Heading, InputSection, InputLabel, FieldError } from './GlobalStyles';
 import Flash from './Flash';
 
 const Container = styled.div`
     display: flex;
     flex-direction: column;
+    align-self: center;
+    padding: 10px;
+    max-width: 600px;
+    @media (min-width: 700px) {
+        border: 1px solid gray;
+    }
 `
 
 const ItemSelector = styled.select`
@@ -36,9 +42,15 @@ const InlineButton = styled.button`
     padding-bottom: 2px;
 `
 
-const SubmitButton = styled.button`
-    align-self: flex-end;
-    margin-right: 30px;
+const SubmitButtonContainer = styled.div`
+    flex-direction: row;
+    justify-content: center;
+`
+
+const SectionsContainer = styled.div`
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
 `
 
 // TODO: add storing form values into local storage
@@ -102,25 +114,31 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
             <Flash visibility={!!successMessage} 
                    isSuccess={true} 
                    message={successMessage} />
-            <SettingsForm onSubmit={e => e.preventDefault()}>
-                <EmailSection user={user} />
-                <NameSection user={user} error={fullNameError} />
-                <ProjectsSection user={user} />
-                <CalendarSection user={user} error={calendarError} />
-                <EventTypesSection user={user} />
-                <CollaboratorSection user={user} error={collaboratorError} />
-                <EmailSettingsSection user={user} />
-                {!initSubscribed && 
-                    <SubscriptionSection user={user} error={subscribeError} />
-                }
+            <form onSubmit={e => e.preventDefault()}>
+                <SectionsContainer>
+                    <EmailSection user={user} />
+                    <NameSection user={user} error={fullNameError} />
+                    <ProjectsSection user={user} />
+                    <CalendarSection user={user} error={calendarError} />
+                    <EventTypesSection user={user} />
+                    {/* <CollaboratorSection user={user} error={collaboratorError} /> */}
+                    <EmailSettingsSection user={user} />
+                    {!initSubscribed && 
+                        <SubscriptionSection user={user} error={subscribeError} />
+                    }
+                </SectionsContainer>
 
-                {children}
+                <SectionsContainer>
+                    {children}
+                </SectionsContainer>
 
                 <Flash visibility={!!requestErrorMessage} 
                        isSuccess={false} 
                        message={requestErrorMessage} />
-                <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
-            </SettingsForm>
+                <SubmitButtonContainer>
+                    <button onClick={handleSubmit}>Submit</button>
+                </SubmitButtonContainer>
+            </form>
         </Container>
     )
 }

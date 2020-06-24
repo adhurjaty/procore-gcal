@@ -5,19 +5,15 @@ export const Heading = styled.h2`
     align-self: center;
 `
 
-export const SettingsForm = styled.form`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-`
-
 export const InputSection = styled.div`
     display: flex;
-    flex-direction: column;
+    flex-flow: column;
     align-items: flex-start;
+    flex-basis: 45%;
     margin-top: 10px;
     margin-bottom: 10px;
     margin-left: 20px;
+    min-width: 250px;
 `
 
 export const InputLabel = styled.label`

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components';
-import { Heading, SettingsForm, InputSection, InputLabel, FieldError } from '../components/GlobalStyles';
+import { Heading, InputSection, InputLabel, FieldError } from '../components/GlobalStyles';
 import GCalButton from '../components/GCalButton';
 import { useParams } from 'react-router-dom';
 import { getCollaborator, createCollaborator } from '../backend_interface/api_interface';
@@ -133,14 +133,14 @@ function CollaboratorForm({state, setState}: {state: PageState, setState: (s: Pa
     }
 
     return (
-        <SettingsForm>
+        <form>
             <EmailSection email={collaborator.email} />
             <NameSection collab={collaborator} error={nameError} />
             <InputSection>
                 <GCalButton loginUrl={GCAL_COLLABORATOR_LOGIN_URL('' + collaborator.id)} />
             </InputSection>
             <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
-        </SettingsForm>
+        </form>
     )
 }
 
