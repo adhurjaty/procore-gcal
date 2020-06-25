@@ -29,9 +29,9 @@ function AppRouter(): JSX.Element {
                 <Route path={COLLABORATOR_ROUTE}>
                     <CollaboratorRegister />
                 </Route>
-                <Route path={TESTBED_ROUTE}>
+                {/* <Route path={TESTBED_ROUTE}>
                     <TestBed />
-                </Route>
+                </Route> */}
                 <Route>
                     <NotFound />
                 </Route>

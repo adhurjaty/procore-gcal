@@ -169,6 +169,7 @@ function NameSection({user, error}: {user: User, error: string}): JSX.Element {
     const [fullName, setFullName] = useState(user.fullName);
     useEffect(() => {
         user.fullName = fullName;
+        localStorage.setItem('user.fullName', fullName);
     }, [fullName]);
 
     return (
@@ -191,6 +192,7 @@ function ProjectsSection({user}: {user: User}): JSX.Element {
     useEffect(() => {
         if(selectedProject) {
             user.projectId = selectedProject.id as number;
+            localStorage.setItem('user.projectId', '' + user.projectId);
         }
     }, [selectedProject])
 
@@ -215,6 +217,9 @@ function CalendarSection({user, error}: {user: User, error: string}): JSX.Elemen
     const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
     useEffect(() => {
         user.selectedCalendar = selectedCalendar;
+        if(selectedCalendar) {
+            localStorage.setItem('user.selectedCalendar', selectedCalendar.id as string);
+        }
     }, [selectedCalendar]);
 
     return (
@@ -263,6 +268,7 @@ function EventTypesSection({user}: {user: User}): JSX.Element {
 
     useEffect(() => {
         user.eventTypes = eventTypes;
+        localStorage.setItem('user.eventTypes', JSON.stringify(user.eventTypes));
     }, [eventTypes])
 
     const checkFn = onCheckedFn(eventTypes, setEventTypes);
@@ -387,6 +393,7 @@ function EmailSettingsSection({user}: {user: User}): JSX.Element {
 
     useEffect(() => {
         user.emailSettings = emailSettings;
+        localStorage.setItem('user.emailSettings', JSON.stringify(user.emailSettings));
     }, [emailSettings]);
 
     const checkFn = onCheckedFn(emailSettings, setEmailSettings);
