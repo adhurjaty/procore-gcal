@@ -107,6 +107,8 @@ function UserSettingsForm({user, submitRequest, children}: {user: User,
             return;
         }
 
+        storeValues(user);
+
         submitRequest(user)
             .then((result) => {
                 if(result.status === 'error') {
@@ -169,7 +171,6 @@ function NameSection({user, error}: {user: User, error: string}): JSX.Element {
     const [fullName, setFullName] = useState(user.fullName);
     useEffect(() => {
         user.fullName = fullName;
-        localStorage.setItem('user.fullName', fullName);
     }, [fullName]);
 
     return (
@@ -192,7 +193,6 @@ function ProjectsSection({user}: {user: User}): JSX.Element {
     useEffect(() => {
         if(selectedProject) {
             user.projectId = selectedProject.id as number;
-            localStorage.setItem('user.projectId', '' + user.projectId);
         }
     }, [selectedProject])
 
@@ -214,20 +214,21 @@ function emptyProjectsMessage(): JSX.Element {
 }
 
 function CalendarSection({user, error}: {user: User, error: string}): JSX.Element {
-    const [selectedCalendar, setSelectedCalendar] = useState(user.selectedCalendar);
+    let initCalendar = user.selectedCalendar;
+    const [selectedCalendar, setSelectedCalendar] = useState(initCalendar);
     useEffect(() => {
         user.selectedCalendar = selectedCalendar;
-        if(selectedCalendar) {
-            localStorage.setItem('user.selectedCalendar', selectedCalendar.id as string);
-        }
     }, [selectedCalendar]);
+    useEffect(() => {
+        setSelectedCalendar(initCalendar);
+    }, [initCalendar]);
 
     return (
         <InputSection>
             <InputLabel>Google Calendar:</InputLabel>
             {user.calendars && selectedCalendar
                 ? renderNamedDropdown(user.calendars, selectedCalendar, setSelectedCalendar)
-                : renderGCalButton()}
+                : renderGCalButton(user)}
             <FieldError>{error}</FieldError>
         </InputSection>
     );
@@ -255,12 +256,22 @@ function renderNamedDropdown(items: NamedItem[], selectedItem: NamedItem,
     );
 }
 
-function renderGCalButton(): React.ReactNode {
+function renderGCalButton(user: User): React.ReactNode {
     return (
         <ButtonContainer>
-            <GCalButton loginUrl={GCAL_USER_LOGIN_URL(getToken() as string)} />
+            <GCalButton loginUrl={GCAL_USER_LOGIN_URL(getToken() as string)} 
+                onClick={() => storeValues(user)}/>
         </ButtonContainer>
     );
+}
+
+function storeValues(user: User) {
+    localStorage.setItem('user.fullName', user.fullName);
+    localStorage.setItem('user.projectId', '' + user.projectId);
+    if(user.selectedCalendar)
+        localStorage.setItem('user.selectedCalendar', user.selectedCalendar.id as string);
+    localStorage.setItem('user.eventTypes', JSON.stringify(user.eventTypes));
+    localStorage.setItem('user.emailSettings', JSON.stringify(user.emailSettings));
 }
 
 function EventTypesSection({user}: {user: User}): JSX.Element {
@@ -268,7 +279,6 @@ function EventTypesSection({user}: {user: User}): JSX.Element {
 
     useEffect(() => {
         user.eventTypes = eventTypes;
-        localStorage.setItem('user.eventTypes', JSON.stringify(user.eventTypes));
     }, [eventTypes])
 
     const checkFn = onCheckedFn(eventTypes, setEventTypes);
@@ -307,7 +317,7 @@ function onCheckedFn(checkFields: Enablable[],
     return (field: Enablable) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setCheckFields(checkFields.map((et, i) => {
             if(field === et) {
-                let newEvent = et.copy();
+                let newEvent = (et as Enablable).copy();
                 newEvent.enabled = e.target.checked;
                 return newEvent;
             }
@@ -393,7 +403,6 @@ function EmailSettingsSection({user}: {user: User}): JSX.Element {
 
     useEffect(() => {
         user.emailSettings = emailSettings;
-        localStorage.setItem('user.emailSettings', JSON.stringify(user.emailSettings));
     }, [emailSettings]);
 
     const checkFn = onCheckedFn(emailSettings, setEmailSettings);

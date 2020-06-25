@@ -6,6 +6,9 @@ import UserSettingsForm from '../components/UserSettingsForm';
 import User from '../models/user';
 import { USER_SETTINGS_ROUTE } from '../Routes';
 import Cookies from 'js-cookie'
+import EmailSetting from '../models/emailSetting';
+import { SelectableItem } from '../models/interfaces';
+import EventType from '../models/eventType';
 
 const DeleteUserButton = styled.button`
     background-color: red
@@ -48,8 +51,10 @@ function getUserFromLocalStorage(): User {
     user.fullName = localStorage.getItem('user.fullName') || '';
     user.calendars = JSON.parse(localStorage.getItem('user.calendars') || 'null');
     user.projects = JSON.parse(localStorage.getItem('user.projects') || 'null');
-    user.emailSettings = JSON.parse(localStorage.getItem('user.emailSettings') || 'null');
-    user.eventTypes = JSON.parse(localStorage.getItem('user.eventTypes') || 'null');
+    user.emailSettings = JSON.parse(localStorage.getItem('user.emailSettings') || 'null')
+        ?.map((s: SelectableItem)  => new EmailSetting(s));
+    user.eventTypes = JSON.parse(localStorage.getItem('user.eventTypes') || 'null')
+        ?.map((s: SelectableItem) => new EventType(s));
     user.email = localStorage.getItem('user.email') || '';
     
     const selectedCal = localStorage.getItem('user.selectedCalendar');
@@ -68,7 +73,7 @@ function getUserFromLocalStorage(): User {
 function preventLocalOverwrite(localUser: User, apiUser: User): User {
     apiUser.fullName = localUser.fullName || apiUser.fullName;
     apiUser.selectedCalendar = apiUser.calendars.find(c => 
-        c.id === localUser.selectedCalendar?.id) || apiUser.selectedCalendar;
+        c.id === localUser.selectedCalendar?.id && !!c.id) || apiUser.selectedCalendar;
     apiUser.projectId = (apiUser.projects.find(p => p.id === localUser.projectId)?.id || 
         apiUser.projectId) as number | null
     apiUser.emailSettings = localUser.emailSettings || apiUser.emailSettings;
@@ -83,6 +88,8 @@ function localStoreUser(user: User) {
     localStorage.setItem('user.projects', JSON.stringify(user.projects));
     localStorage.setItem('user.eventTypes', JSON.stringify(user.eventTypes));
     localStorage.setItem('user.emailSettings', JSON.stringify(user.emailSettings));
+    if(user.selectedCalendar)
+        localStorage.setItem('user.selectedCalendar', user.selectedCalendar.id as string);
 }
 
 function Display({state}: {state: {user: User, isLoading: boolean}}): JSX.Element {

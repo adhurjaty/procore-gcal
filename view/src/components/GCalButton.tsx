@@ -2,8 +2,12 @@ import React from 'react';
 import styled from 'styled-components';
 
 
-const ButtonBase = ({href, className=''}: {href: string, className?: string}) => (
-    <a href={href} className={"button " + className} />
+const ButtonBase = ({href, className='', onClick=() => {}}: 
+    {href: string, className?: string, onClick?: () => void}) => 
+(
+    <a href={href} 
+        className={"button " + className}
+        onClick={onClick} />
 );
 
 const StyledButton = styled(ButtonBase)`
@@ -12,9 +16,11 @@ const StyledButton = styled(ButtonBase)`
     height: 45px;
 `;
 
-export function GCalButton({loginUrl}: {loginUrl: string}) {
+export function GCalButton({loginUrl, onClick=() => {}}: 
+    {loginUrl: string, onClick?: () => void}) 
+{
     return (
-        <StyledButton href={loginUrl} />
+        <StyledButton href={loginUrl} onClick={onClick} />
     )
 }
 
