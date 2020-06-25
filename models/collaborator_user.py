@@ -7,8 +7,10 @@ from .gcal_user_settings import GCalUserSettings
 
 class CollaboratorUser(User):
     __tablename__ = 'collaborators'
-    id = Column(UUID(as_uuid=True), ForeignKey('users.id'), primary_key=True)
-    manager_id = Column(UUID(as_uuid=True), ForeignKey('account_managers.id'))
+    id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), 
+        primary_key=True)
+    manager_id = Column(UUID(as_uuid=True), 
+        ForeignKey('account_managers.id', ondelete='CASCADE'))
     manager = relationship("AccountManager", backref='collaborators', 
         foreign_keys=[manager_id])
 

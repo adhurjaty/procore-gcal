@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
-import { getUserSettings, updateUser, deleteUser } from '../backend_interface/api_interface';
+import { getUserSettings, updateUser, deleteUser, StatusMessage } from '../backend_interface/api_interface';
 import UserSettingsForm from '../components/UserSettingsForm';
 import User from '../models/user';
 import { USER_SETTINGS_ROUTE } from '../Routes';
@@ -84,6 +84,7 @@ function preventLocalOverwrite(localUser: User, apiUser: User): User {
 
 function localStoreUser(user: User) {
     localStorage.setItem('user.email', user.email);
+    localStorage.setItem('user.fullName', user.fullName);
     localStorage.setItem('user.calendars', JSON.stringify(user.calendars));
     localStorage.setItem('user.projects', JSON.stringify(user.projects));
     localStorage.setItem('user.eventTypes', JSON.stringify(user.eventTypes));
@@ -117,7 +118,12 @@ function ShowForm(user: User): JSX.Element {
 function triggerDeleteUser(user: User): (e: React.MouseEvent) => void {
     return (e: React.MouseEvent) => {
         if(window.confirm("Are you sure you want to delete your account?")) {
-            deleteUser(user)
+            deleteUser(user).then((resp: StatusMessage) => {
+                if(resp.status == 'success') {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+            })
         }
     }
 }

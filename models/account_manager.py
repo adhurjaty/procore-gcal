@@ -9,13 +9,16 @@ from .user import User
 
 class AccountManager(User):
     __tablename__ = 'account_managers'
-    id = Column(UUID(as_uuid=True), ForeignKey('users.id'), primary_key=True)
+    id = Column(UUID(as_uuid=True), 
+        ForeignKey('users.id', ondelete='CASCADE'), 
+        primary_key=True)
     subscribed = Column(Boolean())
     trial_start = Column(DateTime())
     payment_id = Column(String())
     project_id = Column(Integer())
     # collaborators = relationship('CollaboratorUser')
-    procore_settings_id = Column(UUID(as_uuid=True), ForeignKey('procore_user_settings.id'))
+    procore_settings_id = Column(UUID(as_uuid=True), 
+        ForeignKey('procore_user_settings.id', ondelete='CASCADE'))
     procore_data = relationship('ProcoreUserSettings', foreign_keys=[procore_settings_id])
 
     __mapper_args__ = {

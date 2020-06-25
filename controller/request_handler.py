@@ -257,7 +257,7 @@ def update_user(user_id):
 @auth.login_required
 def delete_user(user_id):
     try:
-        controller.delete_user(user_id)
+        controller.delete_manager(user_id)
         return _show_success()
     except Exception as e:
         return _show_error(str(e))

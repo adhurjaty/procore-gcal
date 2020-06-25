@@ -135,6 +135,9 @@ class DBInterface:
     def get_collaborator(self, id: str) -> CollaboratorUser:
         pass
 
-    def delete_manager(self, id: str):
-        pass
+    def delete_manager(self, id: UUID):
+        session.query(CollaboratorUser).filter(CollaboratorUser.manager_id == id).delete()
+        session.query(AccountManager).filter(AccountManager.id == id).delete()
+        session.query(User).filter(User.id == id).delete()
+        session.commit()
 
