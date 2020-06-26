@@ -240,12 +240,13 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
 
 
 def test_update_manager_remove_collaborators(test_interactor, db_mock, sample_user, 
-    sample_collaborators, input_manager):
+    sample_collaborators, input_manager, presenter_mock):
     
     validations = MockObject()
     validations.update_user = None
     validations.new_collabs = []
     validations.deletes = []
+    validations.trigger_user = None
     
     db_user = deepcopy(sample_user)
 
@@ -265,6 +266,9 @@ def test_update_manager_remove_collaborators(test_interactor, db_mock, sample_us
     
     def get_collaborators(emails):
         return sample_collaborators
+
+    def update_webook(user: AccountManagerResponse):
+        validations.trigger_user = user
     
     new_collab = Person()
     new_collab.full_name = 'Anil Dhurjaty'
@@ -273,17 +277,21 @@ def test_update_manager_remove_collaborators(test_interactor, db_mock, sample_us
     db_mock.update = update
     db_mock.insert = insert
     db_mock.delete = delete
-
     db_mock.get_manager_collaborators = get_collaborators
+    presenter_mock.update_webhook_triggers = update_webook
+
+    test_interactor.presenter = presenter_mock
 
     input_manager.set_collaborators([new_collab])
     user = test_interactor.update_user(input_manager)
+    test_interactor.running_thread.join()
 
     assert validations.update_user == user
     assert set(c.id for c in validations.deletes) == set('id1 id2'.split())
     assert [c.id for c in validations.new_collabs] == ['id3']
     assert [c.id for c in user.collaborators] == ['id3']
     assert user.id == '22'
+    assert validations.trigger_user.parent == validations.update_user 
 
 
 def test_update_collaborator(test_interactor, db_mock, sample_user, sample_token):

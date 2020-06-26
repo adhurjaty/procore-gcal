@@ -78,3 +78,7 @@ class Presenter(PresenterInterface):
         vm = self.vm_factory.create_gcal_vm(user)
         calendars = vm.get_calendars()
         return [NamedItem(c['id'], c['name']) for c in calendars]
+
+    def update_webhook_triggers(self, user: AccountManagerResponse):
+        vm = self.vm_factory.create_procore_vm(user=user)
+        vm.register_webhooks()

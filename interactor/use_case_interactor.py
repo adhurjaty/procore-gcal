@@ -1,4 +1,5 @@
 from typing import List, Set
+import threading
 
 from util.utils import parallel_for
 from .presenter_interface import PresenterInterface
@@ -17,6 +18,7 @@ from models.application_settings import get_email_settings, get_event_settings
 class UseCaseInteracor:
     presenter: PresenterInterface = None
     db_int: DBInterface = None
+    running_thread = None
 
     def __init__(self, presenter: PresenterInterface, db_int: DBInterface):
         self.presenter = presenter
@@ -67,10 +69,12 @@ class UseCaseInteracor:
 
     def update_user(self, user: UserDto) -> UserDto:
         model_user = user.parent
+        self._add_settings(model_user)
+
         if isinstance(user, AccountManagerDto):
             self._create_or_remove_collaborators(model_user)
+            self._update_webhook_triggers(user)
 
-        self._add_settings(model_user)
         self.db_int.update(model_user)
         return model_user
 
@@ -86,6 +90,19 @@ class UseCaseInteracor:
 
     def _create_collaborators(self, new_collabs: List[CollaboratorUser]):
         parallel_for(lambda c: self.db_int.insert(c), new_collabs)
+
+    def _update_webhook_triggers(self, user: AccountManagerDto):
+        def update_helper():
+            try:
+                self.presenter.update_webhook_triggers(AccountManagerResponse(user.parent))
+                self.db_int.update(user.parent)
+            except Exception as e:
+                # TODO: enable error reporting
+                print(f'Exception occurred while updating triggers: {str(e)}')
+                raise e
+
+        self.running_thread = threading.Thread(target=update_helper)
+        self.running_thread.start()
 
     def get_users_in_project(self, project_id: int) -> List[AccountManagerDto]:
         return [AccountManagerDto(a) 

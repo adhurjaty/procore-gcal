@@ -80,14 +80,14 @@ class ProcoreViewModel:
 
     def _get_procore_webhook(self) -> ProcoreHook:
         project_id = self.user.project_id
-        resp = self.oauth.get(PROCORE_WEBHOOKS)
+        resp = self.oauth.get(PROCORE_WEBHOOKS.format(project_id=project_id))
         hooks = (resp and resp.json()) or []
         return next((ProcoreHook(**h) for h in resp.json() 
             if h['owned_by_project_id'] == project_id), None)
         
     def _create_procore_webhook(self) -> ProcoreHook:
         hook = ProcoreHook(project_id=self.user.project_id)
-        resp = self.oauth.post(PROCORE_WEBHOOKS, 
+        resp = self.oauth.post(PROCORE_WEBHOOKS.format(project_id=self.user.project_id), 
             json=hook.to_create_dict())
         created_hook = ProcoreHook(**resp)
         return created_hook
