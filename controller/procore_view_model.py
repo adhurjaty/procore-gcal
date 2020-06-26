@@ -111,7 +111,7 @@ class ProcoreViewModel:
         parallel_for(create_or_delete_triggers, trigger_dicts)
 
     def _get_procore_existing_triggers(self, hook: ProcoreHook) -> List[ProcoreTrigger]:
-        uri = PROCORE_TRIGGERS.format(hook_id=hook.id)
+        uri = PROCORE_TRIGGERS.format(hook_id=hook.id, project_id=hook.project_id)
         resp = self.oauth.get(uri)
         triggers = (resp and resp.json()) or []
         return [ProcoreTrigger(**trigger) for trigger in triggers]
@@ -120,7 +120,7 @@ class ProcoreViewModel:
         methods = 'create update delete'.split()
         def create_trigger(method):
             trigger = ProcoreTrigger(hook, resource_name=name, event_type=method)
-            uri = PROCORE_TRIGGERS.format(hook_id=trigger.hook_id)
+            uri = PROCORE_TRIGGERS.format(hook_id=trigger.hook_id, project_id=hook.project_id)
             self.oauth.post(uri, json=trigger.to_create_dict())
 
         parallel_for(create_trigger, methods)
@@ -128,7 +128,7 @@ class ProcoreViewModel:
     def _delete_procore_triggers(self, triggers: List[ProcoreTrigger]):
         def delete_trigger(trigger):
             uri = PROCORE_TRIGGER.format(hook_id=trigger.hook_id, 
-                trigger_id=trigger.id)
+                trigger_id=trigger.id, project_id=trigger.project_id)
             self.oauth.delete(uri)
 
         parallel_for(delete_trigger, triggers)
