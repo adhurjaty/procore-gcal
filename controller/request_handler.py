@@ -237,7 +237,9 @@ def _redirect_to_collaborator_page(collaborator):
 @auth.login_required
 def get_user(user_id):
     try:
-        return controller.get_manager(g.user)
+        response = make_response(controller.get_manager(g.user))
+        response.set_cookie('auth_token', g.user.procore_data.token.access_token)
+        return response
     except Exception as e:
         return _show_error(str(e))
 
