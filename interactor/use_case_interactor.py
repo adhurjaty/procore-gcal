@@ -124,4 +124,7 @@ class UseCaseInteracor:
 
     def get_collaborator(self, collaborator_id: str) -> UserDto:
         return self.db_int.get_collaborator(collaborator_id)
+
+    def close(self):
+        self.db_int.close()
         

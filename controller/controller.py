@@ -84,3 +84,6 @@ class Controller:
     def get_collaborator(self, collaborator_id):
         return self.use_case.get_collaborator(collaborator_id)
 
+    def close(self):
+        return self.use_case.close()
+

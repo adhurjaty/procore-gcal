@@ -9,6 +9,7 @@ from typing import List
 from .api_endpoints import *
 from .controller import Controller
 import controller.server_connector as connector
+from controller.controller_factory import ControllerFactory
 from util.utils import parallel_for, build_url
 import models.db_interface as db_int
 
@@ -28,7 +29,6 @@ USER_ROUTE = f'{INDEX_ROUTE}/users/<user_id>'
 
 app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
-controller: Controller = None
 
 oauth: OAuth = None
 
@@ -38,8 +38,8 @@ with open(config_file, 'r') as f:
 config = json.loads(config_contents)
 
 
-def create_app(cont: Controller) -> Flask:
-    global app, auth, controller, oauth
+def create_app() -> Flask:
+    global app, auth, oauth
 
     CORS(app, origins=[
         r'https?:\/\/[^\/]+\.procore\.com.*', 
@@ -49,8 +49,6 @@ def create_app(cont: Controller) -> Flask:
     app.config.update(**config)
 
     app.secret_key = app.config['APP_SECRET']
-
-    controller = cont
 
     oauth = OAuth(app)
     oauth.register('procore', fetch_token=_fetch_procore_token, 
@@ -66,13 +64,11 @@ def create_app(cont: Controller) -> Flask:
 
 @app.before_request
 def start_db_session():
-    # HACK: don't love the fact that I'm reaching into the DB interface
-    db_int.session = db_int.createSession()
-    g.session = db_int.session
+    g.controller = ControllerFactory.create()
 
 @app.after_request
 def close_db_session(resp):
-    g.session.close()
+    g.controller.close()
     return resp
 
 @auth.verify_token
@@ -81,7 +77,7 @@ def verify_token(token):
     if not token:
         return None
 
-    user = controller.get_user_from_token(token)
+    user = g.controller.get_user_from_token(token)
     if not user:
         return None
 
@@ -113,10 +109,10 @@ def authorize():
     token = oauth.procore.authorize_access_token()
 
     try: 
-        user = controller.init_user(token)
+        user = g.controller.init_user(token)
         if user.procore_data.token.access_token != token.get('access_token'):
             user.set_procore_token(token)
-            controller.update_user(user)
+            g.controller.update_user(user)
 
         return _redirect_to_manager_page(user, token.get('access_token'))
     except Exception as e:
@@ -159,7 +155,7 @@ def webhook_handler():
 
 def _dispatch_webhook(data: dict):
     event_info = _parse_webhook(data)
-    controller.update_gcal(**event_info)
+    g.controller.update_gcal(**event_info)
 
 def _parse_webhook(data: dict) -> dict:
     out_dict = {}
@@ -202,18 +198,18 @@ def gcal_authorize():
             return _redirect_to_manager_page(user)
         else:
             collaborator = _update_collaborator_gcal_token(gcal_token)
-            return _redirect_to_collaborator_page(collaborator)
+            return _redirect_to_collaborator_page(g.collaborator)
         
     except Exception as e:
         return _show_error(str(e))
 
 
 def _update_user_gcal_token(auth_token, gcal_token):
-    user = controller.get_user_from_token(auth_token)
+    user = g.controller.get_user_from_token(auth_token)
     if not user:
         raise Exception('Invalid authorization token')
     user.gcal_data.set_token(gcal_token)
-    controller.update_user(user)
+    g.controller.update_user(user)
     return user
 
 
@@ -222,9 +218,9 @@ def _update_collaborator_gcal_token(token):
     if not collaborator_id:
         raise Exception('Malformed redirect URL')
 
-    collaborator = controller.get_collaborator(collaborator_id)
+    collaborator = g.controller.get_collaborator(collaborator_id)
     collaborator.gcal_data.set_token(token)
-    controller.update_user(collaborator)
+    g.controller.update_user(collaborator)
     return collaborator
 
 
@@ -237,7 +233,7 @@ def _redirect_to_collaborator_page(collaborator):
 @auth.login_required
 def get_user(user_id):
     try:
-        response = make_response(controller.get_manager(g.user))
+        response = make_response(g.controller.get_manager(g.user))
         response.set_cookie('auth_token', g.user.procore_data.token.access_token)
         return response
     except Exception as e:
@@ -249,7 +245,7 @@ def get_user(user_id):
 def update_user(user_id):
     try:
         g.user.temporary = False
-        controller.update_user(g.user, request.json)
+        g.controller.update_user(g.user, request.json)
         return _show_success()
     except Exception as e:
         return _show_error(str(e))
@@ -259,7 +255,7 @@ def update_user(user_id):
 @auth.login_required
 def delete_user(user_id):
     try:
-        controller.delete_manager(user_id)
+        g.controller.delete_manager(user_id)
         return _show_success()
     except Exception as e:
         return _show_error(str(e))
@@ -289,5 +285,5 @@ def _update_procore_token(token: dict, refresh_token: str = '', access_token: st
         raise Exception('User not logged in')
     
     user.set_procore_token(token)
-    controller.update_user(user)
+    g.controller.update_user(user)
 

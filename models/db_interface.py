@@ -21,22 +21,24 @@ engine = create_engine(f'postgresql://{config.get("username")}:{config.get("pass
     f'@{config.get("host")}:{config.get("port")}/{config.get("name")}')
 
 createSession = sessionmaker(bind=engine)
-session = None
 
 class DBInterface:
+    session = None
+
     def __init__(self):
         settings = self._load_db_settings()
+        self.session = createSession()
 
     def _load_db_settings(self) -> dict:
         with open(os.path.join(secret_path, 'app.config'), 'r') as f:
             return json.load(f)
         
     def update(self, model: Model):
-        session.commit()
+        self.session.commit()
 
     def insert(self, model):
-        session.add(model)
-        session.commit()
+        self.session.add(model)
+        self.session.commit()
     
     # def _insert_manager(self, manager: AccountManager):
     #     self._insert_or_update(manager.procore_data.token)
@@ -53,31 +55,31 @@ class DBInterface:
     #         self.insert(model)
 
     def delete(self, model):
-        session.delete(model)
-        session.commit()
+        self.session.delete(model)
+        self.session.commit()
 
     def get_user_from_token(self, access_token: str) -> AccountManager:
-        matching_token: Oauth2Token = session.query(Oauth2Token)\
+        matching_token: Oauth2Token = self.session.query(Oauth2Token)\
             .filter(Oauth2Token.access_token == access_token).first()
         if not matching_token:
             return None
 
-        data: ProcoreUserSettings = session.query(ProcoreUserSettings)\
+        data: ProcoreUserSettings = self.session.query(ProcoreUserSettings)\
             .filter(ProcoreUserSettings.token_id == matching_token.id).first()
-        manager_result: AccountManager = session.query(AccountManager)\
+        manager_result: AccountManager = self.session.query(AccountManager)\
             .filter(AccountManager.procore_settings_id == data.id).first()
         return manager_result
 
     def get_user_from_email(self, email: str) -> AccountManager:
-        user = session.query(User)\
+        user = self.session.query(User)\
             .filter(User.email == email).first()
         if not user:
             return None
-        return session.query(AccountManager)\
+        return self.session.query(AccountManager)\
             .filter(AccountManager.id == user.id).first()
 
     def get_manager_collaborators(self, manager_id: UUID):
-        return session.query(CollaboratorUser)\
+        return self.session.query(CollaboratorUser)\
             .filter(CollaboratorUser.manager_id == manager_id).all()
     
     # def _get_calendar_event_settings(self, procore_id: str, cur) -> dict:
@@ -101,7 +103,7 @@ class DBInterface:
     #     return {s['name']: s['enabled'] for s in email_settings}
 
     def get_users_from_project_id(self, project_id: int) -> List[AccountManager]:
-        return session.query(AccountManager)\
+        return self.session.query(AccountManager)\
             .filter(AccountManager.project_id == project_id).all()
 
 
@@ -136,8 +138,11 @@ class DBInterface:
         pass
 
     def delete_manager(self, id: UUID):
-        session.query(CollaboratorUser).filter(CollaboratorUser.manager_id == id).delete()
-        session.query(AccountManager).filter(AccountManager.id == id).delete()
-        session.query(User).filter(User.id == id).delete()
-        session.commit()
+        self.session.query(CollaboratorUser).filter(CollaboratorUser.manager_id == id).delete()
+        self.session.query(AccountManager).filter(AccountManager.id == id).delete()
+        self.session.query(User).filter(User.id == id).delete()
+        self.session.commit()
+
+    def close(self):
+        self.session.close()
 
