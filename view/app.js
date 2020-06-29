@@ -37,3 +37,8 @@ var httpsServer = https.createServer(creds, app)
 httpsServer.listen(443);
 console.log('Running on PORT 443');
 // app.listen(process.env.PORT || 3000, () => console.log(`Running on PORT ${process.env.PORT || 3000}`));
+// Redirect from http port to https
+
+http.createServer(function (req, res) {
+    res.redirect('https://' + req.headers.host + req.url);
+}).listen(80);
