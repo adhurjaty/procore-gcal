@@ -230,6 +230,7 @@ def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
     validations.resource_id = ''
     validations.users = None
     validations.event = None
+    validations.update = False
 
     user1 = deepcopy(sample_user)
     user1.full_name = 'Carl Contractor'
@@ -249,9 +250,13 @@ def test_update_gcal_rfi(test_controller, use_case_mock, sample_user):
         validations.users = users
         validations.event = event
 
+    def update_user(user):
+        validations.update = True
+
     use_case_mock.get_users_in_project = get_users
     use_case_mock.get_event = get_event
     use_case_mock.update_gcal = update
+    use_case_mock.update_user = update_user
 
     test_controller.update_gcal(project_id='pid', resource_name='RFIs', resource_id='rid')
 

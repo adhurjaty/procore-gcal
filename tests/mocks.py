@@ -62,6 +62,9 @@ class ControllerMock:
     def get_user_from_token(self, _):
         return self.manager
 
+    def close(self):
+        pass
+
 
 class MockVMFactory(VMFactory):
     oauth_mock: MockObject = None

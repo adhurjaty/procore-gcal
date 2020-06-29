@@ -169,11 +169,12 @@ def test_get_user_from_token(test_interactor, db_mock, sample_user, sample_colla
 
 
 def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborators, 
-    input_manager):
+    input_manager, presenter_mock):
     
     validations = MockObject()
     validations.table = ''
     validations.update_user = None
+    validations.webhook_user = None
     validations.collabs = []
     ids = 'id1 id2'.split()
 
@@ -187,20 +188,25 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
     def get_collaborators(manager):
         return []
 
+    def update_webhooks(user):
+        validations.webhook_user = user
+
     db_mock.update = update
     db_mock.insert = insert
     db_mock.get_manager_collaborators = get_collaborators
+    presenter_mock.update_webhook_triggers = update_webhooks
 
     user = test_interactor.update_user(input_manager)
 
     assert validations.update_user == user
+    assert validations.webhook_user.parent == user
     assert [c.id for c in user.collaborators] == 'id1 id2'.split()
     assert user.procore_data.token.access_token == 'access'
     assert user.id == '22'
 
 
 def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user, 
-    sample_collaborators, input_manager):
+    sample_collaborators, input_manager, presenter_mock):
     
     validations = MockObject()
     validations.update_user = None
@@ -223,10 +229,14 @@ def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user,
         collab.id = 'id3'
         collab.email = 'anil@procore.com'
         return [collab]
+
+    def update_webhooks(user):
+        pass
     
     db_mock.update = update
     db_mock.insert = insert
     db_mock.get_manager_collaborators = get_collaborators
+    presenter_mock.update_webhook_triggers = update_webhooks
 
     input_manager.parent.collaborators = get_collaborators('asdf')
     input_manager.add_collaborators(sample_collaborators)
@@ -284,7 +294,6 @@ def test_update_manager_remove_collaborators(test_interactor, db_mock, sample_us
 
     input_manager.set_collaborators([new_collab])
     user = test_interactor.update_user(input_manager)
-    test_interactor.running_thread.join()
 
     assert validations.update_user == user
     assert set(c.id for c in validations.deletes) == set('id1 id2'.split())

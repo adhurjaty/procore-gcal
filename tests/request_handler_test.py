@@ -6,6 +6,7 @@ import re
 
 from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
 import controller.request_handler as rh
+from controller.controller_factory import ControllerFactory
 import controller.api_endpoints as endpoints
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.user_dto import UserDto
@@ -34,7 +35,8 @@ def controller_mock() -> ControllerMock:
 
 @pytest.fixture(scope='module')
 def test_client(controller_mock):
-    app = rh.create_app(controller_mock)
+    ControllerFactory.create = lambda: controller_mock
+    app = rh.create_app()
 
     testing_client = app.test_client()
 
@@ -292,7 +294,7 @@ def test_delete_user(test_client, user_controller_mock):
     def test_delete(user_id):
         verifications.user_id = user_id
 
-    user_controller_mock.delete_user = test_delete 
+    user_controller_mock.delete_manager = test_delete 
 
     test_client.delete('/users/69', headers={'Authorization': 'Bearer token'})
 

@@ -104,7 +104,7 @@ def test_create_new_webhooks(oauth_mock, sample_user, procore_vm):
         return OauthResponseMock([])
 
     def post(uri, json={}):
-        if uri == endpoints.PROCORE_WEBHOOKS:
+        if uri == endpoints.PROCORE_WEBHOOKS.format(project_id=12345):
             verifications.hook_created = True
             return hook
             
@@ -169,9 +169,9 @@ def test_add_to_existing_webhooks(oauth_mock, sample_user, procore_vm):
     }
 
     def get(uri):
-        if uri == endpoints.PROCORE_WEBHOOKS:
+        if uri == endpoints.PROCORE_WEBHOOKS.format(project_id=12345):
             return OauthResponseMock([hook])
-        if uri == endpoints.PROCORE_TRIGGERS.format(hook_id=43593499):
+        if uri == endpoints.PROCORE_TRIGGERS.format(hook_id=43593499, project_id=12345):
             return OauthResponseMock([
                 trigger_template(a) for a in 'create update delete'.split()
             ])
@@ -231,9 +231,9 @@ def test_add_and_delete_webhooks(oauth_mock, sample_user, procore_vm):
     }
 
     def get(uri):
-        if uri == endpoints.PROCORE_WEBHOOKS:
+        if uri == endpoints.PROCORE_WEBHOOKS.format(project_id=12345):
             return OauthResponseMock([hook])
-        if uri == endpoints.PROCORE_TRIGGERS.format(hook_id=43593499):
+        if uri == endpoints.PROCORE_TRIGGERS.format(hook_id=43593499, project_id=12345):
             return OauthResponseMock([
                 trigger_template(a) for a in 'create update delete'.split()
             ])
@@ -268,7 +268,10 @@ def test_add_and_delete_webhooks(oauth_mock, sample_user, procore_vm):
             ('RFIs', 'delete')
         }
     assert verifications.deletes == \
-        [endpoints.PROCORE_TRIGGER.format(hook_id='43593499', trigger_id='231346546')] * 3
+        [endpoints.PROCORE_TRIGGER.format(
+            hook_id='43593499', 
+            trigger_id='231346546',
+            project_id=12345)] * 3
 
 
 def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_event: Rfi):

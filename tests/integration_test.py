@@ -9,6 +9,7 @@ import controller.request_handler as rh
 from controller.controller import Controller
 from controller.presenter import Presenter
 from controller.vm_factory import VMFactory
+from controller.controller_factory import ControllerFactory
 from interactor.use_case_interactor import UseCaseInteracor
 from models.account_manager import AccountManager
 
@@ -57,6 +58,7 @@ def live_use_cases(live_presenter, db_mock):
 @pytest.fixture(scope='function')
 def test_controller(test_use_cases: UseCaseInteracor):
     cont = Controller(test_use_cases)
+    ControllerFactory.create = lambda: cont
     return cont
 
 
@@ -67,7 +69,7 @@ def live_controller(live_use_cases):
 
 @pytest.fixture(scope='function')
 def test_client(test_controller: Controller):
-    app = rh.create_app(test_controller)
+    app = rh.create_app()
 
     testing_client = app.test_client()
 
