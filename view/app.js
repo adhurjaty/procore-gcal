@@ -39,6 +39,9 @@ console.log('Running on PORT 443');
 // app.listen(process.env.PORT || 3000, () => console.log(`Running on PORT ${process.env.PORT || 3000}`));
 // Redirect from http port to https
 
-http.createServer(function (req, res) {
-    res.redirect('https://' + req.headers.host + req.url);
-}).listen(80);
+const httpApp = express();
+httpApp.get("*", function (req, res, next) {
+    res.redirect("https://" + req.headers.host + req.path);
+});
+const httpServer = http.createServer(httpApp);
+httpServer.listen(80, () => console.log(`HTTP server listening: http://localhost`));

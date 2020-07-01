@@ -4,6 +4,12 @@ import './App.css';
 import Header from './components/Header';
 import AppRouter from './AppRouter';
 
+const MainContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+`
+
 const BodyContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -11,12 +17,12 @@ const BodyContainer = styled.div`
 
 function App() {
     return (
-        <div className="App">
+        <MainContainer>
             <Header />
             <BodyContainer>
                 <AppRouter />
             </BodyContainer>
-        </div>
+        </MainContainer>
     );
 }
 

@@ -5,10 +5,10 @@ import { getUserSettings, updateUser, deleteUser, StatusMessage } from '../backe
 import UserSettingsForm from '../components/UserSettingsForm';
 import User from '../models/user';
 import { USER_SETTINGS_ROUTE } from '../Routes';
-import Cookies from 'js-cookie'
 import EmailSetting from '../models/emailSetting';
 import { SelectableItem } from '../models/interfaces';
 import EventType from '../models/eventType';
+import { LogOut } from '../util/helpers';
 
 const DeleteUserButton = styled.button`
     background-color: red
@@ -36,7 +36,7 @@ function EditUser(): JSX.Element {
             }
         })
         .catch((error) => {
-            Cookies.remove('auth_token');
+            LogOut()
             window.location.href = '/';
         });
     }, [])
