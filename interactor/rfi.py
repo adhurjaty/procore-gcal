@@ -31,4 +31,6 @@ class Rfi(ProcoreEvent):
         self.cost_code = self.cost_code and self.cost_code.get('name')
         self.questions = self.questions and '\n'.join(q.get('plain_text_body') 
             for q in self.questions)
+
+        return self
     

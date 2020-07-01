@@ -85,8 +85,8 @@ class GCalViewModel:
 
         parallel_for(set_submittal_event, split_submittal())
 
-    def set_event(self, event, title):
-        existing_event = self._find_existing_event(title)
+    def set_event(self, event: ProcoreEvent, title: str):
+        existing_event = self._find_existing_event(event, title)
         if existing_event and event.deleted:
             self.delete_event(existing_event)
         if event.deleted:
@@ -150,11 +150,15 @@ class GCalViewModel:
         self.user.gcal_data.set_token(token)
         self.oauth.token = token
 
-    def _find_existing_event(self, title: str) -> dict:
-        query_url = f'{self._events_endpoint()}?{urlencode({"q": title})}'
+    def _find_existing_event(self, event: ProcoreEvent, title: str) -> dict:
+        identifier = self._get_event_id(event, title)
+        query_url = f'{self._events_endpoint()}?{urlencode({"q": identifier})}'
         resp = self.oauth.get(query_url)
         items = resp and resp.json().get('items')
         return items and items[0]
+
+    def _get_event_id(self, event: ProcoreEvent, title: str) -> str:
+        return event.link or title
 
     def create_event(self, event: GCalEvent):
         self.oauth.post(self._events_endpoint(), json=event.to_dict())
