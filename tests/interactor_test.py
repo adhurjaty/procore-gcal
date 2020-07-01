@@ -1,6 +1,6 @@
 import pytest
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta, date
 import json
 import os
 from pathlib import Path
@@ -336,6 +336,35 @@ def test_get_users_in_project(test_interactor, db_mock):
 
     assert all(isinstance(u, AccountManagerDto) for u in users_result)
     assert [u.parent for u in users_result] == users
+
+
+def test_get_users_trial_expired(test_interactor, db_mock):
+    users = [AccountManager(), AccountManager()]
+    users[0].subscribed = True
+    users[1].subscribed = False
+    users[1].trial_start = datetime(2020, 1, 1)
+
+    db_mock.get_users_from_project_id = lambda x: users
+
+    users_result = test_interactor.get_users_in_project('pid')
+
+    assert len(users_result) == 1
+    assert isinstance(users_result[0], AccountManagerDto)
+    assert users_result[0].parent == users[0]
+
+
+def test_get_users_trial_valid(test_interactor, db_mock):
+    users = [AccountManager(), AccountManager()]
+    users[0].subscribed = True
+    users[1].subscribed = False
+    start_date = datetime.today() - timedelta(days=22)
+    users[1].trial_start = start_date
+
+    db_mock.get_users_from_project_id = lambda x: users
+
+    users_result = test_interactor.get_users_in_project('pid')
+
+    assert len(users_result) == 2
 
 
 def test_update_gcal(test_interactor, presenter_mock, sample_user):

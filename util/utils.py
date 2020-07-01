@@ -2,6 +2,7 @@ from base64 import b64encode, b64decode
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
+import json
 from multiprocessing import Process
 import os
 from pathlib import Path
@@ -10,7 +11,10 @@ from urllib.parse import urlparse, urlencode, urlunparse
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-PRIVATE_KEY_FILE = os.path.join(script_dir, '..', 'secrets', 'csrf_token_key.pem')
+secrets_dir = os.path.join(script_dir, '..', 'secrets')
+PRIVATE_KEY_FILE = os.path.join(secrets_dir, 'csrf_token_key.pem')
+config_file = os.path.join(secrets_dir, 'app.config')
+
 
 def parallel_for(fn, arg_list):
     lock = Lock()
@@ -63,4 +67,10 @@ def verify_token(oauth_token: str, sig: str) -> bool:
 
     verifier = PKCS1_v1_5.new(private_key.publickey())
     return verifier.verify(digest, b64decode(sig))
+
+
+def get_trial_period_days() -> int:
+    with open(config_file, 'r') as f:
+        config = json.load(f)
+    return config.get('TRIAL_PERIOD')
 

@@ -1,6 +1,7 @@
+import arrow
 from typing import List, Set
 
-from util.utils import parallel_for
+from util.utils import parallel_for, get_trial_period_days
 from .presenter_interface import PresenterInterface
 from .account_manager_dto import AccountManagerDto
 from .account_manager_response import AccountManagerResponse
@@ -94,7 +95,17 @@ class UseCaseInteracor:
 
     def get_users_in_project(self, project_id: int) -> List[AccountManagerDto]:
         return [AccountManagerDto(a) 
-            for a in self.db_int.get_users_from_project_id(project_id)]
+            for a in self._get_valid_users(project_id)]
+
+    def _get_valid_users(self, project_id: int):
+        return (user for user in self.db_int.get_users_from_project_id(project_id)
+            if user.subscribed or self._is_trial_period(user))
+
+    def _is_trial_period(self, user: AccountManager) -> bool:
+        start_date = arrow.get(user.trial_start)
+        now_date = arrow.utcnow()
+
+        return (now_date - start_date).days < get_trial_period_days()
 
     def get_event(self, user: UserDto, resource_name: str = '', 
         resource_id: int = 0) -> ProcoreEvent:

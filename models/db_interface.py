@@ -40,20 +40,6 @@ class DBInterface:
         self.session.add(model)
         self.session.commit()
     
-    # def _insert_manager(self, manager: AccountManager):
-    #     self._insert_or_update(manager.procore_data.token)
-    #     self._insert_or_update(manager.procore_data)
-    #     if manager.gcal_data.token.access_token:
-    #         self._insert_or_update(manager.gcal_data.token)
-    #         self._insert_or_update(manager.gcal_data)
-    #     session.add(manager)
-
-    # def _insert_or_update(self, model):
-    #     if model.id:
-    #         self.update(model)
-    #     else:
-    #         self.insert(model)
-
     def delete(self, model):
         self.session.delete(model)
         self.session.commit()
@@ -82,30 +68,10 @@ class DBInterface:
         return self.session.query(CollaboratorUser)\
             .filter(CollaboratorUser.manager_id == manager_id).all()
     
-    # def _get_calendar_event_settings(self, procore_id: str, cur) -> dict:
-    #     query = '''SELECT ces.name, uces.enabled FROM CalendarEventSettings ces
-    #         INNER JOIN UserCalendarEventSettings uces ON ces.id = uces.event_id
-    #         WHERE uces.procore_id = %(procore_id)s
-    #     '''
-    #     cur.execute(query, {'procore_id': procore_id})
-    #     calendar_settings = cur.fetchall()
-
-    #     return {s['name']: s['enabled'] for s in calendar_settings}
-
-    # def _get_email_settings(self, procore_id: str, cur) -> dict:
-    #     query = '''SELECT es.name, ues.enabled FROM EmailSettings es
-    #         INNER JOIN UserEmailSettings ues ON es.id = ues.setting_id
-    #         WHERE ues.procore_id = %(procore_id)s
-    #     '''
-    #     cur.execute(query, {'procore_id': procore_id})
-    #     email_settings = cur.fetchall()
-
-    #     return {s['name']: s['enabled'] for s in email_settings}
-
     def get_users_from_project_id(self, project_id: int) -> List[AccountManager]:
         return self.session.query(AccountManager)\
-            .filter(AccountManager.project_id == project_id).all()
-
+            .filter(AccountManager.project_id == project_id and not AccountManager.temporary)\
+            .all()
 
     def get_user_collaborators(self, user) -> List[CollaboratorUser]:
         cur = self.conn.cursor()
