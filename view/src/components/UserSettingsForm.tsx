@@ -20,7 +20,8 @@ const Container = styled.div`
     padding: 10px;
     max-width: 600px;
     @media (min-width: 700px) {
-        border: 1px solid gray;
+        border: 1px solid lightgray;
+        border-radius: 25px;
     }
 `
 

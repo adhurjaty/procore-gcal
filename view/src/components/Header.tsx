@@ -11,23 +11,27 @@ const NavBar = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding-left: 2%;
+    padding-left: 20px;
     padding-right: 2%;
     height: 50px;
-    background: rgb(220,220,220);
     align-items: center;
+    margin-bottom: 10px;
 `;
+
+const LogoutButton = styled.a`
+    font-size: 0.95em;
+`
 
 function Header(): JSX.Element {
     return (
         <NavBar>
             <span><b>Procore Calendar Integrator</b></span>
             {IsLoggedIn() &&
-                <a className="pseudo button" 
+                <LogoutButton className="pseudo button" 
                     href="/"
                     onClick={(e) => LogOut()}>
                     Log Out
-                </a>
+                </LogoutButton>
             }
         </NavBar>
     )

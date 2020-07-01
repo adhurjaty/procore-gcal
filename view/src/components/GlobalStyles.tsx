@@ -3,7 +3,8 @@ import styled from 'styled-components';
 
 export const Heading = styled.h2`
     align-self: center;
-`
+    font-size: 1.2em;
+` 
 
 export const InputSection = styled.div`
     display: flex;
