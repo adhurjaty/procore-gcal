@@ -1,0 +1,64 @@
+{
+    "id": 13231, 
+    "number": "3", 
+    "revision": "0", 
+    "title": "this new submittal", 
+    "approvers": [], 
+    "attachments_count": 0, 
+    "ball_in_court": [
+        {
+            "id": 48, 
+            "name": "Test Architect", 
+            "locale": "", 
+            "login": "sandbox+arch@procore.com"}
+    ], 
+    "created_at": "2020-07-02T17:27:32Z", 
+    "created_by": {
+        "id": 19443, 
+        "name": "Anil Dhurjaty", 
+        "locale": "", 
+        "login": "adhurjaty@gmail.com"
+    }, 
+    "current_revision": true, 
+    "distributed_at": "", 
+    "due_date": "", 
+    "formatted_number": "3", 
+    "issue_date": "2020-07-02", 
+    "private": false, 
+    "received_date": "", 
+    "received_from": "", 
+    "submit_by": "", 
+    "submittal_manager": {
+        "id": 48, 
+        "name": "Test Architect", 
+        "locale": "", 
+        "login": "sandbox+arch@procore.com"
+    }, 
+    "submittal_package": "", 
+    "type": "", 
+    "updated_at": "2020-07-02T17:27:32Z", 
+    "open_date": "", 
+    "actual_delivery_date": "", 
+    "confirmed_delivery_date": "", 
+    "custom_textarea_1": "", 
+    "custom_textfield_1": "", 
+    "description": "", 
+    "design_team_review_time": "", 
+    "distribution_members": [], 
+    "distributed_submittals": [], 
+    "internal_review_time": "", 
+    "lead_time": "", 
+    "required_on_site_date": "2020-07-04", 
+    "location": "", 
+    "responsible_contractor": "", 
+    "specification_section": "", 
+    "sub_job": "", 
+    "status": {
+        "id": 1, 
+        "name": "Open", 
+        "status": "Open"
+    }, 
+    "attachments": [], 
+    "cost_code": "", 
+    "scheduled_task": ""
+}
