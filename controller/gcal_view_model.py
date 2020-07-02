@@ -77,6 +77,8 @@ class GCalViewModel:
                 temp_submittal.submittal_type = status_str
                 temp_submittal.due_date = submittal.required_on_site_date \
                     if is_on_site else submittal.due_date
+                if not temp_submittal.due_date:
+                    continue
                 yield temp_submittal
 
         def set_submittal_event(sub: Submittal):
@@ -130,9 +132,12 @@ class GCalViewModel:
         text += hasattr(event, 'submittal_type') and f'Submittal Type: {event.submittal_type}\n' or ''
         text += hasattr(event, 'assignees') and f'Assignees: {self.render_people(event.assignees)}\n' or ''
         text += hasattr(event, 'ball_in_court') and f'Assignee: {self.render_person(event.ball_in_court)}\n' or ''
-        text += hasattr(event, 'approver') and f'Approver: {self.render_person(event.approver)}\n' or ''
-        text += hasattr(event, 'rfi_manager') and f'RFI Manager: {self.render_person(event.rfi_manager)}\n' or ''
-        text += hasattr(event, 'schedule_impact') and (f'Schedule Impact: {event.schedule_impact}' + \
+        text += hasattr(event, 'approver') and event.approver \
+            and f'Approver: {self.render_person(event.approver)}\n' or ''
+        text += hasattr(event, 'rfi_manager') and event.rfi_manager \
+            and f'RFI Manager: {self.render_person(event.rfi_manager)}\n' or ''
+        text += hasattr(event, 'schedule_impact') and event.schedule_impact \
+            and (f'Schedule Impact: {event.schedule_impact}' + \
             f' {p_engine.plural("day", event.schedule_impact)}\n') or ''
         text += hasattr(event, 'cost_impact') and f'Cost Impact: ${event.cost_impact}\n' or ''
         text += hasattr(event, 'cost_code') and f'Cost Code: {event.cost_code}\n' or ''

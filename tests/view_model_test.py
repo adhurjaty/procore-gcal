@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 from .mocks import OauthMock, MockObject, OauthResponseMock, ControllerMock
+from .test_util import load_json
 from controller.gcal_view_model import GCalViewModel
 from controller.procore_view_model import ProcoreViewModel
 from controller.web_view_model import WebViewModel
@@ -81,6 +82,15 @@ def submittal_event() -> Submittal:
     submittal = Submittal()
     submittal.link = 'https://procore.com/submittal/42'
     submittal.update_from_dict(contents_dict)
+    submittal.deleted = False
+    return submittal
+
+
+@pytest.fixture(scope='module')
+def submittal_no_final_event():
+    submittal = Submittal()
+    submittal.update_from_dict(load_json('new_submittal.json'))
+    submittal.link = 'https://procore.com/submittal/42'
     submittal.deleted = False
     return submittal
 
@@ -313,7 +323,7 @@ def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_eve
 
 
 def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, 
-    submittal_event: Rfi):
+    submittal_event: Submittal):
 
     validations = MockObject()
     validations.q_endpoint = ''
@@ -358,6 +368,35 @@ def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock,
     assert final_sub.get('end') == {'date': '2014-07-22'}
     for event in validations.events:
         assert event.get('location') == '1 space'
+
+
+def test_create_submittal_event_no_final(gcal_vm: GCalViewModel, oauth_mock: OauthMock, 
+    submittal_no_final_event: Submittal):
+
+    validations = MockObject()
+    validations.q_endpoint = ''
+    validations.qs = []
+    validations.create_endpoint = ''
+    validations.events = []
+
+    def oauth_get(endpoint):
+        parts = endpoint.split('?')
+        validations.q_endpoint = parts[0]
+        q = parts[1].strip('q=')
+        validations.qs.append(q)
+        return None
+
+    def oauth_post(endpoint, json=None):
+        validations.create_endpoint = endpoint
+        validations.events.append(json)
+
+    oauth_mock.get = oauth_get
+    oauth_mock.post = oauth_post
+
+    gcal_vm.set_submittal_events(submittal_no_final_event)
+
+    assert len(validations.events) == 1
+    assert validations.events[0]['summary'] == 'Submittal #3 - this new submittal On Site'
 
 
 def test_delete_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_event: Rfi):
