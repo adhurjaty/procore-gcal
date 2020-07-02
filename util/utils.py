@@ -69,8 +69,11 @@ def verify_token(oauth_token: str, sig: str) -> bool:
     return verifier.verify(digest, b64decode(sig))
 
 
-def get_trial_period_days() -> int:
+def get_config() -> dict:
     with open(config_file, 'r') as f:
-        config = json.load(f)
-    return config.get('TRIAL_PERIOD')
+        return json.load(f)
+
+
+def get_trial_period_days() -> int:
+    return get_config().get('TRIAL_PERIOD')
 
