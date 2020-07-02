@@ -158,7 +158,13 @@ class GCalViewModel:
         return items and items[0]
 
     def _get_event_id(self, event: ProcoreEvent, title: str) -> str:
-        return event.link or title
+        sub_type = ''
+        if isinstance(event, Submittal):
+            sub_type = f' Submittal Type: {event.submittal_type}'
+
+        if event.link:
+            return event.link + sub_type
+        return title
 
     def create_event(self, event: GCalEvent):
         self.oauth.post(self._events_endpoint(), json=event.to_dict())

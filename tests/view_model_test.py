@@ -299,7 +299,7 @@ def test_create_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock, rfi_eve
     with open(os.path.join(objects_path, 'rfi_description.txt'), 'r') as f:
         body = f.read()
     assert validations.q_endpoint == '/calendars/42/events'
-    assert validations.q == 'RFI+%23C-1477+-+Specifications+%5B99+14.44B%5D'
+    assert validations.q == 'https%3A%2F%2Fprocore.com%2Frfi%2F42'
     assert validations.create_endpoint == '/calendars/42/events'
     assert validations.event.get('summary') == 'RFI #C-1477 - Specifications [99 14.44B]'
     assert validations.event.get('location') == '1 space'
@@ -342,8 +342,8 @@ def test_create_submittal_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock,
     with open(os.path.join(objects_path, 'submittal_description_final.txt'), 'r') as f:
         body_final = f.read()
     assert validations.q_endpoint == '/calendars/42/events'
-    assert set(validations.qs) == {'Submittal+%23118+-+Smiths+-+Teardown+%26+Assembly+Bldg+On+Site',
-        'Submittal+%23118+-+Smiths+-+Teardown+%26+Assembly+Bldg+Final'}
+    assert set(validations.qs) == {'https%3A%2F%2Fprocore.com%2Fsubmittal%2F42+Submittal+Type%3A+On+Site',
+        'https%3A%2F%2Fprocore.com%2Fsubmittal%2F42+Submittal+Type%3A+Final'}
     assert validations.create_endpoint == '/calendars/42/events'
     assert set(e.get('summary') for e in validations.events) == \
         {'Submittal #118 - Smiths - Teardown & Assembly Bldg On Site',
@@ -392,7 +392,7 @@ def test_delete_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
     gcal_vm.set_rfi_event(rfi_event)
 
     assert validations.q_endpoint == '/calendars/42/events'
-    assert validations.q == 'RFI+%23C-1477+-+Specifications+%5B99+14.44B%5D'
+    assert validations.q == 'https%3A%2F%2Fprocore.com%2Frfi%2F42'
     assert validations.delete_endpoint == '/calendars/42/events/unique_id'
     assert validations.create_endpoint == ''
     assert validations.event == None
@@ -429,7 +429,7 @@ def test_update_existing_rfi_event(gcal_vm: GCalViewModel, oauth_mock: OauthMock
     gcal_vm.set_rfi_event(rfi_event)
 
     assert validations.q_endpoint == '/calendars/42/events'
-    assert validations.q == 'RFI+%23C-1477+-+Specifications+%5B99+14.44B%5D'
+    assert validations.q == 'https%3A%2F%2Fprocore.com%2Frfi%2F42'
     assert validations.patch_endpoint == '/calendars/42/events/unique_id'
     assert validations.create_endpoint == ''
     assert validations.event != None
