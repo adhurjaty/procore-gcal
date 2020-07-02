@@ -118,6 +118,7 @@ class UseCaseInteracor:
         def update_cal(user: AccountManagerDto):
             user_response = AccountManagerResponse(user.parent)
             self.presenter.update_gcal(user_response, event)
+            self.db_int.update(user.parent)
 
         parallel_for(update_cal, users)
 
