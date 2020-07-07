@@ -21,8 +21,8 @@ from util.utils import parallel_for
 
 
 RESROUCE_ID_PREFIX = 'Procore resource ID: '
-secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
 p_engine = inflect.engine()
+
 
 class ViewMode(Enum):
     PLAIN_TEXT = 0

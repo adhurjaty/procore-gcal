@@ -12,7 +12,7 @@ def test_sign_verify_token():
 
 
 def test_logger_correct_type():
-    assert isinstance(al.logger, al.AppLogger)
+    assert isinstance(al.get_logger(), al.AppLogger)
 
 
 def test_logger_error_send_email():
@@ -27,7 +27,7 @@ def test_logger_error_send_email():
         'EMAIL_PASSWORD': 'LKASDJFLK'
     }
 
-    logger = al.logger
+    logger = al.get_logger()
     logger.emailer = MockObject()
     logger.emailer.send_email = send_email
     

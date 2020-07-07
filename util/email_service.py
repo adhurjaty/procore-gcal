@@ -1,7 +1,8 @@
 import yagmail
 import logging
+import os
 
-from .utils import get_config
+from .utils import get_config, secrets_dir
 
 
 config = get_config()
@@ -14,8 +15,12 @@ class EmailService:
 
         def __init__(self):
             pass
-            # self.yag = yagmail.SMTP(config.get('EMAIL_USERNAME'), 
-            #         oauth2_file='')
+            # try:
+            #     self.yag = yagmail.SMTP(user=config.get('EMAIL_USERNAME'), 
+            #         password='foo')
+            #         # oauth2_file=os.path.join(secrets_dir, 'Procore-gcal-811fa2f8f4da.json'))
+            # except:
+            #     pass
 
         def send_email(self, to=[], subject='', contents=''):
             try:
@@ -27,6 +32,8 @@ class EmailService:
     def __init__(self):
         if not EmailService.instance:
             EmailService.instance = EmailService.__EmailService()
+            if not EmailService.instance:
+                raise Exception('could not instantiate email service')
 
     def __getattr__(self, name):
         return getattr(self.instance, name)

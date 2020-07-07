@@ -10,7 +10,7 @@ from .api_endpoints import *
 from .controller import Controller
 import controller.server_connector as connector
 from controller.controller_factory import ControllerFactory
-from util.utils import parallel_for, build_url
+from util.utils import parallel_for, build_url, get_config
 import models.db_interface as db_int
 
 
@@ -31,11 +31,7 @@ app = Flask(__name__)
 auth = HTTPTokenAuth(scheme='Bearer')
 
 oauth: OAuth = None
-
-config_file = 'secrets/app.config'
-with open(config_file, 'r') as f:
-    config_contents = f.read()
-config = json.loads(config_contents)
+config = get_config()
 
 
 def create_app() -> Flask:

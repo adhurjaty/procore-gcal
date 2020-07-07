@@ -2,8 +2,7 @@ from authlib.integrations.requests_client import OAuth2Session
 import os
 import json
 from pathlib import Path
-
-secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
+from util.utils import get_config
 
 
 class OauthSessionWrapper:
@@ -16,8 +15,7 @@ class OauthSessionWrapper:
         self.oauth = OAuth2Session(**oauth_settings, token=token, update_token=update_token)
 
     def _get_oauth_settings(self, config_prefix: str) -> dict:
-        with open(os.path.join(secret_path, 'app.config'), 'r') as f:
-            oauth_settings = json.load(f)
+        oauth_settings = get_config()
         prefix = config_prefix.upper()
         return {
             'client_id': oauth_settings.get(f'{prefix}_CLIENT_ID'),

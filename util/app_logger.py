@@ -8,7 +8,11 @@ config = get_config()
 
 
 class AppLogger(logging.Logger):
-    emailer = EmailService()
+    emailer = None
+
+    def __init__(self, name, level=logging.NOTSET):
+        super().__init__(name, level)
+        self.emailer = EmailService()
 
     def error(self, msg, *args, stacktrace='', **kwargs):
         super().error(msg, *args, **kwargs)
@@ -25,4 +29,11 @@ class AppLogger(logging.Logger):
 logging.setLoggerClass(AppLogger)
 logging.basicConfig()
 
-logger = logging.getLogger(__name__)
+__logger = None
+
+def get_logger():
+    global __logger
+
+    if __logger is None:
+        __logger = logging.getLogger(__name__)
+    return __logger

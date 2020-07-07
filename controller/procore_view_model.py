@@ -12,7 +12,6 @@ from util.utils import parallel_for
 
 
 API_VERSION = 'v2'
-secret_path = os.path.join(Path(os.path.realpath(__file__)).parent.parent, 'secrets')
 
 
 class ProcoreHook:
