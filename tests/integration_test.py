@@ -16,6 +16,7 @@ from interactor.use_case_interactor import UseCaseInteracor
 from interactor.rfi import Rfi
 from models.account_manager import AccountManager
 from models.db_interface import DBInterface
+from util.email_service import EmailService
 
 test_path = Path(os.path.realpath(__file__)).parent
 
@@ -167,23 +168,29 @@ def test_update_gcal_integration(test_client, mock_oauth, db_mock, sample_user):
     }
 
 
-def test_update_existing_rfi():
-    db_int = DBInterface()
+# def test_update_existing_rfi():
+#     db_int = DBInterface()
 
-    user = db_int.get_user_from_email('adhurjaty@gmail.com')
-    rfi_resp = load_json('rfi.json')
-    due_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
-    rfi_resp['due_date'] = due_date
-    rfi = Rfi().update_from_dict(rfi_resp)
-    rfi.deleted = False
+#     user = db_int.get_user_from_email('adhurjaty@gmail.com')
+#     rfi_resp = load_json('rfi.json')
+#     due_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
+#     rfi_resp['due_date'] = due_date
+#     rfi = Rfi().update_from_dict(rfi_resp)
+#     rfi.deleted = False
 
-    vm = GCalViewModel(user)
-    vm.set_rfi_event(rfi)
+#     vm = GCalViewModel(user)
+#     vm.set_rfi_event(rfi)
 
-    rfi.questions = 'this is a new question?'
-    vm.set_rfi_event(rfi)
+#     rfi.questions = 'this is a new question?'
+#     vm.set_rfi_event(rfi)
 
-    db_int.close()
+#     db_int.close()
+
+
+def test_send_test_email():
+    email_service = EmailService()
+
+    email_service.send_email('adhurjaty@gmail.com', 'app test', 'app test')
 
 # def test_sign_up_user(test_client, mock_oauth, db_mock):
 
