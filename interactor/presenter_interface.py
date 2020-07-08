@@ -28,3 +28,7 @@ class PresenterInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def update_webhook_triggers(self, user: AccountManagerResponse):
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def send_signup_email(self, user: AccountManagerResponse):
+        raise NotImplementedError

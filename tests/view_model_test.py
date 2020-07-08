@@ -11,6 +11,7 @@ from controller.procore_view_model import ProcoreViewModel
 from controller.web_view_model import WebViewModel
 import controller.server_connector as server_connector
 import controller.api_endpoints as endpoints
+from controller.email_view_model import EmailViewModel
 from interactor.account_manager_dto import AccountManagerDto
 from interactor.account_manager_response import AccountManagerResponse
 from interactor.user_response import UserResponse
@@ -641,6 +642,17 @@ def test_get_manager_vm():
         'projectId': 77,
         'projects': [{'id': 88, 'name': 'p1'}, {'id': 77, 'name': 'p2'}],
         'csrfToken':'hj65Uh3paa0/VfCAWG+v0KyeFI2XYdEkNM0zdSM8TpuzT07jQzS0701xVxhupvcky7ups+2KE0vaHtS1Og1QlBNCuhPRbQzIeWPq+uyYY53XdGXosPZCLqFv92Re/NA/V99j6mjGBgtBUhWFCxYRwzVXHgGmGbWY3oRlcDyzqmI='
+    }
+
+
+def test_signup_email_vm(sample_user):
+    vm = EmailViewModel(sample_user)
+    email_contents = vm.signup_email()
+
+    assert email_contents == {
+        'full_name': 'Sean Black',
+        'link': 'http://localhost:3000',
+        'subject': 'Welcome to Procore Calendar Integrator'
     }
 
 

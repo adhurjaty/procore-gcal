@@ -16,8 +16,11 @@ from interactor.user_response import UserResponse
 from models import *
 from interactor.named_item import NamedItem
 from util.utils import get_signed_token
+import util.email_service as es
+
 
 objects_path = os.path.join(Path(os.path.realpath(__file__)).parent, 'objects')
+
 
 @pytest.fixture(scope='function')
 def use_case_mock():
@@ -414,3 +417,45 @@ def test_set_manager_selections(test_presenter, vm_factory_mock, sample_user):
                 'name': 'My Other Personal Calendar'
             }
         ]
+
+
+signup_contents = '''
+Hello Anil Dhurjaty,
+
+Welcome to Procore Calendar Integrator. Get started by updating your user information here: http://localhost:3000.
+
+Once you have set your preferences, continue managing RFIs and Submittals and see that your Google Calendar updates.
+
+Best,
+Procore Calendar Integrator team
+'''.strip()
+
+def test_send_signup_email(test_presenter, vm_factory_mock, sample_user):
+    validations = MockObject()
+    validations.email_data = {}
+
+    mock_emailer = MockObject()
+    presenter.EmailService = lambda: mock_emailer
+
+    def send_email(**kwargs):
+        validations.email_data = kwargs
+
+    def create_vm(user):
+        vm = MockObject()
+        vm.signup_email = lambda: {
+            'subject': 'Welcome to Procore Calendar Integrator',
+            'full_name': 'Anil Dhurjaty',
+            'link': 'http://localhost:3000'
+        }
+        return vm
+
+    mock_emailer.send_email = send_email
+    vm_factory_mock.create_email_vm = create_vm
+
+    test_presenter.send_signup_email(sample_user)
+
+    assert validations.email_data == {
+        'to': 'adhurjaty@gmail.com',
+        'subject': 'Welcome to Procore Calendar Integrator',
+        'contents': signup_contents
+    }

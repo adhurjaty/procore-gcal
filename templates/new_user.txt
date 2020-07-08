@@ -1,0 +1,8 @@
+Hello {full_name},
+
+Welcome to Procore Calendar Integrator. Get started by updating your user information here: {link}.
+
+Once you have set your preferences, continue managing RFIs and Submittals and see that your Google Calendar updates.
+
+Best,
+Procore Calendar Integrator team

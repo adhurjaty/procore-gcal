@@ -1,4 +1,5 @@
 from typing import List
+import os
 
 from .gcal_view_model import GCalViewModel
 from .procore_view_model import ProcoreViewModel
@@ -12,6 +13,11 @@ from interactor.rfi import Rfi
 from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
 from interactor.named_item import NamedItem
+from util.email_service import EmailService
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+email_template_dir = os.path.join(script_dir, '..', 'templates')
+
 
 class Presenter(PresenterInterface):
     vm_factory: VMFactory = None
@@ -82,3 +88,16 @@ class Presenter(PresenterInterface):
     def update_webhook_triggers(self, user: AccountManagerResponse):
         vm = self.vm_factory.create_procore_vm(user=user)
         vm.register_webhooks()
+
+    def send_signup_email(self, user: AccountManagerResponse):
+        vm = self.vm_factory.create_email_vm(user)
+        email_view = os.path.join(email_template_dir, 'new_user.txt')
+        email_vars = vm.signup_email()
+        with open(email_view, 'r') as f:
+            email_template = f.read()
+        contents = email_template.format(**email_vars)
+
+        emailer = EmailService()
+        emailer.send_email(to=user.email, subject=email_vars.get('subject'), 
+            contents=contents)
+

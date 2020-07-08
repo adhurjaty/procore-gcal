@@ -31,11 +31,13 @@ class EmailService:
             service = build('gmail', 'v1', credentials=delegated_credentials)
             return service
 
-        def send_email(self, to=[], subject='', contents=''):
+        def send_email(self, to=[], subject='', contents='', cc=[], bcc=[]):
             msg = MIMEText(contents)
             msg['from'] = self.from_addr
             msg['to'] = to
             msg['subject'] = subject
+            msg['cc'] = ', '.join(cc)
+            msg['bcc'] = ', '.join(bcc)
             try:
                 message = {'raw': base64.urlsafe_b64encode(msg.as_bytes()).decode('utf-8')}
                 message_to_send = self.service.users().messages().send(
