@@ -240,7 +240,6 @@ def get_user(user_id):
 @auth.login_required
 def update_user(user_id):
     try:
-        g.user.temporary = False
         g.controller.update_user(g.user, request.json)
         return _show_success()
     except Exception as e:

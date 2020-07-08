@@ -172,7 +172,6 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
     input_manager, presenter_mock):
     
     validations = MockObject()
-    validations.table = ''
     validations.update_user = None
     validations.webhook_user = None
     validations.collabs = []
@@ -203,6 +202,47 @@ def test_update_manager(test_interactor, db_mock, sample_user, sample_collaborat
     assert [c.id for c in user.collaborators] == 'id1 id2'.split()
     assert user.procore_data.token.access_token == 'access'
     assert user.id == '22'
+
+
+def test_update_manager_send_email(test_interactor, db_mock, sample_user, input_manager,
+    presenter_mock):
+
+    validations = MockObject()
+    validations.update_user = None
+    validations.webhook_user = None
+    validations.email_user = None
+    validations.collabs = []
+    ids = 'id1 id2'.split()
+
+    def insert(model):
+        model.id = ids[len(validations.collabs)]
+        validations.collabs.append(model)
+
+    def update(model):
+        validations.update_user = model
+
+    def get_collaborators(manager):
+        return []
+
+    def update_webhooks(user):
+        validations.webhook_user = user
+
+    def send_email(user):
+        validations.email_user = user
+
+    db_mock.update = update
+    db_mock.insert = insert
+    db_mock.get_manager_collaborators = get_collaborators
+    presenter_mock.update_webhook_triggers = update_webhooks
+    presenter_mock.send_signup_email = send_email
+
+    input_manager.temporary = True
+
+    user = test_interactor.update_user(input_manager)
+
+    assert validations.update_user == user
+    assert isinstance(validations.email_user, AccountManagerResponse)
+    assert validations.email_user.parent == input_manager.parent
 
 
 def test_update_manager_new_collaborators(test_interactor, db_mock, sample_user, 

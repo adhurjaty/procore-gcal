@@ -2,6 +2,7 @@ import arrow
 from typing import List, Set
 
 from util.utils import parallel_for, get_trial_period_days
+from util.email_service import EmailService
 from .presenter_interface import PresenterInterface
 from .account_manager_dto import AccountManagerDto
 from .account_manager_response import AccountManagerResponse
@@ -74,6 +75,10 @@ class UseCaseInteracor:
             self._create_or_remove_collaborators(model_user)
             self._update_webhook_triggers(user)
 
+            if model_user.temporary:
+                self.presenter.send_signup_email(AccountManagerResponse(model_user))
+
+        model_user.temporary = False
         self.db_int.update(model_user)
         return model_user
 
