@@ -10,4 +10,4 @@ node_modules/
 view/yarn-error.log
 build/
 pgdata/
-outreach.py
+outreach.*

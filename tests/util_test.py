@@ -31,7 +31,7 @@ def test_logger_error_send_email():
     logger.emailer = MockObject()
     logger.emailer.send_email = send_email
     
-    logger.error('this error', 'my stack')
+    logger.error('this error', stacktrace='my stack')
     
     assert validations.contents == {
         'to': 'foo@example.com',

@@ -9,8 +9,12 @@ from interactor.submittal import Submittal
 from interactor.change_order import ChangeOrder
 from interactor.person import Person
 from util.utils import verify_token
+from util.app_logger import get_logger
+
 
 procore_token_file = 'temp_db/procore_token.json'
+logger = get_logger()
+
 
 class Controller:
     use_case: UseCaseInteracor = None
